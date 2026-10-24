@@ -1,0 +1,21 @@
+{
+  "_note": "Synthetic demo world loosely placed over Paradise, CA (2018 Camp Fire area). Station locations, units, fuel and residents are invented; the fire model is simplified. Not real operational data.",
+  "name": "paradise-demo",
+  "grid": {"origin_lat": 39.70, "origin_lon": -121.68, "cell_size_m": 300, "rows": 60, "cols": 80},
+  "speed": 30,
+  "wind": {"speed_mps": 12, "from_deg": 60},
+  "stations": [
+    {"id": 1, "name": "Station 81 (Paradise)", "lat": 39.7596, "lon": -121.6219},
+    {"id": 2, "name": "Station 82 (Pentz)", "lat": 39.7790, "lon": -121.5770},
+    {"id": 3, "name": "Station 35 (Magalia)", "lat": 39.8110, "lon": -121.5790}
+  ],
+  "units": [
+    {"id": 1, "station_id": 1, "callsign": "E81", "kind": "engine", "capacity": 4},
+    {"id": 2, "station_id": 1, "callsign": "M81", "kind": "ambulance", "capacity": 3},
+    {"id": 3, "station_id": 2, "callsign": "E82", "kind": "engine", "capacity": 4},
+    {"id": 4, "station_id": 3, "callsign": "E35", "kind": "engine", "capacity": 4},
+    {"id": 5, "station_id": 3, "callsign": "B35", "kind": "bus", "capacity": 20}
+  ],
+  "ignition": [{"lat": 39.800, "lon": -121.470}, {"lat": 39.797, "lon": -121.474}],
+  "residents": {"count": 24, "center": {"lat": 39.765, "lon": -121.60}, "spread_m": 2500, "seed": 13}
+}

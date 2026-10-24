@@ -1,0 +1,9 @@
+# Fetch.ai agents (Python 3.12/3.13 — not 3.15 yet; cosmpy pins lag)
+uagents==0.26.1
+uagents-core==0.4.12
+httpx>=0.28
+websockets>=15
+numpy>=2.1
+python-dotenv>=1.0
+pydantic>=2.9
+openai>=1.50        # ASI:One LLM is OpenAI-compatible

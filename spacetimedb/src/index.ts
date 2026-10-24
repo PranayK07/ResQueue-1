@@ -1,0 +1,922 @@
+// Reducers, scheduled jobs and role-gated views for the Wildfire Rescue Queue.
+//
+// Write path:   Fetch.ai agents / phones / dashboard ──call──▶ reducers (validated, transactional)
+// Read path:    everyone ──subscribe──▶ public tables + per-sender views
+//
+// Invariants the database enforces (so no agent can break them):
+//  * a request already assigned to a unit cannot be moved by the policy
+//  * a unit can only serve requests in its own station's queue, one at a time
+//  * a commander pin always beats the policy
+//  * location is purged the moment a request closes or consent expires
+import { ScheduleAt, Timestamp } from 'spacetimedb';
+import {
+  SenderError,
+  t,
+  type InferSchema,
+  type ReducerCtx,
+  type ViewCtx,
+} from 'spacetimedb/server';
+import spacetimedb, {
+  DangerInput,
+  FireCellInput,
+  ForecastCellInput,
+  PlanEntryInput,
+  StationInput,
+  TravelInput,
+  UnitInput,
+  UnreachableInput,
+  consentTimer,
+  helpRequest,
+  simTickTimer,
+  queueEntry,
+  travelEstimate,
+  flag,
+} from './schema';
+
+export default spacetimedb;
+
+type Schema = InferSchema<typeof spacetimedb>;
+type Ctx = ReducerCtx<Schema>;
+type VCtx = ViewCtx<Schema>;
+type Request = NonNullable<ReturnType<Ctx['db']['helpRequest']['id']['find']>>;
+
+const SIM_TICK_MICROS = 1_000_000n;
+const EVENT_LOG_KEEP = 400n;
+const MIN_CONSENT_MIN = 15;
+const MAX_CONSENT_MIN = 240;
+const LOCKED_EXTENSION_MICROS = 15n * 60n * 1_000_000n;
+
+const AGENT_ROLES = [
+  'hazard', 'fire', 'weather', 'closures', 'forecast', 'danger', 'delegation',
+  'station', 'intake', 'commander', 'scenario',
+];
+const LEVELS = ['unknown', 'unreachable', 'critical', 'high', 'moderate'];
+const ACTIVE = ['pending', 'queued', 'assigned', 'en_route', 'on_scene'];
+const LOCKED = ['assigned', 'en_route', 'on_scene']; // a unit is committed
+const KNOWN_NEEDS = ['mobility', 'medical', 'oxygen', 'infant', 'elderly', 'pets', 'language'];
+
+const isActive = (r: Request) => ACTIVE.includes(r.status);
+const isLocked = (r: Request) => LOCKED.includes(r.status);
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function simNow(ctx: Ctx): number {
+  return ctx.db.simClock.id.find(0)?.simS ?? 0;
+}
+
+function log(ctx: Ctx, actor: string, kind: string, message: string, requestId = 0n) {
+  const row = ctx.db.eventLog.insert({
+    id: 0n,
+    at: ctx.timestamp,
+    simS: simNow(ctx),
+    actor,
+    kind,
+    message,
+    requestId,
+  });
+  if (row.id > EVENT_LOG_KEEP) ctx.db.eventLog.id.delete(row.id - EVENT_LOG_KEEP);
+}
+
+function bump(ctx: Ctx, field: 'weather' | 'fire' | 'roads' | 'requests' | 'forecast' | 'danger' | 'plan'): bigint {
+  const v = ctx.db.worldVersion.id.find(0)!;
+  const next = v[field] + 1n;
+  ctx.db.worldVersion.id.update({ ...v, [field]: next });
+  return next;
+}
+
+function callerAgent(ctx: Ctx) {
+  return ctx.db.agent.identity.find(ctx.sender) ?? undefined;
+}
+
+/** Throws unless the caller is a registered agent with one of `roles`. */
+function requireAgent(ctx: Ctx, ...roles: string[]) {
+  const a = callerAgent(ctx);
+  if (!a || !roles.includes(a.role)) {
+    throw new SenderError(`requires agent role: ${roles.join('|')}`);
+  }
+  ctx.db.agent.identity.update({ ...a, lastSeen: ctx.timestamp });
+  return a;
+}
+
+/** Commander = a human commander operator, or the commander/scenario agent
+ *  acting for one. Returns a display name for the audit log. */
+function requireCommander(ctx: Ctx): string {
+  const op = ctx.db.operator.identity.find(ctx.sender);
+  if (op && op.role === 'commander') return `commander:${op.name}`;
+  const a = callerAgent(ctx);
+  if (a && (a.role === 'commander' || a.role === 'scenario')) return `${a.role}:${a.name}`;
+  throw new SenderError('requires commander');
+}
+
+/** Station agent or responder operator for `stationId`, or a commander. */
+function requireStationActor(ctx: Ctx, stationId: number): string {
+  const a = callerAgent(ctx);
+  if (a && a.role === 'station' && a.stationId === stationId) return `station:${a.name}`;
+  const op = ctx.db.operator.identity.find(ctx.sender);
+  if (op && op.role === 'responder' && op.stationId === stationId) return `responder:${op.name}`;
+  return requireCommander(ctx);
+}
+
+function requireRequest(ctx: Ctx, requestId: bigint): Request {
+  const r = ctx.db.helpRequest.id.find(requestId);
+  if (!r) throw new SenderError(`request ${requestId} not found`);
+  return r;
+}
+
+function requireUnit(ctx: Ctx, unitId: number) {
+  const u = ctx.db.unit.id.find(unitId);
+  if (!u) throw new SenderError(`unit ${unitId} not found`);
+  return u;
+}
+
+function cleanNeeds(needs: string): string {
+  return needs
+    .split(',')
+    .map(s => s.trim().toLowerCase())
+    .filter(s => KNOWN_NEEDS.includes(s))
+    .filter((s, i, all) => all.indexOf(s) === i)
+    .join(',');
+}
+
+function needsSummary(r: Request): string {
+  const n = r.needs ? `, ${r.needs.replaceAll(',', '/')}` : '';
+  return `${r.headcount} ${r.headcount === 1 ? 'person' : 'people'}${n}`;
+}
+
+function insideGrid(ctx: Ctx, lat: number, lon: number): boolean {
+  const g = ctx.db.grid.id.find(0);
+  if (!g || g.rows === 0) return true; // no scenario loaded yet; accept
+  const dLat = (g.rows * g.cellSizeM) / 111_320;
+  const dLon = (g.cols * g.cellSizeM) / (111_320 * Math.cos((g.originLat * Math.PI) / 180));
+  return lat >= g.originLat && lat <= g.originLat + dLat && lon >= g.originLon && lon <= g.originLon + dLon;
+}
+
+/** Free the unit (if any), drop the queue entry, purge location. */
+function closeRequest(ctx: Ctx, r: Request, status: string, actor: string, why: string) {
+  if (!isActive(r)) return;
+  for (const u of ctx.db.unit.iter()) {
+    if (u.currentRequest === r.id) {
+      ctx.db.unit.id.update({ ...u, status: 'available', currentRequest: 0n, updatedAt: ctx.timestamp });
+      log(ctx, actor, 'unit_released', `${u.callsign} released: request #${r.id} ${status}`, r.id);
+    }
+  }
+  ctx.db.queueEntry.requestId.delete(r.id);
+  for (const te of [...ctx.db.travelEstimate.requestId.filter(r.id)]) {
+    ctx.db.travelEstimate.key.delete(te.key);
+  }
+  for (const f of [...ctx.db.flag.requestId.filter(r.id)]) {
+    if (!f.resolved) ctx.db.flag.id.update({ ...f, resolved: true, resolution: `request ${status}` });
+  }
+  ctx.db.helpRequest.id.update({
+    ...r,
+    status,
+    lat: 0,
+    lon: 0,
+    locationPurged: true,
+    updatedAt: ctx.timestamp,
+  });
+  bump(ctx, 'requests');
+  log(ctx, actor, `request_${status}`, `Request #${r.id} ${status}${why ? ` (${why})` : ''}; location deleted`, r.id);
+}
+
+function createRequest(
+  ctx: Ctx,
+  args: { channel: string; externalRef: string; lat: number; lon: number; headcount: number; needs: string; note: string; consentMinutes: number },
+  actor: string
+): Request {
+  if (!Number.isFinite(args.lat) || !Number.isFinite(args.lon)) throw new SenderError('invalid location');
+  if (!insideGrid(ctx, args.lat, args.lon)) throw new SenderError('location is outside the active incident area');
+  if (args.headcount < 1 || args.headcount > 50) throw new SenderError('headcount must be 1..50');
+  if (args.note.length > 500) throw new SenderError('note too long (max 500 chars)');
+  const minutes = Math.min(MAX_CONSENT_MIN, Math.max(MIN_CONSENT_MIN, Math.round(args.consentMinutes)));
+  const expiresMicros = ctx.timestamp.microsSinceUnixEpoch + BigInt(minutes) * 60_000_000n;
+
+  const r = ctx.db.helpRequest.insert({
+    id: 0n,
+    resident: ctx.sender,
+    channel: args.channel,
+    externalRef: args.externalRef,
+    lat: args.lat,
+    lon: args.lon,
+    locationPurged: false,
+    headcount: args.headcount,
+    needs: cleanNeeds(args.needs),
+    note: args.note,
+    status: 'pending',
+    createdAt: ctx.timestamp,
+    createdSimS: simNow(ctx),
+    consentExpiresAt: new Timestamp(expiresMicros),
+    level: 'unknown',
+    slackS: undefined,
+    fireEtaS: undefined,
+    extractS: 0,
+    dangerVersion: 0n,
+    pinnedStationId: 0,
+    hopCount: 0,
+    updatedAt: ctx.timestamp,
+  });
+  ctx.db.consentTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(expiresMicros), requestId: r.id });
+  bump(ctx, 'requests');
+  log(ctx, actor, 'request_new', `New help request #${r.id} via ${args.channel}: ${needsSummary(r)}; consent ${minutes} min`, r.id);
+  return r;
+}
+
+// ─── Lifecycle ──────────────────────────────────────────────────────────────
+
+export const init = spacetimedb.init(ctx => {
+  ctx.db.simClock.insert({ id: 0, simS: 0, speed: 20, running: false, scenario: 'none', lastTick: ctx.timestamp });
+  ctx.db.grid.insert({ id: 0, originLat: 0, originLon: 0, cellSizeM: 0, rows: 0, cols: 0 });
+  ctx.db.weather.insert({
+    id: 0, windSpeedMps: 0, windFromDeg: 0, gustMps: 0, source: 'none', locked: false, updatedAt: ctx.timestamp,
+  });
+  ctx.db.forecastMeta.insert({
+    id: 0, version: 0n, computedAtS: 0, horizonS: 0, members: 0, weatherVersion: 0n, fireVersion: 0n, updatedAt: ctx.timestamp,
+  });
+  ctx.db.worldVersion.insert({ id: 0, weather: 0n, fire: 0n, roads: 0n, requests: 0n, forecast: 0n, danger: 0n, plan: 0n });
+  ctx.db.simTickTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.interval(SIM_TICK_MICROS) });
+});
+
+export const onConnect = spacetimedb.clientConnected(_ctx => {});
+
+// HTTP reducer calls also connect/disconnect, so agent liveness is judged from
+// agent.last_seen (heartbeat every 10 s) rather than from disconnect events.
+export const onDisconnect = spacetimedb.clientDisconnected(_ctx => {});
+
+// ─── Scheduled jobs ─────────────────────────────────────────────────────────
+
+/** Advances the shared simulation clock. Every agent keys off sim_clock, so
+ *  the whole system (fire, ETAs, unit movement) stays in lockstep. */
+export const sim_tick = spacetimedb.reducer({ onSchedule: simTickTimer }, { timer: simTickTimer.rowType }, ctx => {
+  const c = ctx.db.simClock.id.find(0);
+  if (!c) return;
+  const dtS = Number(ctx.timestamp.microsSinceUnixEpoch - c.lastTick.microsSinceUnixEpoch) / 1e6;
+  const simS = c.running ? c.simS + Math.min(dtS, 5) * c.speed : c.simS;
+  ctx.db.simClock.id.update({ ...c, simS, lastTick: ctx.timestamp });
+});
+
+/** Fires when a resident's consent window ends. Location is deleted unless a
+ *  unit is already on the way, in which case consent is extended in 15-min
+ *  steps so we never strand a crew mid-rescue. */
+export const expire_consent = spacetimedb.reducer({ onSchedule: consentTimer }, { timer: consentTimer.rowType }, (ctx, { timer }) => {
+  const r = ctx.db.helpRequest.id.find(timer.requestId);
+  if (!r || !isActive(r)) return;
+  if (r.consentExpiresAt.microsSinceUnixEpoch > ctx.timestamp.microsSinceUnixEpoch) return; // extended since
+  if (isLocked(r)) {
+    const next = ctx.timestamp.microsSinceUnixEpoch + LOCKED_EXTENSION_MICROS;
+    ctx.db.helpRequest.id.update({ ...r, consentExpiresAt: new Timestamp(next), updatedAt: ctx.timestamp });
+    ctx.db.consentTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(next), requestId: r.id });
+    log(ctx, 'system', 'consent_extended', `Request #${r.id}: consent window ended mid-rescue; held 15 more min`, r.id);
+    return;
+  }
+  closeRequest(ctx, r, 'expired', 'system', 'consent window ended');
+});
+
+
+// ─── Registration ───────────────────────────────────────────────────────────
+
+/** A Fetch.ai agent joins the shared state. Its SpacetimeDB identity is
+ *  bound to one role; every privileged reducer checks that role. */
+export const register_agent = spacetimedb.reducer(
+  { joinKey: t.string(), role: t.string(), name: t.string(), stationId: t.u32(), fetchAddress: t.string() },
+  (ctx, { joinKey, role, name, stationId, fetchAddress }) => {
+    if (joinKey !== ctx.env.AGENT_JOIN_KEY) throw new SenderError('bad join key');
+    if (!AGENT_ROLES.includes(role)) throw new SenderError(`unknown role ${role}`);
+    if (role === 'station' && !ctx.db.station.id.find(stationId)) throw new SenderError(`station ${stationId} not found`);
+    const row = {
+      identity: ctx.sender,
+      role,
+      name,
+      stationId: role === 'station' ? stationId : 0,
+      fetchAddress,
+      status: 'online',
+      detail: '',
+      lastSeen: ctx.timestamp,
+    };
+    const existing = ctx.db.agent.identity.find(ctx.sender);
+    if (existing) ctx.db.agent.identity.update(row);
+    else ctx.db.agent.insert(row);
+    log(ctx, `${role}:${name}`, 'agent_online', `${name} (${role}) joined the mesh`);
+  }
+);
+
+export const agent_heartbeat = spacetimedb.reducer(
+  { status: t.string(), detail: t.string() },
+  (ctx, { status, detail }) => {
+    const a = callerAgent(ctx);
+    if (!a) throw new SenderError('not a registered agent');
+    ctx.db.agent.identity.update({ ...a, status, detail: detail.slice(0, 200), lastSeen: ctx.timestamp });
+  }
+);
+
+export const claim_operator = spacetimedb.reducer(
+  { passcode: t.string(), role: t.string(), stationId: t.u32(), name: t.string() },
+  (ctx, { passcode, role, stationId, name }) => {
+    if (passcode !== ctx.env.OPERATOR_PASSCODE) throw new SenderError('bad passcode');
+    if (role !== 'commander' && role !== 'responder') throw new SenderError('role must be commander|responder');
+    if (role === 'responder' && !ctx.db.station.id.find(stationId)) throw new SenderError(`station ${stationId} not found`);
+    const row = { identity: ctx.sender, role, stationId: role === 'responder' ? stationId : 0, name, joinedAt: ctx.timestamp };
+    if (ctx.db.operator.identity.find(ctx.sender)) ctx.db.operator.identity.update(row);
+    else ctx.db.operator.insert(row);
+    log(ctx, `${role}:${name}`, 'operator_joined', `${name} signed in as ${role}`);
+  }
+);
+
+// ─── Scenario & clock ───────────────────────────────────────────────────────
+
+/** Wipes incident state and loads a fresh world. One transaction: every
+ *  subscriber sees the old world vanish and the new one appear atomically. */
+export const load_scenario = spacetimedb.reducer(
+  {
+    name: t.string(),
+    originLat: t.f64(),
+    originLon: t.f64(),
+    cellSizeM: t.f64(),
+    rows: t.u32(),
+    cols: t.u32(),
+    stations: t.array(StationInput),
+    units: t.array(UnitInput),
+    speed: t.f64(),
+    windSpeedMps: t.f64(),
+    windFromDeg: t.f64(),
+  },
+  (ctx, a) => {
+    const actor = requireCommander(ctx);
+    if (a.rows === 0 || a.cols === 0 || a.rows * a.cols > 40_000) throw new SenderError('grid must be 1..40000 cells');
+    for (const r of [...ctx.db.helpRequest.iter()]) ctx.db.helpRequest.id.delete(r.id);
+    for (const r of [...ctx.db.queueEntry.iter()]) ctx.db.queueEntry.requestId.delete(r.requestId);
+    for (const r of [...ctx.db.travelEstimate.iter()]) ctx.db.travelEstimate.key.delete(r.key);
+    for (const r of [...ctx.db.flag.iter()]) ctx.db.flag.id.delete(r.id);
+    for (const r of [...ctx.db.consentTimer.iter()]) ctx.db.consentTimer.scheduledId.delete(r.scheduledId);
+    for (const r of [...ctx.db.fireCell.iter()]) ctx.db.fireCell.cellId.delete(r.cellId);
+    for (const r of [...ctx.db.forecastCell.iter()]) ctx.db.forecastCell.cellId.delete(r.cellId);
+    for (const r of [...ctx.db.roadClosure.iter()]) ctx.db.roadClosure.id.delete(r.id);
+    for (const r of [...ctx.db.unit.iter()]) ctx.db.unit.id.delete(r.id);
+    for (const r of [...ctx.db.station.iter()]) ctx.db.station.id.delete(r.id);
+    for (const r of [...ctx.db.operator.iter()]) {
+      if (r.role === 'responder') ctx.db.operator.identity.delete(r.identity);
+    }
+
+    ctx.db.grid.id.update({ id: 0, originLat: a.originLat, originLon: a.originLon, cellSizeM: a.cellSizeM, rows: a.rows, cols: a.cols });
+    for (const s of a.stations) ctx.db.station.insert(s);
+    for (const u of a.units) {
+      const s = ctx.db.station.id.find(u.stationId);
+      if (!s) throw new SenderError(`unit ${u.callsign}: station ${u.stationId} not found`);
+      ctx.db.unit.insert({
+        ...u, status: 'available', lat: s.lat, lon: s.lon, currentRequest: 0n, freeAtS: 0, updatedAt: ctx.timestamp,
+      });
+    }
+    const c = ctx.db.simClock.id.find(0)!;
+    ctx.db.simClock.id.update({ ...c, simS: 0, speed: a.speed, running: false, scenario: a.name, lastTick: ctx.timestamp });
+    const w = ctx.db.weather.id.find(0)!;
+    ctx.db.weather.id.update({
+      ...w, windSpeedMps: a.windSpeedMps, windFromDeg: a.windFromDeg, gustMps: a.windSpeedMps, source: 'scenario', locked: false, updatedAt: ctx.timestamp,
+    });
+    const fm = ctx.db.forecastMeta.id.find(0)!;
+    ctx.db.forecastMeta.id.update({ ...fm, computedAtS: 0, horizonS: 0, members: 0, updatedAt: ctx.timestamp });
+    for (const f of ['weather', 'fire', 'roads', 'requests', 'forecast', 'danger', 'plan'] as const) bump(ctx, f);
+    log(ctx, actor, 'scenario_loaded', `Scenario "${a.name}": ${a.stations.length} stations, ${a.units.length} units, ${a.rows}x${a.cols} grid`);
+  }
+);
+
+export const set_sim = spacetimedb.reducer(
+  { running: t.bool(), speed: t.f64() },
+  (ctx, { running, speed }) => {
+    const actor = requireCommander(ctx);
+    if (!(speed > 0 && speed <= 600)) throw new SenderError('speed must be in (0, 600]');
+    const c = ctx.db.simClock.id.find(0)!;
+    ctx.db.simClock.id.update({ ...c, running, speed, lastTick: ctx.timestamp });
+    log(ctx, actor, 'sim', `Simulation ${running ? 'running' : 'paused'} at ${speed}x`);
+  }
+);
+
+// ─── Weather (live feed + the judge's wind slider) ──────────────────────────
+
+export const set_weather = spacetimedb.reducer(
+  { windSpeedMps: t.f64(), windFromDeg: t.f64(), gustMps: t.f64(), source: t.string() },
+  (ctx, { windSpeedMps, windFromDeg, gustMps, source }) => {
+    if (!(windSpeedMps >= 0 && windSpeedMps < 80)) throw new SenderError('wind speed out of range');
+    const w = ctx.db.weather.id.find(0)!;
+    const a = callerAgent(ctx);
+    let manual = true;
+    let actor: string;
+    if (a && (a.role === 'weather' || a.role === 'hazard')) {
+      manual = false;
+      actor = `weather:${a.name}`;
+      if (w.locked) return; // commander has manual control; feed is advisory only
+    } else {
+      actor = requireCommander(ctx);
+    }
+    const dir = ((windFromDeg % 360) + 360) % 360;
+    ctx.db.weather.id.update({
+      id: 0, windSpeedMps, windFromDeg: dir, gustMps: Math.max(gustMps, windSpeedMps),
+      source: manual ? 'manual' : source, locked: manual ? true : w.locked, updatedAt: ctx.timestamp,
+    });
+    bump(ctx, 'weather');
+    const shift = Math.abs(((dir - w.windFromDeg + 540) % 360) - 180);
+    if (manual || shift >= 20 || Math.abs(windSpeedMps - w.windSpeedMps) >= 3) {
+      log(ctx, actor, 'wind', `Wind now ${windSpeedMps.toFixed(1)} m/s from ${dir.toFixed(0)}°${manual ? ' (manual)' : ''}`);
+    }
+  }
+);
+
+export const release_weather_lock = spacetimedb.reducer(ctx => {
+  const actor = requireCommander(ctx);
+  const w = ctx.db.weather.id.find(0)!;
+  ctx.db.weather.id.update({ ...w, locked: false, updatedAt: ctx.timestamp });
+  log(ctx, actor, 'wind', 'Manual wind released; live weather feed resumed');
+});
+
+// ─── Fire / forecast / roads ────────────────────────────────────────────────
+
+export const upsert_fire_cells = spacetimedb.reducer(
+  { cells: t.array(FireCellInput), replace: t.bool(), source: t.string() },
+  (ctx, { cells, replace, source }) => {
+    const a = callerAgent(ctx);
+    const actor = a && (a.role === 'fire' || a.role === 'hazard') ? `${a.role}:${a.name}` : requireCommander(ctx);
+    if (replace) for (const r of [...ctx.db.fireCell.iter()]) ctx.db.fireCell.cellId.delete(r.cellId);
+    let added = 0;
+    for (const c of cells) {
+      const existing = ctx.db.fireCell.cellId.find(c.cellId);
+      if (existing) {
+        if (existing.intensity !== c.intensity) ctx.db.fireCell.cellId.update({ ...existing, intensity: c.intensity });
+      } else {
+        ctx.db.fireCell.insert({ ...c, source });
+        // A cell that is now burning has no "arrival" left to forecast.
+        ctx.db.forecastCell.cellId.delete(c.cellId);
+        added++;
+      }
+    }
+    bump(ctx, 'fire');
+    if (replace || added >= 25) log(ctx, actor, 'fire', `Fire perimeter update (${source}): +${added} cells`);
+  }
+);
+
+/** Atomically replaces the arrival-time forecast. Cells omitted from
+ *  `cells` are deleted (beyond horizon, or already burning). */
+export const publish_forecast = spacetimedb.reducer(
+  {
+    weatherVersion: t.u64(),
+    fireVersion: t.u64(),
+    computedAtS: t.f64(),
+    horizonS: t.f64(),
+    members: t.u32(),
+    cells: t.array(ForecastCellInput),
+  },
+  (ctx, a) => {
+    requireAgent(ctx, 'forecast', 'hazard');
+    const keep = new Set<number>();
+    for (const c of a.cells) {
+      keep.add(c.cellId);
+      if (ctx.db.fireCell.cellId.find(c.cellId)) continue;
+      const existing = ctx.db.forecastCell.cellId.find(c.cellId);
+      if (!existing) ctx.db.forecastCell.insert(c);
+      else if (existing.arrivalEarlyS !== c.arrivalEarlyS || existing.arrivalMedianS !== c.arrivalMedianS) ctx.db.forecastCell.cellId.update(c);
+    }
+    for (const r of [...ctx.db.forecastCell.iter()]) if (!keep.has(r.cellId)) ctx.db.forecastCell.cellId.delete(r.cellId);
+    const version = bump(ctx, 'forecast');
+    ctx.db.forecastMeta.id.update({
+      id: 0, version, computedAtS: a.computedAtS, horizonS: a.horizonS, members: a.members,
+      weatherVersion: a.weatherVersion, fireVersion: a.fireVersion, updatedAt: ctx.timestamp,
+    });
+  }
+);
+
+export const add_road_closure = spacetimedb.reducer(
+  { name: t.string(), lat1: t.f64(), lon1: t.f64(), lat2: t.f64(), lon2: t.f64(), source: t.string() },
+  (ctx, a) => {
+    const ag = callerAgent(ctx);
+    const actor = ag && (ag.role === 'closures' || ag.role === 'fire' || ag.role === 'hazard') ? `${ag.role}:${ag.name}` : requireCommander(ctx);
+    ctx.db.roadClosure.insert({ id: 0n, ...a, active: true, updatedAt: ctx.timestamp });
+    bump(ctx, 'roads');
+    log(ctx, actor, 'road_closed', `Road closed: ${a.name} (${a.source})`);
+  }
+);
+
+export const set_road_closure_active = spacetimedb.reducer(
+  { id: t.u64(), active: t.bool() },
+  (ctx, { id, active }) => {
+    const ag = callerAgent(ctx);
+    const actor = ag && ag.role === 'closures' ? `closures:${ag.name}` : requireCommander(ctx);
+    const rc = ctx.db.roadClosure.id.find(id);
+    if (!rc) throw new SenderError(`closure ${id} not found`);
+    ctx.db.roadClosure.id.update({ ...rc, active, updatedAt: ctx.timestamp });
+    bump(ctx, 'roads');
+    log(ctx, actor, active ? 'road_closed' : 'road_opened', `Road ${active ? 'closed' : 'reopened'}: ${rc.name}`);
+  }
+);
+
+// ─── Residents ──────────────────────────────────────────────────────────────
+
+/** The one button. Called by the resident's own phone; ctx.sender is them. */
+export const submit_help_request = spacetimedb.reducer(
+  { lat: t.f64(), lon: t.f64(), headcount: t.u32(), needs: t.string(), note: t.string(), consentMinutes: t.u32() },
+  (ctx, a) => {
+    for (const r of ctx.db.helpRequest.resident.filter(ctx.sender)) {
+      if (isActive(r) && r.externalRef === '') throw new SenderError(`you already have an active request (#${r.id})`);
+    }
+    createRequest(ctx, { ...a, channel: 'app', externalRef: '' }, 'resident');
+  }
+);
+
+/** Same, submitted by the ASI:One intake agent (or the synthetic-resident
+ *  generator) on behalf of `externalRef`. One active request per ref. */
+export const submit_help_request_for = spacetimedb.reducer(
+  {
+    externalRef: t.string(), channel: t.string(), lat: t.f64(), lon: t.f64(),
+    headcount: t.u32(), needs: t.string(), note: t.string(), consentMinutes: t.u32(),
+  },
+  (ctx, a) => {
+    const ag = requireAgent(ctx, 'intake', 'scenario');
+    if (!a.externalRef) throw new SenderError('externalRef required');
+    for (const r of ctx.db.helpRequest.resident.filter(ctx.sender)) {
+      if (isActive(r) && r.externalRef === a.externalRef) throw new SenderError(`already have an active request (#${r.id})`);
+    }
+    createRequest(ctx, a, `${ag.role}:${ag.name}`);
+  }
+);
+
+/** "I'm safe" / "stop sharing my location". `externalRef` must match for
+ *  requests the intake agent submitted on someone's behalf. */
+export const close_my_request = spacetimedb.reducer(
+  { requestId: t.u64(), externalRef: t.string(), outcome: t.string() },
+  (ctx, { requestId, externalRef, outcome }) => {
+    if (outcome !== 'safe' && outcome !== 'revoked') throw new SenderError('outcome must be safe|revoked');
+    const r = requireRequest(ctx, requestId);
+    if (!r.resident.isEqual(ctx.sender) || r.externalRef !== externalRef) throw new SenderError('not your request');
+    closeRequest(ctx, r, outcome, 'resident', outcome === 'safe' ? 'resident reports safe' : 'consent revoked');
+  }
+);
+
+export const extend_consent = spacetimedb.reducer(
+  { requestId: t.u64(), externalRef: t.string(), minutes: t.u32() },
+  (ctx, { requestId, externalRef, minutes }) => {
+    const r = requireRequest(ctx, requestId);
+    if (!r.resident.isEqual(ctx.sender) || r.externalRef !== externalRef) throw new SenderError('not your request');
+    if (!isActive(r)) throw new SenderError('request is closed');
+    const m = Math.min(MAX_CONSENT_MIN, Math.max(MIN_CONSENT_MIN, minutes));
+    const next = ctx.timestamp.microsSinceUnixEpoch + BigInt(m) * 60_000_000n;
+    ctx.db.helpRequest.id.update({ ...r, consentExpiresAt: new Timestamp(next), updatedAt: ctx.timestamp });
+    ctx.db.consentTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(next), requestId: r.id });
+  }
+);
+
+// ─── Danger agent ───────────────────────────────────────────────────────────
+
+export const publish_danger = spacetimedb.reducer(
+  { assessments: t.array(DangerInput), travel: t.array(TravelInput) },
+  (ctx, { assessments, travel }) => {
+    const ag = requireAgent(ctx, 'danger');
+    const version = bump(ctx, 'danger');
+    for (const d of assessments) {
+      if (!LEVELS.includes(d.level)) throw new SenderError(`bad level ${d.level}`);
+      const r = ctx.db.helpRequest.id.find(d.requestId);
+      if (!r || !isActive(r)) continue;
+      if (d.level !== r.level && (d.level === 'critical' || d.level === 'unreachable')) {
+        log(ctx, `danger:${ag.name}`, 'level', `Request #${r.id} is now ${d.level.toUpperCase()} (slack ${(d.slackS / 60).toFixed(0)} min)`, r.id);
+      }
+      ctx.db.helpRequest.id.update({
+        ...r, level: d.level, slackS: d.slackS, fireEtaS: d.fireEtaS, extractS: d.extractS,
+        dangerVersion: version, updatedAt: ctx.timestamp,
+      });
+    }
+    for (const tr of travel) {
+      const key = tr.requestId * 1024n + BigInt(tr.stationId);
+      const row = { key, ...tr, dangerVersion: version };
+      if (ctx.db.travelEstimate.key.find(key)) ctx.db.travelEstimate.key.update(row);
+      else ctx.db.travelEstimate.insert(row);
+    }
+  }
+);
+
+// ─── Delegation agent ───────────────────────────────────────────────────────
+
+/** Atomically installs a new set of per-station queues. The policy (learned
+ *  or heuristic) proposes; this reducer enforces the invariants. */
+export const publish_plan = spacetimedb.reducer(
+  { policy: t.string(), entries: t.array(PlanEntryInput), unreachable: t.array(UnreachableInput) },
+  (ctx, { policy, entries, unreachable }) => {
+    const ag = requireAgent(ctx, 'delegation');
+    const actor = `delegation:${ag.name}`;
+    const planVersion = bump(ctx, 'plan');
+    const planned = new Set<bigint>();
+
+    for (const e of entries) {
+      const r = ctx.db.helpRequest.id.find(e.requestId);
+      if (!r || !isActive(r) || isLocked(r)) continue;
+      if (r.pinnedStationId !== 0 && r.pinnedStationId !== e.stationId) continue; // commander pin wins
+      const st = ctx.db.station.id.find(e.stationId);
+      if (!st) throw new SenderError(`station ${e.stationId} not found`);
+      planned.add(r.id);
+
+      let unitId = e.unitId;
+      if (unitId !== 0) {
+        const u = ctx.db.unit.id.find(unitId);
+        if (!u || u.stationId !== e.stationId || u.status !== 'available') unitId = 0;
+      }
+
+      const prev = ctx.db.queueEntry.requestId.find(r.id);
+      let hops = r.hopCount;
+      if (prev && prev.stationId !== e.stationId) {
+        hops++;
+        const from = ctx.db.station.id.find(prev.stationId)?.name ?? `#${prev.stationId}`;
+        log(ctx, actor, 'reassign', `Request #${r.id} moved ${from} → ${st.name}: ${e.reason}`, r.id);
+      }
+      const row = {
+        requestId: r.id, stationId: e.stationId, rank: e.rank, unitId, etaS: e.etaS,
+        reason: e.reason, residentReason: e.residentReason, policy, planVersion, updatedAt: ctx.timestamp,
+      };
+      if (prev) ctx.db.queueEntry.requestId.update(row);
+      else ctx.db.queueEntry.insert(row);
+
+      if (unitId !== 0) {
+        const u = ctx.db.unit.id.find(unitId)!;
+        ctx.db.unit.id.update({ ...u, status: 'assigned', currentRequest: r.id, updatedAt: ctx.timestamp });
+        ctx.db.helpRequest.id.update({ ...r, status: 'assigned', hopCount: hops, updatedAt: ctx.timestamp });
+        log(ctx, actor, 'dispatch', `${u.callsign} (${st.name}) assigned to request #${r.id}: ${e.reason}`, r.id);
+      } else if (r.status !== 'queued' || hops !== r.hopCount) {
+        ctx.db.helpRequest.id.update({ ...r, status: 'queued', hopCount: hops, updatedAt: ctx.timestamp });
+      }
+    }
+
+    // Requests that dropped out of the plan leave their queue (unless a unit is committed).
+    for (const q of [...ctx.db.queueEntry.iter()]) {
+      if (planned.has(q.requestId)) continue;
+      const r = ctx.db.helpRequest.id.find(q.requestId);
+      if (r && isLocked(r)) continue;
+      ctx.db.queueEntry.requestId.delete(q.requestId);
+      if (r && r.status === 'queued') ctx.db.helpRequest.id.update({ ...r, status: 'pending', updatedAt: ctx.timestamp });
+    }
+
+    for (const u of unreachable) {
+      const r = ctx.db.helpRequest.id.find(u.requestId);
+      if (!r || !isActive(r)) continue;
+      const open = [...ctx.db.flag.requestId.filter(r.id)].some(f => f.kind === 'unreachable' && !f.resolved);
+      if (open) continue;
+      ctx.db.flag.insert({
+        id: 0n, requestId: r.id, kind: 'unreachable', detail: u.detail, recommendation: u.recommendation,
+        raisedBy: actor, resolved: false, resolution: '', createdAt: ctx.timestamp,
+      });
+      log(ctx, actor, 'escalation', `Request #${r.id} unreachable by ground: ${u.recommendation}`, r.id);
+    }
+  }
+);
+
+// ─── Stations / responders: mission lifecycle ───────────────────────────────
+
+export const unit_en_route = spacetimedb.reducer(
+  { unitId: t.u32(), arriveAtS: t.f64(), freeAtS: t.f64() },
+  (ctx, { unitId, arriveAtS, freeAtS }) => {
+    const u = requireUnit(ctx, unitId);
+    const actor = requireStationActor(ctx, u.stationId);
+    if (u.status !== 'assigned' || u.currentRequest === 0n) throw new SenderError(`${u.callsign} has no pending assignment`);
+    const r = requireRequest(ctx, u.currentRequest);
+    ctx.db.unit.id.update({ ...u, status: 'en_route', freeAtS, updatedAt: ctx.timestamp });
+    ctx.db.helpRequest.id.update({ ...r, status: 'en_route', updatedAt: ctx.timestamp });
+    const q = ctx.db.queueEntry.requestId.find(r.id);
+    if (q) ctx.db.queueEntry.requestId.update({ ...q, unitId, etaS: arriveAtS, updatedAt: ctx.timestamp });
+    log(ctx, actor, 'en_route', `${u.callsign} en route to request #${r.id}, ETA T+${(arriveAtS / 60).toFixed(0)} min`, r.id);
+  }
+);
+
+export const decline_mission = spacetimedb.reducer(
+  { unitId: t.u32(), reason: t.string() },
+  (ctx, { unitId, reason }) => {
+    const u = requireUnit(ctx, unitId);
+    const actor = requireStationActor(ctx, u.stationId);
+    if (u.currentRequest === 0n) throw new SenderError('no mission to decline');
+    const r = ctx.db.helpRequest.id.find(u.currentRequest);
+    ctx.db.unit.id.update({ ...u, status: 'available', currentRequest: 0n, updatedAt: ctx.timestamp });
+    if (r && isActive(r)) {
+      ctx.db.helpRequest.id.update({ ...r, status: 'queued', updatedAt: ctx.timestamp });
+      const q = ctx.db.queueEntry.requestId.find(r.id);
+      if (q) ctx.db.queueEntry.requestId.update({ ...q, unitId: 0, updatedAt: ctx.timestamp });
+    }
+    log(ctx, actor, 'declined', `${u.callsign} declined request #${u.currentRequest}: ${reason}`, u.currentRequest);
+  }
+);
+
+/** Live unit position for the map (station agent streams this). */
+export const unit_position = spacetimedb.reducer(
+  { unitId: t.u32(), lat: t.f64(), lon: t.f64() },
+  (ctx, { unitId, lat, lon }) => {
+    const u = requireUnit(ctx, unitId);
+    requireStationActor(ctx, u.stationId);
+    ctx.db.unit.id.update({ ...u, lat, lon, updatedAt: ctx.timestamp });
+  }
+);
+
+export const unit_on_scene = spacetimedb.reducer({ unitId: t.u32() }, (ctx, { unitId }) => {
+  const u = requireUnit(ctx, unitId);
+  const actor = requireStationActor(ctx, u.stationId);
+  const r = requireRequest(ctx, u.currentRequest);
+  ctx.db.unit.id.update({ ...u, status: 'on_scene', updatedAt: ctx.timestamp });
+  ctx.db.helpRequest.id.update({ ...r, status: 'on_scene', updatedAt: ctx.timestamp });
+  const slack = r.fireEtaS !== undefined ? (r.fireEtaS - simNow(ctx)) / 60 : undefined;
+  log(ctx, actor, 'on_scene', `${u.callsign} on scene at request #${r.id}${slack !== undefined ? ` (${slack.toFixed(0)} min before fire)` : ''}`, r.id);
+});
+
+export const complete_mission = spacetimedb.reducer(
+  { unitId: t.u32(), outcome: t.string() },
+  (ctx, { unitId, outcome }) => {
+    if (!['rescued', 'not_found', 'aborted'].includes(outcome)) throw new SenderError('outcome must be rescued|not_found|aborted');
+    const u = requireUnit(ctx, unitId);
+    const actor = requireStationActor(ctx, u.stationId);
+    const r = requireRequest(ctx, u.currentRequest);
+    ctx.db.unit.id.update({ ...u, status: 'returning', currentRequest: 0n, updatedAt: ctx.timestamp });
+    if (outcome === 'aborted') {
+      ctx.db.helpRequest.id.update({ ...r, status: 'queued', updatedAt: ctx.timestamp });
+      const q = ctx.db.queueEntry.requestId.find(r.id);
+      if (q) ctx.db.queueEntry.requestId.update({ ...q, unitId: 0, updatedAt: ctx.timestamp });
+      log(ctx, actor, 'aborted', `${u.callsign} aborted request #${r.id}; back in queue`, r.id);
+    } else {
+      closeRequest(ctx, r, outcome, actor, `${needsSummary(r)} by ${u.callsign}`);
+    }
+  }
+);
+
+export const unit_available = spacetimedb.reducer(
+  { unitId: t.u32(), lat: t.f64(), lon: t.f64() },
+  (ctx, { unitId, lat, lon }) => {
+    const u = requireUnit(ctx, unitId);
+    requireStationActor(ctx, u.stationId);
+    if (u.currentRequest !== 0n) throw new SenderError(`${u.callsign} is still on request #${u.currentRequest}`);
+    ctx.db.unit.id.update({ ...u, status: 'available', lat, lon, freeAtS: simNow(ctx), updatedAt: ctx.timestamp });
+  }
+);
+
+// ─── Commander (dashboard or ASI:One commander agent) ───────────────────────
+
+/** Pin a request to a station (stationId = 0 unpins). The policy must obey. */
+export const override_assignment = spacetimedb.reducer(
+  { requestId: t.u64(), stationId: t.u32(), note: t.string() },
+  (ctx, { requestId, stationId, note }) => {
+    const actor = requireCommander(ctx);
+    const r = requireRequest(ctx, requestId);
+    if (!isActive(r)) throw new SenderError('request is closed');
+    if (stationId !== 0 && !ctx.db.station.id.find(stationId)) throw new SenderError(`station ${stationId} not found`);
+    ctx.db.helpRequest.id.update({ ...r, pinnedStationId: stationId, updatedAt: ctx.timestamp });
+    const q = ctx.db.queueEntry.requestId.find(r.id);
+    if (stationId !== 0 && q && q.stationId !== stationId && !isLocked(r)) {
+      ctx.db.queueEntry.requestId.update({
+        ...q, stationId, unitId: 0, reason: `Commander override: ${note}`, residentReason: 'Assigned by incident command', updatedAt: ctx.timestamp,
+      });
+    }
+    bump(ctx, 'requests');
+    const where = stationId === 0 ? 'unpinned' : `pinned to ${ctx.db.station.id.find(stationId)!.name}`;
+    log(ctx, actor, 'override', `Request #${r.id} ${where}${note ? `: ${note}` : ''}`, r.id);
+  }
+);
+
+export const flag_request = spacetimedb.reducer(
+  { requestId: t.u64(), kind: t.string(), detail: t.string() },
+  (ctx, { requestId, kind, detail }) => {
+    const actor = requireCommander(ctx);
+    if (!['suspect', 'escalation', 'unreachable'].includes(kind)) throw new SenderError('bad flag kind');
+    requireRequest(ctx, requestId);
+    ctx.db.flag.insert({
+      id: 0n, requestId, kind, detail, recommendation: '', raisedBy: actor, resolved: false, resolution: '', createdAt: ctx.timestamp,
+    });
+    log(ctx, actor, 'flag', `Request #${requestId} flagged ${kind}`, requestId);
+  }
+);
+
+export const resolve_flag = spacetimedb.reducer(
+  { flagId: t.u64(), resolution: t.string() },
+  (ctx, { flagId, resolution }) => {
+    const actor = requireCommander(ctx);
+    const f = ctx.db.flag.id.find(flagId);
+    if (!f) throw new SenderError(`flag ${flagId} not found`);
+    ctx.db.flag.id.update({ ...f, resolved: true, resolution });
+    log(ctx, actor, 'flag_resolved', `Flag on request #${f.requestId} resolved: ${resolution}`, f.requestId);
+  }
+);
+
+// ─── Views (row-level privacy) ──────────────────────────────────────────────
+
+type Scope = { kind: 'all' } | { kind: 'station'; stationId: number } | { kind: 'owner' } | { kind: 'none' };
+
+/** Least privilege: data feeds see no people; a station sees only its own
+ *  queue; the intake agent sees only what it submitted; command sees all. */
+function scopeFor(ctx: VCtx): Scope {
+  const a = ctx.db.agent.identity.find(ctx.sender);
+  if (a) {
+    if (a.role === 'station') return { kind: 'station', stationId: a.stationId };
+    if (a.role === 'intake') return { kind: 'owner' };
+    if (['danger', 'delegation', 'commander', 'scenario'].includes(a.role)) return { kind: 'all' };
+    return { kind: 'none' };
+  }
+  const op = ctx.db.operator.identity.find(ctx.sender);
+  if (op?.role === 'commander') return { kind: 'all' };
+  if (op?.role === 'responder') return { kind: 'station', stationId: op.stationId };
+  return { kind: 'none' };
+}
+
+function visibleRequests(ctx: VCtx) {
+  const s = scopeFor(ctx);
+  switch (s.kind) {
+    case 'all':
+      return [...ctx.db.helpRequest.iter()];
+    case 'owner':
+      return [...ctx.db.helpRequest.resident.filter(ctx.sender)];
+    case 'station': {
+      const out = [];
+      for (const q of ctx.db.queueEntry.stationId.filter(s.stationId)) {
+        const r = ctx.db.helpRequest.id.find(q.requestId);
+        if (r) out.push(r);
+      }
+      return out;
+    }
+    case 'none':
+      return [];
+  }
+}
+
+export const ops_request = spacetimedb.view(
+  { name: 'ops_request', public: true },
+  t.array(helpRequest.rowType),
+  ctx => visibleRequests(ctx)
+);
+
+export const ops_queue = spacetimedb.view(
+  { name: 'ops_queue', public: true },
+  t.array(queueEntry.rowType),
+  ctx => {
+    const s = scopeFor(ctx);
+    if (s.kind === 'all') return [...ctx.db.queueEntry.iter()];
+    if (s.kind === 'station') return [...ctx.db.queueEntry.stationId.filter(s.stationId)];
+    if (s.kind === 'owner') {
+      const out = [];
+      for (const r of ctx.db.helpRequest.resident.filter(ctx.sender)) {
+        const q = ctx.db.queueEntry.requestId.find(r.id);
+        if (q) out.push(q);
+      }
+      return out;
+    }
+    return [];
+  }
+);
+
+export const ops_travel = spacetimedb.view(
+  { name: 'ops_travel', public: true },
+  t.array(travelEstimate.rowType),
+  ctx => (scopeFor(ctx).kind === 'all' ? [...ctx.db.travelEstimate.iter()] : [])
+);
+
+export const ops_flag = spacetimedb.view(
+  { name: 'ops_flag', public: true },
+  t.array(flag.rowType),
+  ctx => (scopeFor(ctx).kind === 'all' ? [...ctx.db.flag.iter()] : [])
+);
+
+/** What a resident's phone shows: only their own request(s), with a coarse
+ *  reason, never the scoring formula or anyone else's data. */
+const ResidentCard = t.row('ResidentCardRow', {
+  requestId: t.u64().primaryKey(),
+  status: t.string(),
+  level: t.string(),
+  queuePosition: t.u32(),
+  stationName: t.string(),
+  unitCallsign: t.string(),
+  etaS: t.option(t.f64()),
+  reason: t.string(),
+  headcount: t.u32(),
+  needs: t.string(),
+  consentExpiresAt: t.timestamp(),
+  createdAt: t.timestamp(),
+});
+
+export const my_requests = spacetimedb.view(
+  { name: 'my_requests', public: true },
+  t.array(ResidentCard),
+  ctx => {
+    const out = [];
+    for (const r of ctx.db.helpRequest.resident.filter(ctx.sender)) {
+      if (r.externalRef !== '') continue; // agent-submitted rows belong to someone else
+      const q = ctx.db.queueEntry.requestId.find(r.id);
+      const st = q ? ctx.db.station.id.find(q.stationId) : undefined;
+      const u = q && q.unitId !== 0 ? ctx.db.unit.id.find(q.unitId) : undefined;
+      let position = 0;
+      if (q) {
+        position = 1;
+        for (const other of ctx.db.queueEntry.stationId.filter(q.stationId)) {
+          if (other.unitId === 0 && q.unitId === 0 && other.rank < q.rank) position++;
+        }
+      }
+      out.push({
+        requestId: r.id,
+        status: r.status,
+        level: r.level,
+        queuePosition: q && q.unitId === 0 ? position : 0,
+        stationName: st?.name ?? '',
+        unitCallsign: u?.callsign ?? '',
+        etaS: q ? q.etaS : undefined,
+        reason: q?.residentReason ?? (isActive(r) ? 'Received. Assessing your location against the fire forecast.' : ''),
+        headcount: r.headcount,
+        needs: r.needs,
+        consentExpiresAt: r.consentExpiresAt,
+        createdAt: r.createdAt,
+      });
+    }
+    return out;
+  }
+);
