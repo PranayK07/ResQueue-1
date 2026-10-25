@@ -101,10 +101,14 @@ async def main() -> int:
         else:
             say("WARN", f"wind: head recorded {latest['wind_speed_mps']:.1f} m/s from {latest['wind_from_deg']:.0f}° but weather table says "
                         f"{w['wind_speed_mps']:.1f} from {w['wind_from_deg']:.0f}° (changed since the last row; re-run in a minute)")
-        inc = await db.sql("SELECT key FROM incident")
-        key = inc[0]["key"] if inc else ""
-        arts = await db.sql("SELECT relevance, incident FROM news_article")
-        relevant = min(20, sum(1 for x in arts if x["incident"] == key and x["relevance"] >= 0.5))  # head asks for the top 20
+        inc = (await db.sql("SELECT * FROM incident") or [None])[0]
+        key = inc["key"] if inc else ""
+        # the news agent's time window: the incident's, or live (the last NEWS_LIVE_LOOKBACK_H hours)
+        now_us = int(time.time() * 1e6)
+        lo, hi = (inc["news_from"], inc["news_to"]) if inc else (now_us - int(settings.news_live_lookback_h * 3.6e9), now_us)
+        arts = await db.sql("SELECT relevance, incident, published_at FROM news_article")
+        relevant = min(20, sum(1 for x in arts if x["incident"] == key and lo <= (x["published_at"] or 0) <= hi
+                               and x["relevance"] >= 0.5))  # head asks for the top 20
         if not latest["news_ok"]:
             say("WARN", "news: head recorded news_ok=false (news agent didn't answer that cycle)")
         elif latest["news_relevant"] == relevant:

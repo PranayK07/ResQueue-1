@@ -27,7 +27,7 @@ async def main() -> None:
     a = ap.parse_args()
     if a.list or not (a.key or a.clear):
         for k, i in incidents.load_catalog().items():
-            print(f"{k:20s} {i.name}\n{'':20s} news {i.news_from:%Y-%m-%d} → {i.news_to:%Y-%m-%d}, {len(i.queries)} queries")
+            print(f"{k:20s} {i.name}\n{'':20s} news {i.news_from:%Y-%m-%d} → {i.news_to:%Y-%m-%d}, names {', '.join(i.queries)}")
         return
     db = SpacetimeClient("scenario")
     await db.call("register_agent", settings.agent_join_key, "scenario", "scenario-loader", 0, "")
@@ -36,7 +36,7 @@ async def main() -> None:
         print("incident cleared (live mode)")
     else:
         inc = incidents.get(a.key)
-        await db.call("set_incident", *inc.reducer_args())
+        await incidents.select(db, inc)
         print(f"incident set: {inc.name} (news {inc.news_from:%Y-%m-%d} → {inc.news_to:%Y-%m-%d})")
     await db.close()
 

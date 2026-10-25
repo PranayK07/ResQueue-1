@@ -179,7 +179,7 @@ class DelegationAgent(MeshAgent):
         relevant = [i for i in (news.items if news else []) if i.relevance >= 0.5]
         contain = [i.containment_pct for i in relevant if i.containment_pct >= 0]
         acres = [i.acres for i in relevant if i.acres >= 0]
-        parts = [f"Fire: {f.summary}", f"Weather: {w.summary}"] + ([f"News: {news.summary}"] if news else ["News: unavailable"])
+        parts = [f"Fire: {f.summary}", f"Weather: {w.summary}"] + ([f"News ({news.focus}): {news.summary}"] if news else ["News: unavailable"])
         return Situation(
             sim_s=self.sim_now(), incident=incident,
             fire_area_sq_km=f.area_km2, fire_growth_sq_km=f.growth_km2_30min, fire_heading_deg=f.heading_deg, fire_head_kmh=f.head_rate_kmh,

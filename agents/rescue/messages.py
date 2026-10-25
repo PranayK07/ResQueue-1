@@ -127,10 +127,13 @@ class NewsReportRequest(Model):
 class NewsItem(Model):
     title: str
     url: str
+    source: str  # the X account, "@handle"
+    official: bool  # a government agency account (news_sources.json)
     published: str
     relevance: float
     evacuation: bool
     closures: str
+    relief: str  # shelter / relief sentences, " | "-joined
     containment_pct: float  # -1 unknown
     acres: float  # -1 unknown
 
@@ -140,10 +143,17 @@ class NewsReport(Model):
     summary: str
     last_fetch: str
     source: str  # file | brightdata | off
+    accounts: list[str]  # "@handle"s the agent follows for the current focus
+    focus: str  # where and when it is looking, e.g. "Calistoga (38.579, -122.580) · 2020-09-27 → 2020-10-20"
 
 
 class NewsRefreshRequest(Model):
     pass
+
+
+class NewsTrackRequest(Model):
+    """Collect one X post by URL (the commander saw it) and score it like the rest."""
+    url: str
 
 
 class NewsRefreshResult(Model):

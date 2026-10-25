@@ -20,6 +20,7 @@ import spacetimedb, {
   DangerInput,
   FireCellInput,
   NewsInput,
+  NewsScore,
   SituationInput,
   ForecastCellInput,
   PlanEntryInput,
@@ -356,6 +357,7 @@ export const load_scenario = spacetimedb.reducer(
     for (const r of [...ctx.db.forecastCell.iter()]) ctx.db.forecastCell.cellId.delete(r.cellId);
     for (const r of [...ctx.db.roadClosure.iter()]) ctx.db.roadClosure.id.delete(r.id);
     for (const r of [...ctx.db.incident.iter()]) ctx.db.incident.id.delete(r.id);
+    for (const r of [...ctx.db.newsFocus.iter()]) ctx.db.newsFocus.id.delete(r.id);
     for (const r of [...ctx.db.unit.iter()]) ctx.db.unit.id.delete(r.id);
     for (const r of [...ctx.db.station.iter()]) ctx.db.station.id.delete(r.id);
     for (const r of [...ctx.db.operator.iter()]) {
@@ -511,11 +513,11 @@ export const set_road_closure_active = spacetimedb.reducer(
   }
 );
 
-// ─── News (Bright Data via the news agent) ─────────────────────────────────
+// ─── News (X posts via Bright Data, through the news agent) ──────────────────
 
-/** Upsert scraped articles by URL. New relevant articles with actionable
- *  signals (evacuations, closures) are surfaced in the event feed; the
- *  commander decides what to act on. Keeps the newest NEWS_KEEP rows. */
+/** Upsert collected posts by URL. New relevant posts with actionable signals
+ *  (evacuations, closures, shelters / relief) are surfaced in the event feed;
+ *  the commander decides what to act on. Keeps the newest NEWS_KEEP rows. */
 export const publish_news = spacetimedb.reducer(
   { articles: t.array(NewsInput) },
   (ctx, { articles }) => {
@@ -532,6 +534,7 @@ export const publish_news = spacetimedb.reducer(
         content: a.content.slice(0, NEWS_CONTENT_MAX), query: a.query.slice(0, 200),
         relevance: Math.max(0, Math.min(1, a.relevance)), locationMatch: a.locationMatch.slice(0, 200),
         evacuation: a.evacuation, closures: a.closures.slice(0, 1000),
+        official: a.official, relief: a.relief.slice(0, 1000),
         containmentPct: a.containmentPct >= 0 ? a.containmentPct : undefined,
         acres: a.acres >= 0 ? a.acres : undefined,
         fetchedAt: ctx.timestamp,
@@ -543,19 +546,67 @@ export const publish_news = spacetimedb.reducer(
       }
       const inserted = ctx.db.newsArticle.insert({ id: 0n, ...row });
       added++;
-      if (row.relevance >= 0.5 && (row.evacuation || row.closures)) {
-        const what = [row.evacuation ? 'evacuation orders' : '', row.closures ? 'road closures' : ''].filter(Boolean).join(' + ');
-        log(ctx, actor, 'news', `News: ${what} reported — "${row.title.slice(0, 100)}"`);
+      if (row.relevance >= 0.5 && (row.evacuation || row.closures || row.relief)) {
+        const what = [
+          row.evacuation ? 'evacuation orders' : '', row.closures ? 'road closures' : '', row.relief ? 'shelters / relief' : '',
+        ].filter(Boolean).join(' + ');
+        log(ctx, actor, 'news', `News: ${what} reported by ${row.source.slice(0, 40)} — "${row.title.slice(0, 100)}"`);
       }
       if (inserted.id > BigInt(NEWS_KEEP)) ctx.db.newsArticle.id.delete(inserted.id - BigInt(NEWS_KEEP));
     }
-    if (added) log(ctx, actor, 'news_batch', `${added} new article(s) ingested from ${articles[0]?.source ?? 'news'}`);
+    if (added) log(ctx, actor, 'news_batch', `${added} new post(s) ingested from X`);
   }
 );
 
-/** Select the real-world incident being replayed (and its news date window).
- *  Commander (or the scenario loader) only. Switching incidents never deletes
- *  stored news: each article is tagged with the incident it was scraped for. */
+/** The news agent re-scores stored posts when the focus moves (relevance depends on where we look). */
+export const rescore_news = spacetimedb.reducer(
+  { scores: t.array(NewsScore) },
+  (ctx, { scores }) => {
+    requireAgent(ctx, 'news');
+    for (const s of scores) {
+      const existing = ctx.db.newsArticle.url.find(s.url);
+      if (!existing) continue;
+      ctx.db.newsArticle.id.update({
+        ...existing, relevance: Math.max(0, Math.min(1, s.relevance)), locationMatch: s.locationMatch.slice(0, 200),
+      });
+    }
+  }
+);
+
+/** Operators (commander, responders) and registered agents may move the news focus. Not residents: every
+ *  move can start a billed scrape, and their help requests already lie inside the incident area. */
+function requirePinger(ctx: Ctx): string {
+  const op = ctx.db.operator.identity.find(ctx.sender);
+  if (op) return `${op.role}:${op.name}`;
+  const a = callerAgent(ctx);
+  if (a) return `${a.role}:${a.name}`;
+  throw new SenderError('requires an operator or a registered agent');
+}
+
+/** Point the news agent at a location ("ping"). It follows the trusted X accounts near it, for the current
+ *  time window (the incident's, or live). */
+export const ping_news = spacetimedb.reducer(
+  { lat: t.f64(), lon: t.f64(), label: t.string() },
+  (ctx, { lat, lon, label }) => {
+    const actor = requirePinger(ctx);
+    if (!(Math.abs(lat) <= 90 && Math.abs(lon) <= 180)) throw new SenderError('lat/lon out of range');
+    const row = { id: 0, lat, lon, label: label.trim().slice(0, 120), setBy: actor, updatedAt: ctx.timestamp };
+    if (ctx.db.newsFocus.id.find(0)) ctx.db.newsFocus.id.update(row);
+    else ctx.db.newsFocus.insert(row);
+    log(ctx, actor, 'news_focus', `News focus: ${row.label || 'pinned location'} (${lat.toFixed(3)}, ${lon.toFixed(3)})`);
+  }
+);
+
+export const clear_news_focus = spacetimedb.reducer(ctx => {
+  const actor = requirePinger(ctx);
+  for (const r of [...ctx.db.newsFocus.iter()]) ctx.db.newsFocus.id.delete(r.id);
+  log(ctx, actor, 'news_focus', 'News focus cleared');
+});
+
+/** Select the real-world incident being replayed (and its news date window): the WHEN for every agent.
+ *  Any window works (a catalog fire, or a custom range such as 2020-09-27 → 2020-10-20); queries (fire
+ *  names, for relevance) may be empty. Commander (or the scenario loader) only. Switching incidents never
+ *  deletes stored news: each post is tagged with the incident it was scraped for. */
 export const set_incident = spacetimedb.reducer(
   {
     key: t.string(), name: t.string(),
@@ -565,7 +616,6 @@ export const set_incident = spacetimedb.reducer(
   (ctx, a) => {
     const actor = requireCommander(ctx);
     if (a.newsToMicros < a.newsFromMicros) throw new SenderError('news window ends before it starts');
-    if (a.queries.split('|').filter(q => q.trim()).length === 0) throw new SenderError('at least one news query is required');
     const row = {
       id: 0, key: a.key, name: a.name, startAt: new Timestamp(a.startMicros),
       newsFrom: new Timestamp(a.newsFromMicros), newsTo: new Timestamp(a.newsToMicros),

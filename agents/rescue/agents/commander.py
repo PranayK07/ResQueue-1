@@ -5,10 +5,14 @@ directly over uAgents messages) with the live queue state in SpacetimeDB.
   "login <passcode>"     link this ASI:One user as a commander
   "status"               pooled situation: hazard agent (fire + weather) + news agent + queues
   "fire" / "weather"     one specialist's full report
-  "news"                 top wildfire news with extracted signals (news agent)
-  "refresh news"         ask the news agent to scrape now (costs Bright Data page loads)
+  "news"                 top posts from trusted wildfire accounts on X, with extracted signals (news agent)
+  "refresh news"         ask the news agent to pull its X accounts now (costs Bright Data credits)
+  "track <x.com post>"   collect and score one X post by URL (e.g. an evacuation order you saw)
   "incident"             show the selected incident and the catalog; "incident <key>" selects one
-                         (e.g. glass-fire-2020), "incident clear" returns to live mode
+                         (e.g. glass-fire-2020: its window + center), "incident clear" returns to live mode
+  "ping 38.58 -122.58 Calistoga"   point the news agent at a location (it pulls the accounts near it);
+                         "ping clear" drops the ping
+  "window 2020-09-27 2020-10-20"   look at a past time window instead of live ("window live" = back to now)
   "wind 12 from 0"       manual wind (locks out the live feed; the demo slider)
   "release wind"         hand wind back to the live NWS feed
   "pause" / "resume [x]" pause or run the simulation clock (x = speed)
@@ -36,7 +40,8 @@ from ..config import STATE_DIR, settings
 from .. import incidents
 from ..core.slack import fmt_min
 from ..messages import (FireReport, FireReportRequest, HazardReport, HazardReportRequest, NewsRefreshRequest,
-                        NewsRefreshResult, NewsReport, NewsReportRequest, WeatherReport, WeatherReportRequest)
+                        NewsRefreshResult, NewsReport, NewsReportRequest, NewsTrackRequest, WeatherReport,
+                        WeatherReportRequest)
 from ..stdb import ReducerError
 from .base import MeshAgent
 
@@ -46,8 +51,11 @@ LOGIN_HELP = ("To sign in, send the word login followed by the commander passcod
 HELP = """Commands:
 status: pooled picture (fire, weather, news, queues)
 fire / weather / news: one specialist's full report
-refresh news: scrape new articles (costs Bright Data page loads)
+refresh news: pull new posts from the trusted X accounts near the incident (costs Bright Data credits)
+track https://x.com/<account>/status/<id>: collect and score one X post
 incident: show or list incidents; incident glass-fire-2020 selects one; incident clear returns to live mode
+ping 38.58 -122.58 Calistoga: point the news agent at a location; ping clear drops it
+window 2020-09-27 2020-10-20: news for a past window (keeps the location); window live: back to now
 wind 12 from 0: manual wind (speed in m/s, direction in degrees it blows from); release wind: back to live NWS
 pause / resume / resume 60: stop or run the simulation clock (optionally at 60x)
 pin 12 to 2 / unpin 12: pin request 12 to station 2 (the dispatch policy must obey)"""
@@ -118,6 +126,8 @@ class CommanderAgent(MeshAgent):
         lines.append("🔥 Fire: " + (fire.summary if fire else "no answer (hazard agent offline?)"))
         lines.append("💨 Weather: " + (weather.summary if weather else "no answer (hazard agent offline?)"))
         lines.append("📰 News: " + (news.summary if news else "no answer (news agent offline?)"))
+        if news:
+            lines.append(f"📍 News focus: {news.focus}")
         lines += self.queue_lines(fire)
         return "\n".join(lines)
 
@@ -177,14 +187,36 @@ class CommanderAgent(MeshAgent):
                 if arg:
                     if arg not in catalog:
                         return [text(f"Unknown incident '{arg}'. Available: {', '.join(catalog)}")]
-                    await self.db.call("set_incident", *catalog[arg].reducer_args())
-                    return [text(f"Incident set: {catalog[arg].name}. News now uses its date window "
-                                 f"({catalog[arg].news_from:%Y-%m-%d} → {catalog[arg].news_to:%Y-%m-%d}). "
-                                 "Say 'news' to see stored coverage, or 'refresh news' to scrape it (costs page loads).")]
+                    await incidents.select(self.db, catalog[arg])
+                    return [text(f"Incident set: {catalog[arg].name}. News now follows the X accounts near it and keeps "
+                                 f"posts from its window ({catalog[arg].news_from:%Y-%m-%d} → {catalog[arg].news_to:%Y-%m-%d}). "
+                                 "Say 'news' to see stored posts, or 'refresh news' to pull them (costs Bright Data credits).")]
                 rows = [f"• {k}: {i.name} ({i.news_from:%Y-%m-%d} → {i.news_to:%Y-%m-%d})" for k, i in catalog.items()]
                 return [text(self.incident_line() + "\nAvailable (say incident followed by the key, e.g. incident glass-fire-2020):\n" + "\n".join(rows))]
+            if m := re.match(r"ping\s+(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)\s*(.*)", body.strip(), re.I):
+                lat, lon, label = float(m.group(1)), float(m.group(2)), m.group(3).strip()
+                await self.db.call("ping_news", lat, lon, label)
+                return [text(f"News focus set to {label or 'the pinned location'} ({lat:.3f}, {lon:.3f}). The news agent is "
+                             "re-scoring stored posts and pulling the trusted accounts near it; say 'news' in a minute or two.")]
+            if re.match(r"ping\s+clear", low):
+                await self.db.call("clear_news_focus")
+                return [text("Ping cleared; news falls back to the incident's center, then the stations.")]
+            if m := re.match(r"window\s+(\d{4}-\d{2}-\d{2})\s+(?:to\s+|→\s*)?(\d{4}-\d{2}-\d{2})", low):
+                try:
+                    inc = incidents.adhoc(m.group(1), m.group(2))
+                except ValueError as e:
+                    return [text(str(e))]
+                await incidents.select(self.db, inc)
+                return [text(f"Time window set: {m.group(1)} → {m.group(2)} (same location). News keeps only posts from it; "
+                             "'incident clear' or 'window live' goes back to now.")]
+            if re.match(r"window\s+(live|now|clear)", low):
+                await self.db.call("clear_incident")
+                return [text("Back to live: news looks at the last hours around the current location.")]
             if re.match(r"(refresh|update)\s+news", low):
                 res = await self.ask(ctx, "news", NewsRefreshRequest(), NewsRefreshResult)
+                return [text(res.message if res else "The news agent didn't answer.")]
+            if m := re.match(r"track\s+(\S+)", body.strip(), re.I):
+                res = await self.ask(ctx, "news", NewsTrackRequest(url=m.group(1)), NewsRefreshResult)
                 return [text(res.message if res else "The news agent didn't answer.")]
             if low.startswith("news"):
                 news = await self.ask(ctx, "news", NewsReportRequest(limit=5), NewsReport)
@@ -195,11 +227,14 @@ class CommanderAgent(MeshAgent):
                     sig = [s for s in (
                         "🚨 evacuations" if i.evacuation else "",
                         "🚧 " + i.closures.split(" | ")[0][:140] if i.closures else "",
+                        "🏠 " + i.relief.split(" | ")[0][:140] if i.relief else "",
                         f"{i.containment_pct:.0f}% contained" if i.containment_pct >= 0 else "",
                         f"{i.acres:,.0f} acres" if i.acres >= 0 else "",
                     ) if s]
-                    rows.append(f"• [{i.relevance:.2f}] {i.title} ({i.published})" + ("\n   " + "; ".join(sig) if sig else ""))
-                tail = f"\nSource: {news.source}" + (f", last scrape {news.last_fetch.replace('T', ' ').rstrip('Z')} UTC" if news.last_fetch else "")
+                    who = i.source + (" (official)" if i.official else "")
+                    rows.append(f"• [{i.relevance:.2f}] {who}: {i.title} ({i.published})\n   {i.url}" + ("\n   " + "; ".join(sig) if sig else ""))
+                tail = (f"\nFocus: {news.focus}\nFollowing: {', '.join(news.accounts) or 'no accounts'}\nSource: {news.source}"
+                        + (f", last scrape {news.last_fetch.replace('T', ' ').rstrip('Z')} UTC" if news.last_fetch else ""))
                 return [text(f"📰 {news.summary}\n" + "\n".join(rows) + tail)]
             if low.startswith("weather") or low.startswith("wind"):
                 w = await self.ask(ctx, "hazard", WeatherReportRequest(), WeatherReport)

@@ -45,6 +45,7 @@ PRIMARY_KEYS: dict[str, str] = {
     "road_closure": "id",
     "event_log": "id",
     "news_article": "url",
+    "news_focus": "id",
     "ops_request": "id",
     "ops_queue": "request_id",
     "ops_travel": "key",

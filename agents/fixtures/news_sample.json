@@ -1,29 +1,62 @@
 [
   {
-    "title": "SYNTHETIC TEST: Evacuations ordered in Paradise and Magalia as wildfire spreads rapidly",
-    "url": "https://example.invalid/fixture/2018/11/08/us/paradise-evacuation",
-    "author": "Synthetic test article",
-    "published_date": "Nov 8, 2018, 6:00 PM ET",
-    "category": "US",
-    "article_content": "SYNTHETIC TEST FIXTURE, not a real article. Mandatory evacuation orders were issued for Paradise and Magalia as the fire grew to 20,000 acres with 0% containment. Skyway was closed between Paradise and Chico, and Pentz Road was shut down near Pentz.",
-    "tags": ["Wildfires"]
+    "id": "fixture-1",
+    "user_posted": "CALFIRE_ButteCo",
+    "name": "SYNTHETIC TEST (CAL FIRE Butte format)",
+    "description": "SYNTHETIC TEST: #CampFire EVACUATION ORDER for Paradise and Magalia. The fire is 20,000 acres and 0% contained. Skyway is closed between Paradise and Chico; Pentz Road is shut down near Pentz.",
+    "date_posted": "2018-11-08T18:00:00.000Z",
+    "url": "https://example.invalid/x/CALFIRE_ButteCo/status/fixture-1",
+    "hashtags": ["CampFire"],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
   },
   {
-    "title": "SYNTHETIC TEST: Glass Fire forces evacuations in Calistoga and St. Helena",
-    "url": "https://example.invalid/fixture/2020/09/28/us/glass-fire-napa",
-    "author": "Synthetic test article",
-    "published_date": "Sep 28, 2020, 8:15 AM ET",
-    "category": "US",
-    "article_content": "SYNTHETIC TEST FIXTURE, not a real article. The fire grew to 11,000 acres overnight in Napa County. Mandatory evacuation orders were issued for Calistoga and St. Helena. Highway 29 was closed between St. Helena and Calistoga, and the Silverado Trail was shut down. The fire was 0% contained.",
-    "tags": ["Wildfires"]
+    "id": "fixture-2",
+    "user_posted": "RedCross",
+    "name": "SYNTHETIC TEST (Red Cross format)",
+    "description": "SYNTHETIC TEST: Shelters are open in Chico and Oroville for people evacuating from the #CampFire.\nLarge animals can go to the Butte County fairgrounds.",
+    "date_posted": "2018-11-09T02:10:00.000Z",
+    "url": "https://example.invalid/x/RedCross/status/fixture-2",
+    "hashtags": ["CampFire"],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
   },
   {
-    "title": "SYNTHETIC TEST: Seasonal outlook for coastal fog",
-    "url": "https://example.invalid/fixture/2022/01/23/weather/fog-outlook",
-    "author": "Synthetic test article",
-    "published_date": "Jan 23, 2022, 2:47 AM ET",
-    "category": "Weather",
-    "article_content": "SYNTHETIC TEST FIXTURE, not a real article. Morning fog is expected along the central coast this week, with light winds and no fire concern.",
-    "tags": ["Weather"]
+    "id": "fixture-3",
+    "user_posted": "NWSSacramento",
+    "name": "SYNTHETIC TEST (NWS Sacramento format)",
+    "description": "SYNTHETIC TEST: Red Flag Warning continues through Saturday for the northern Sacramento Valley and foothills. Gusty northeast winds 25 to 45 mph and low humidity.",
+    "date_posted": "2018-11-08T15:00:00.000Z",
+    "url": "https://example.invalid/x/NWSSacramento/status/fixture-3",
+    "hashtags": [],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
+  },
+  {
+    "id": "fixture-4",
+    "user_posted": "CALFIRELNU",
+    "name": "SYNTHETIC TEST (CAL FIRE LNU format)",
+    "description": "SYNTHETIC TEST: #GlassFire grew to 11,000 acres overnight in Napa County. Evacuation orders for Calistoga and St. Helena. Highway 29 is closed between St. Helena and Calistoga. 0% contained.",
+    "date_posted": "2020-09-28T15:15:00.000Z",
+    "url": "https://example.invalid/x/CALFIRELNU/status/fixture-4",
+    "hashtags": ["GlassFire"],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
+  },
+  {
+    "id": "fixture-5",
+    "user_posted": "NWSBayArea",
+    "name": "SYNTHETIC TEST (NWS Bay Area format)",
+    "description": "SYNTHETIC TEST: Morning fog along the coast this week, with light winds and no fire weather concerns.",
+    "date_posted": "2022-01-23T07:47:00.000Z",
+    "url": "https://example.invalid/x/NWSBayArea/status/fixture-5",
+    "hashtags": [],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
   }
 ]

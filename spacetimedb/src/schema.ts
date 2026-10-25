@@ -209,6 +209,21 @@ export const incident = table(
   }
 );
 
+/** Singleton (id = 0): WHERE the news agent looks, the latest location ping (web app, commander, a script or
+ *  another agent, via ping_news). WHEN comes from the incident row: present = its window (a replay, e.g. 2020),
+ *  absent = live. With no ping the news agent falls back to the incident's catalog center, then the stations. */
+export const newsFocus = table(
+  { name: 'news_focus', public: true },
+  {
+    id: t.u8().primaryKey(),
+    lat: t.f64(),
+    lon: t.f64(),
+    label: t.string(), // place name for the ping, e.g. "Calistoga"; also counts as a place for relevance
+    setBy: t.string(), // who pinged, for the audit log
+    updatedAt: t.timestamp(),
+  }
+);
+
 /** The head agent's synthesized view of the incident: one row each time the delegation agent
  *  pools the hazard (fire + weather) and news reports. Typed columns, not text, so the RL policy
  *  can read live state from here and the RL workstream can export the log as training/eval data.
@@ -250,24 +265,26 @@ export const situation = table(
   }
 );
 
-/** News coverage scraped by the news agent (Bright Data). Public: it is
- *  published journalism, and holds no resident data. Signals are extracted
- *  hints for the commander (never auto-applied to roads or queues). */
+/** Wildfire posts from trusted X accounts (fire agencies, sheriffs / OES, NWS,
+ *  Caltrans, relief orgs), collected by the news agent through Bright Data's
+ *  X Posts scraper. Public: they are public posts, and hold no resident data.
+ *  Signals are extracted hints for the commander (never auto-applied to roads
+ *  or queues). */
 export const newsArticle = table(
   { name: 'news_article', public: true },
   {
     id: t.u64().primaryKey().autoInc(),
     url: t.string().unique(),
-    source: t.string(), // site domain, e.g. example.com
-    title: t.string(),
-    author: t.string(),
-    publishedRaw: t.string(), // as printed by the site
+    source: t.string(), // X account, e.g. @CAL_FIRE
+    title: t.string(), // first line of the post
+    author: t.string(), // account display name
+    publishedRaw: t.string(), // as delivered (ISO-8601 for X)
     publishedAt: t.option(t.timestamp()),
-    category: t.string(),
-    tags: t.string(), // comma list
-    summary: t.string(), // first ~600 chars of the article
-    content: t.string(), // article text, truncated
-    query: t.string(), // search that found it
+    category: t.string(), // account kind: fire | emergency | relief | weather | transport | utility | tracker | other
+    tags: t.string(), // hashtags, comma list
+    summary: t.string(), // first ~600 chars of the post
+    content: t.string(), // post text (plus any quoted post), truncated
+    query: t.string(), // how it was found: "profile @handle" or "post url"
     relevance: t.f32(), // 0..1, agent-scored
     locationMatch: t.string(), // incident place names mentioned
     evacuation: t.bool(),
@@ -277,6 +294,8 @@ export const newsArticle = table(
     fetchedAt: t.timestamp(),
     // Appended last with a default so the table migrates in place: existing rows become '' (live mode).
     incident: t.string().default(''), // incident.key this article was scraped for
+    official: t.bool().default(false), // posted by a government agency account
+    relief: t.string().default(''), // extracted shelter / relief sentences, " | "-separated
   }
 );
 
@@ -486,6 +505,14 @@ export const NewsInput = t.object('NewsInput', {
   closures: t.string(),
   containmentPct: t.f32(), // < 0 = unknown
   acres: t.f64(), // < 0 = unknown
+  official: t.bool(),
+  relief: t.string(),
+});
+
+export const NewsScore = t.object('NewsScore', {
+  url: t.string(),
+  relevance: t.f32(),
+  locationMatch: t.string(),
 });
 
 export const UnreachableInput = t.object('UnreachableInput', {
@@ -510,6 +537,7 @@ const spacetimedb = schema(
     worldVersion,
     roadClosure,
     newsArticle,
+    newsFocus,
     incident,
     situation,
     helpRequest,

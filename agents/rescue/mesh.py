@@ -43,7 +43,7 @@ class AgentSpec:
 
 ROSTER: list[AgentSpec] = [
     AgentSpec("hazard", "hazard", 0, description="Owns the hazard picture: fire perimeter (NASA FIRMS / simulated spread), live NWS wind, and the ensemble fire-arrival forecast."),
-    AgentSpec("news", "news", 1, description="Scrapes wildfire news (Bright Data) and extracts evacuation orders, road closures, containment and acreage for the commander."),
+    AgentSpec("news", "news", 1, description="Follows trusted wildfire accounts on X near the incident (fire agencies, sheriffs, NWS, Caltrans, Red Cross) via Bright Data and extracts evacuation orders, road closures, shelters, containment and acreage for the commander."),
     AgentSpec("danger", "danger", 3, description="Time-dependent routing + slack scoring for every help request."),
     AgentSpec("delegation", "delegation", 4, description="Builds per-station rescue queues with the learned/heuristic policy."),
     AgentSpec("station-1", "station", 5, station_id=1, description="Station 1 dispatcher: runs its units' missions."),
