@@ -29,6 +29,7 @@ import { ClosureHint } from './ClosureHint';
 import { ClosurePointMarker } from './ClosurePointMarker';
 import { MapLegend } from './MapLegend';
 import { MapNote } from './MapNote';
+import { maplibregl } from './maplibre';
 import { MAP_HEX } from './mapColors';
 import { RequestMarker } from './RequestMarker';
 import { ScenarioLayers } from './ScenarioLayers';
@@ -191,6 +192,7 @@ export function IncidentMap({
       <div className={cn('absolute inset-0', offline && 'opacity-60 grayscale')} aria-busy={grid === undefined}>
         <MapGL
           ref={setMap}
+          mapLib={maplibregl}
           mapStyle={styleUrl ?? FALLBACK_STYLE}
           style={MAP_STYLE}
           attributionControl={false}
@@ -213,25 +215,30 @@ export function IncidentMap({
               closures={closures}
             />
           )}
-          {stations.map(s => (
-            <StationMarker key={s.id} station={s} />
-          ))}
-          {units.map(u => (
-            <UnitMarker key={u.id} unit={u} offset={offsets.get(u.id)} />
-          ))}
-          {pins.map(p => (
-            <RequestMarker
-              key={p.id}
-              id={p.id}
-              lat={p.lat}
-              lon={p.lon}
-              level={p.level}
-              rank={p.rank}
-              selected={p.id === selectedId}
-              interactive={!closureMode}
-              onSelect={onSelectRequest}
-            />
-          ))}
+          {/* Markers wait for the grid too: loading shows the base style only, and without a fit they'd pile up at zoom 0. */}
+          {geom && (
+            <>
+              {stations.map(s => (
+                <StationMarker key={s.id} station={s} />
+              ))}
+              {units.map(u => (
+                <UnitMarker key={u.id} unit={u} offset={offsets.get(u.id)} />
+              ))}
+              {pins.map(p => (
+                <RequestMarker
+                  key={p.id}
+                  id={p.id}
+                  lat={p.lat}
+                  lon={p.lon}
+                  level={p.level}
+                  rank={p.rank}
+                  selected={p.id === selectedId}
+                  interactive={!closureMode}
+                  onSelect={onSelectRequest}
+                />
+              ))}
+            </>
+          )}
           {closureMode && pointA && <ClosurePointMarker point={pointA} />}
         </MapGL>
       </div>

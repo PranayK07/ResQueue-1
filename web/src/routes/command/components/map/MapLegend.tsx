@@ -1,4 +1,5 @@
-import type { CSSProperties } from 'react';
+import { ChevronDown, Layers } from 'lucide-react';
+import { useId, useState, type CSSProperties } from 'react';
 import { LEVEL_META, type Level } from '@/lib/domain/levels';
 import { cn } from '@/lib/utils';
 import { LegendRow } from './LegendRow';
@@ -7,6 +8,8 @@ import { BAND_STYLE, FIRE_OPACITY, LEVEL_HEX, MAP_HEX, UNIT_HEX, type UnitTone }
 
 type MapLegendProps = {
   className?: string;
+  /** Starts open; the commander can fold it away when it covers pins. */
+  defaultOpen?: boolean;
 };
 
 /** A cell fill as drawn on the map, with a solid edge so faint bands stay identifiable. */
@@ -36,16 +39,41 @@ const UNIT_ROWS: { tone: UnitTone; label: string }[] = [
   { tone: 'idle', label: 'Returning or out of service' },
 ];
 
-/** Map key, bottom-left. Every color on the map has words next to it. */
-export function MapLegend({ className }: MapLegendProps) {
+const SURFACE = 'pointer-events-auto border border-border bg-surface/90 text-[11px] leading-4 text-foreground/85 shadow-lg backdrop-blur-sm';
+
+/** Map key, bottom-left. Every color on the map has words next to it. Folds to a pill. */
+export function MapLegend({ className, defaultOpen = true }: MapLegendProps) {
+  const [open, setOpen] = useState(defaultOpen);
+  const panelId = useId();
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        aria-expanded={false}
+        aria-controls={panelId}
+        onClick={() => setOpen(true)}
+        className={cn(SURFACE, 'flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium hover:bg-surface-2', className)}
+      >
+        <Layers className="size-3.5 text-muted-foreground" aria-hidden />
+        Show legend
+      </button>
+    );
+  }
+
   return (
-    <section
-      aria-label="Map legend"
-      className={cn(
-        'pointer-events-auto w-[340px] rounded-card border border-border bg-surface/90 p-3 text-[11px] leading-4 text-foreground/85 shadow-lg backdrop-blur-sm',
-        className
-      )}
-    >
+    <section id={panelId} aria-label="Map legend" className={cn(SURFACE, 'relative w-[340px] rounded-card p-3', className)}>
+      <button
+        type="button"
+        aria-expanded
+        aria-controls={panelId}
+        aria-label="Hide legend"
+        title="Hide legend"
+        onClick={() => setOpen(false)}
+        className="absolute top-2 right-2 rounded-md p-1 text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+      >
+        <ChevronDown className="size-3.5" aria-hidden />
+      </button>
       <div className="grid grid-cols-2 gap-x-4">
         <div>
           <h3 className="label-caps mb-1.5">Fire</h3>
@@ -104,7 +132,7 @@ export function MapLegend({ className }: MapLegendProps) {
           ))}
         </ul>
       </div>
-      <p className="mt-2 text-muted-foreground">Pins show their place in line. An icon means not queued yet.</p>
+      <p className="mt-2 text-muted-foreground">A number is the place in line; an icon means not queued yet.</p>
     </section>
   );
 }
