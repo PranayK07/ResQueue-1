@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -19,6 +20,21 @@ from uagents_core.contrib.protocols.chat.cards import extract_card_response
 
 # (ctx, sender, text, card_selection) -> list of content blocks to reply with
 Handler = Callable[[Context, str, str, dict[str, Any] | None], Awaitable[list]]
+
+
+# ASI:One keeps the @mention in the message text ("@agent1q... login pass"), which would stop every
+# command that is matched from the start of the message. Only LEADING mentions are removed.
+_LEADING_MENTIONS = re.compile(r"^(?:\s*@[\w.:-]+)+\s*")
+_SECRET = re.compile(r"(?i)\b(login)\s+\S+")
+
+
+def clean_text(body: str) -> str:
+    return _LEADING_MENTIONS.sub("", body).strip()
+
+
+def redact(body: str) -> str:
+    """For logs: never print passcodes."""
+    return _SECRET.sub(r"\1 ***", body)
 
 
 def text(t: str) -> TextContent:
@@ -46,7 +62,9 @@ def build_chat_protocol(handler: Handler) -> Protocol:
                 parts.append(item.text)
             elif isinstance(item, (StartSessionContent, EndSessionContent)):
                 continue
-        body = "\n".join(parts).strip()
+        raw = "\n".join(parts).strip()
+        ctx.logger.info(f"chat from {sender[:16]}…: {redact(raw)[:160]!r}")
+        body = clean_text(raw)
         if selection is None and body.startswith("{"):
             try:
                 maybe = json.loads(body)
@@ -54,7 +72,7 @@ def build_chat_protocol(handler: Handler) -> Protocol:
                     selection = maybe
             except json.JSONDecodeError:
                 pass
-        if not body and selection is None:
+        if not raw and selection is None:
             return
         try:
             reply = await handler(ctx, sender, body, selection)

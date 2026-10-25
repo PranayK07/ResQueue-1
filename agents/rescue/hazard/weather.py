@@ -8,6 +8,7 @@ WEATHER_SOURCE=scenario  never write; just report what the DB holds
 from __future__ import annotations
 
 from collections import deque
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from uagents import Context
@@ -74,6 +75,19 @@ class WeatherEngine:
                             f"RH {obs.humidity_pct if obs.humidity_pct is not None else -1:.0f}%"
                             + (" — ignored, commander has manual wind" if locked else ""))
 
+    @staticmethod
+    def _age(epoch_s: float) -> str:
+        m = max(0.0, (datetime.now(timezone.utc).timestamp() - epoch_s) / 60)
+        return f"{m:.0f} min" if m < 120 else f"{m / 60:.1f} h"
+
+    @classmethod
+    def _obs_time(cls, iso: str) -> str:
+        try:
+            t = datetime.fromisoformat(iso)
+        except ValueError:
+            return iso or "at an unknown time"
+        return f"{t.astimezone(timezone.utc):%Y-%m-%d %H:%M} UTC ({cls._age(t.timestamp())} ago)"
+
     def report(self) -> WeatherReport:
         w = self.db.table("weather").one() or {}
         speed, frm = w.get("wind_speed_mps", 0.0), w.get("wind_from_deg", 0.0)
@@ -101,8 +115,11 @@ class WeatherEngine:
         line = f"Wind {speed:.0f} m/s ({speed * 3.6:.0f} km/h) from {compass(frm)} ({frm:.0f}°), gusts {gust:.0f} m/s, {trend}"
         if w.get("locked"):
             line += " [manual override]"
+        if w.get("updated_at"):
+            line += f" (wind set {self._age(w['updated_at'] / 1e6)} ago)"
         if o:
             line += f"; live NWS {o.station}: {o.wind_speed_mps:.0f} m/s from {compass(o.wind_from_deg)}" + (f", RH {rh:.0f}%" if rh >= 0 else "")
+            line += f", observed {self._obs_time(o.observed_at)}"
         if red_flag:
             line += f" — RED FLAG conditions ({', '.join(reasons)})"
         return WeatherReport(

@@ -41,15 +41,18 @@ class HazardAgent(MeshAgent):
 
         @self.agent.on_message(FireReportRequest, replies=FireReport)
         async def _fire_report(ctx: Context, sender: str, _msg: FireReportRequest):
-            await ctx.send(sender, self.fire.report())
+            if await self.when_ready(ctx):
+                await ctx.send(sender, self.fire.report())
 
         @self.agent.on_message(WeatherReportRequest, replies=WeatherReport)
         async def _weather_report(ctx: Context, sender: str, _msg: WeatherReportRequest):
-            await ctx.send(sender, self.weather.report())
+            if await self.when_ready(ctx):
+                await ctx.send(sender, self.weather.report())
 
         @self.agent.on_message(HazardReportRequest, replies=HazardReport)
         async def _hazard_report(ctx: Context, sender: str, _msg: HazardReportRequest):
-            await ctx.send(sender, HazardReport(fire=self.fire.report(), weather=self.weather.report()))
+            if await self.when_ready(ctx):
+                await ctx.send(sender, HazardReport(fire=self.fire.report(), weather=self.weather.report()))
 
         @self.agent.on_interval(period=1.0)
         async def _fire_tick(_ctx: Context):
@@ -65,8 +68,9 @@ class HazardAgent(MeshAgent):
 
     async def on_ready(self, ctx: Context) -> None:
         await self.fire.on_ready(ctx)
-        await self.weather.on_ready(ctx)
         await self.forecast.on_ready(ctx)
+        self.ready.set()  # world loaded; the first NWS poll below is a network call and must not delay answers
+        await self.weather.on_ready(ctx)
 
     def set_part(self, part: str, status: str, detail: str) -> None:
         """Engines report their own health; the agent's status is the worst of them."""

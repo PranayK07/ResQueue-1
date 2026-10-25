@@ -26,6 +26,7 @@ import os
 from dataclasses import dataclass, field
 from typing import Protocol
 
+from .situation import Situation
 from .slack import MARGIN_S, fmt_min, vulnerability
 
 log = logging.getLogger("policy")
@@ -67,6 +68,9 @@ class PlanInput:
     units: list[UnitState]
     stations: dict[int, str]  # id -> name
     margin_s: float = MARGIN_S
+    # Environment context from the head agent (fire, wind, news): the same record the `situation` table logs.
+    # Heuristic policies ignore it; a learned policy can use situation.feature_vector().
+    situation: Situation | None = None
 
 
 @dataclass

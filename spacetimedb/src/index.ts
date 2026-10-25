@@ -19,6 +19,8 @@ import {
 import spacetimedb, {
   DangerInput,
   FireCellInput,
+  NewsInput,
+  SituationInput,
   ForecastCellInput,
   PlanEntryInput,
   StationInput,
@@ -41,13 +43,16 @@ type VCtx = ViewCtx<Schema>;
 type Request = NonNullable<ReturnType<Ctx['db']['helpRequest']['id']['find']>>;
 
 const SIM_TICK_MICROS = 1_000_000n;
+const NEWS_CONTENT_MAX = 8_000;
+const NEWS_KEEP = 300;
+const SITUATION_KEEP = 2000;
 const EVENT_LOG_KEEP = 400n;
 const MIN_CONSENT_MIN = 15;
 const MAX_CONSENT_MIN = 240;
 const LOCKED_EXTENSION_MICROS = 15n * 60n * 1_000_000n;
 
 const AGENT_ROLES = [
-  'hazard', 'fire', 'weather', 'closures', 'forecast', 'danger', 'delegation',
+  'hazard', 'news', 'fire', 'weather', 'closures', 'forecast', 'danger', 'delegation',
   'station', 'intake', 'commander', 'scenario',
 ];
 const LEVELS = ['unknown', 'unreachable', 'critical', 'high', 'moderate'];
@@ -350,6 +355,7 @@ export const load_scenario = spacetimedb.reducer(
     for (const r of [...ctx.db.fireCell.iter()]) ctx.db.fireCell.cellId.delete(r.cellId);
     for (const r of [...ctx.db.forecastCell.iter()]) ctx.db.forecastCell.cellId.delete(r.cellId);
     for (const r of [...ctx.db.roadClosure.iter()]) ctx.db.roadClosure.id.delete(r.id);
+    for (const r of [...ctx.db.incident.iter()]) ctx.db.incident.id.delete(r.id);
     for (const r of [...ctx.db.unit.iter()]) ctx.db.unit.id.delete(r.id);
     for (const r of [...ctx.db.station.iter()]) ctx.db.station.id.delete(r.id);
     for (const r of [...ctx.db.operator.iter()]) {
@@ -505,7 +511,92 @@ export const set_road_closure_active = spacetimedb.reducer(
   }
 );
 
-// ─── Residents ──────────────────────────────────────────────────────────────
+// ─── News (Bright Data via the news agent) ─────────────────────────────────
+
+/** Upsert scraped articles by URL. New relevant articles with actionable
+ *  signals (evacuations, closures) are surfaced in the event feed; the
+ *  commander decides what to act on. Keeps the newest NEWS_KEEP rows. */
+export const publish_news = spacetimedb.reducer(
+  { articles: t.array(NewsInput) },
+  (ctx, { articles }) => {
+    const ag = requireAgent(ctx, 'news');
+    const actor = `news:${ag.name}`;
+    let added = 0;
+    for (const a of articles) {
+      if (!a.url.startsWith('http')) continue;
+      const row = {
+        url: a.url, source: a.source, incident: a.incident.slice(0, 80), title: a.title.slice(0, 300), author: a.author.slice(0, 200),
+        publishedRaw: a.publishedRaw.slice(0, 80),
+        publishedAt: a.publishedMicros > 0n ? new Timestamp(a.publishedMicros) : undefined,
+        category: a.category.slice(0, 80), tags: a.tags.slice(0, 500), summary: a.summary.slice(0, 800),
+        content: a.content.slice(0, NEWS_CONTENT_MAX), query: a.query.slice(0, 200),
+        relevance: Math.max(0, Math.min(1, a.relevance)), locationMatch: a.locationMatch.slice(0, 200),
+        evacuation: a.evacuation, closures: a.closures.slice(0, 1000),
+        containmentPct: a.containmentPct >= 0 ? a.containmentPct : undefined,
+        acres: a.acres >= 0 ? a.acres : undefined,
+        fetchedAt: ctx.timestamp,
+      };
+      const existing = ctx.db.newsArticle.url.find(a.url);
+      if (existing) {
+        ctx.db.newsArticle.id.update({ ...existing, ...row });
+        continue;
+      }
+      const inserted = ctx.db.newsArticle.insert({ id: 0n, ...row });
+      added++;
+      if (row.relevance >= 0.5 && (row.evacuation || row.closures)) {
+        const what = [row.evacuation ? 'evacuation orders' : '', row.closures ? 'road closures' : ''].filter(Boolean).join(' + ');
+        log(ctx, actor, 'news', `News: ${what} reported — "${row.title.slice(0, 100)}"`);
+      }
+      if (inserted.id > BigInt(NEWS_KEEP)) ctx.db.newsArticle.id.delete(inserted.id - BigInt(NEWS_KEEP));
+    }
+    if (added) log(ctx, actor, 'news_batch', `${added} new article(s) ingested from ${articles[0]?.source ?? 'news'}`);
+  }
+);
+
+/** Select the real-world incident being replayed (and its news date window).
+ *  Commander (or the scenario loader) only. Switching incidents never deletes
+ *  stored news: each article is tagged with the incident it was scraped for. */
+export const set_incident = spacetimedb.reducer(
+  {
+    key: t.string(), name: t.string(),
+    startMicros: t.i64(), newsFromMicros: t.i64(), newsToMicros: t.i64(),
+    location: t.string(), queries: t.string(), places: t.string(),
+  },
+  (ctx, a) => {
+    const actor = requireCommander(ctx);
+    if (a.newsToMicros < a.newsFromMicros) throw new SenderError('news window ends before it starts');
+    if (a.queries.split('|').filter(q => q.trim()).length === 0) throw new SenderError('at least one news query is required');
+    const row = {
+      id: 0, key: a.key, name: a.name, startAt: new Timestamp(a.startMicros),
+      newsFrom: new Timestamp(a.newsFromMicros), newsTo: new Timestamp(a.newsToMicros),
+      location: a.location, queries: a.queries, places: a.places, updatedAt: ctx.timestamp,
+    };
+    if (ctx.db.incident.id.find(0)) ctx.db.incident.id.update(row);
+    else ctx.db.incident.insert(row);
+    log(ctx, actor, 'incident', `Incident set: ${a.name}`);
+  }
+);
+
+export const clear_incident = spacetimedb.reducer(ctx => {
+  const actor = requireCommander(ctx);
+  for (const r of [...ctx.db.incident.iter()]) ctx.db.incident.id.delete(r.id);
+  log(ctx, actor, 'incident', 'Incident cleared; live mode');
+});
+
+// ─── Head agent ─────────────────────────────────────────────────────────────
+
+/** The delegation (head) agent records the situation it synthesized from the hazard and news
+ *  reports. Only that agent may write it. */
+export const record_situation = spacetimedb.reducer(
+  { s: SituationInput },
+  (ctx, { s }) => {
+    requireAgent(ctx, 'delegation');
+    const row = ctx.db.situation.insert({ id: 0n, at: ctx.timestamp, ...s, summary: s.summary.slice(0, 1500), stationsJson: s.stationsJson.slice(0, 2000), staleReasons: s.staleReasons.slice(0, 300) });
+    if (row.id > BigInt(SITUATION_KEEP)) ctx.db.situation.id.delete(row.id - BigInt(SITUATION_KEEP));
+  }
+);
+
+// ─── Residents ────────────────────────────────────────────────────────────────
 
 /** The one button. Called by the resident's own phone; ctx.sender is them. */
 export const submit_help_request = spacetimedb.reducer(

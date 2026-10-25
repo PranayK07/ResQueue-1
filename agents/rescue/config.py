@@ -56,6 +56,26 @@ class Settings:
     # the scenario/commander wind alone and only report.
     weather_source: str = _env("WEATHER_SOURCE", "nws")
     weather_poll_s: float = float(_env("WEATHER_POLL_S", "300"))
+
+    # News agent: "file" replays NEWS_FIXTURE (free), "brightdata" runs the
+    # Scraper Studio collector (billed per page load), "off" disables it.
+    # Delegation (head) agent: how often it pools the hazard + news reports into a situation.
+    # Dispatch policy the delegation (head) agent runs: nearest | greedy | lookahead | learned.
+    # nearest | greedy | lookahead: heuristic placeholders. rl: the RL component, rescue/rl_policy.py.
+    policy: str = _env("POLICY", "lookahead")
+    situation_period_s: float = float(_env("SITUATION_PERIOD_S", "30"))
+    news_source: str = _env("NEWS_SOURCE", "file")
+    brightdata_api_key: str = _env("BRIGHTDATA_API_KEY")
+    brightdata_collector_id: str = _env("BRIGHTDATA_COLLECTOR_ID")
+    news_keywords: str = _env("NEWS_KEYWORDS", "wildfire,evacuation,road closure")
+    news_location: str = _env("NEWS_LOCATION", "Paradise California")
+    news_places: str = _env("NEWS_PLACES", "Paradise,Magalia,Pentz,Concow,Chico,Butte County")
+    news_poll_s: float = float(_env("NEWS_POLL_S", "1800"))
+    # Send date_from/date_to (YYYY-MM-DD) to the Bright Data collector. Leave 0 unless the collector
+    # declares those inputs: an input the collector doesn't know about is rejected (HTTP 422).
+    news_send_dates: bool = _env("NEWS_SEND_DATES", "0") in ("1", "true", "yes")
+    news_archive_dir: str = _env("NEWS_ARCHIVE_DIR", "news_archive")
+    news_fixture: str = _env("NEWS_FIXTURE", "fixtures/brightdata_cnn_sample.json")
     nws_user_agent: str = _env("NWS_USER_AGENT", "wildfire-rescue-queue (calhacks demo)")
 
     @property

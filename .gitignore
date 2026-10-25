@@ -8,3 +8,5 @@ spacetimedb/dist/
 .stdb-data/
 .agent-state/
 .DS_Store
+agents/news_archive/
+agents/exports/

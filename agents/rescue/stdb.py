@@ -44,6 +44,7 @@ PRIMARY_KEYS: dict[str, str] = {
     "world_version": "id",
     "road_closure": "id",
     "event_log": "id",
+    "news_article": "url",
     "ops_request": "id",
     "ops_queue": "request_id",
     "ops_travel": "key",
@@ -159,10 +160,12 @@ class SpacetimeClient:
 
     # ── writes & ad-hoc reads ───────────────────────────────────────────────
 
-    async def call(self, reducer: str, *args: Any) -> None:
-        """Invoke a reducer. Raises ReducerError if the module rejects it."""
+    async def call(self, reducer: str, *args: Any, timeout: float | None = None) -> None:
+        """Invoke a reducer. Raises ReducerError if the module rejects it.
+        `timeout` overrides the default 15 s for bulk calls (e.g. forecasts)."""
         url = f"{self.http}/v1/database/{self.db}/call/{reducer}"
-        r = await (await self._client()).post(url, json=list(args), headers=await self._headers())
+        r = await (await self._client()).post(url, json=list(args), headers=await self._headers(),
+                                              **({"timeout": timeout} if timeout else {}))
         if r.status_code >= 400:
             raise ReducerError(reducer, r.status_code, r.text.strip()[:500])
 
