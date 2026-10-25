@@ -122,6 +122,7 @@ agents/rescue/mesh.py         roster: names, ports, seed-derived addresses, loca
 agents/scenarios/             demo worlds (synthetic)
 agents/scripts/seed_scenario.py
 scripts/dev.sh                start DB -> publish -> seed -> run all agents
+web/                          frontend (Vite + React + TS): cd web && npm install && npm run dev
 ```
 
 ### Status
@@ -140,7 +141,7 @@ scripts/dev.sh                start DB -> publish -> seed -> run all agents
 | `danger` engine (inside commander) | risk + slack + level + travel time per request, via `rescue/core/danger.py` (written; end-to-end run on a throwaway database: 24 requests scored, 24 queued, 5 units dispatched) |
 | Commander planning loop | builds `PlanInput` from the database, runs the policy chosen by `POLICY` (`lookahead` placeholder by default, `rl` = the RL teammate's `rescue/rl_policy.py`), publishes the plan with current risk records and trace IDs; learned fire risk exercised through the real local agent mesh. The separate RL dispatcher remains a stub. See `docs/RL_INTEGRATION.md` |
 | Unit missions | Lifecycle reducers exist; automatic execution is not implemented |
-| Frontend | not started; generate bindings with `spacetime generate --lang typescript --out-dir <web>/src/module_bindings --module-path spacetimedb` |
+| Frontend (`web/`, Vite + React) | **Caller** (`#/`, C01–C07): live geolocation, MapLibre map, Photon address search; sending simulated in `web/src/lib/simulatedDispatch.ts`. **Responder phone** (`#/responder[/<unitId>]`: full-screen map, queue drop-down with crew reordering, swipe-up turn-by-turn directions from OSRM with an "Open in Google Maps" handoff, unit or phone GPS) and **incident command** (`#/command`, `#/command/queue`; Units tab shows each unit's route and lets command reorder/reassign its stops): built from Figma and running on one shared simulated world (`web/src/ops/sim/`: fire spread, slack + least-slack-first planner, dispatch) that emits the same rows as the SpacetimeDB tables/views. To go live, implement `ResponderSource` / `CommandSource` in `web/src/ops/sources.ts` and swap them in `web/src/ops/hooks.ts`. Queue-position pins, unit assignments and policy parameters have no reducer yet. |
 
 ## Quick start
 
