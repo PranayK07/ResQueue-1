@@ -37,6 +37,7 @@ import spacetimedb, {
   consentTimer,
   fieldReport,
   helpRequest,
+  operator,
   reportAssessment,
   requestMessage,
   simTickTimer,
@@ -63,7 +64,7 @@ const MIN_CONSENT_MIN = 15;
 const MAX_CONSENT_MIN = 24 * 60; // a request (and the location it shares) lives at most 24 h unless extended; "I'm safe" deletes it at once
 const LOCKED_EXTENSION_MICROS = 15n * 60n * 1_000_000n;
 const MAX_MOCK_PINGS = 25;
-const MOCK_CONSENT_MIN = 120;
+const MOCK_CONSENT_MIN = MAX_CONSENT_MIN; // a replay at 30x runs for hours of real time
 
 const AGENT_ROLES = [
   'hazard', 'news', 'fire', 'weather', 'closures', 'forecast', 'danger', 'delegation',
@@ -1431,6 +1432,14 @@ export const ops_message = spacetimedb.view(
     if (ids === 'all') return [...ctx.db.requestMessage.iter()];
     return [...ids].flatMap(id => [...ctx.db.requestMessage.requestId.filter(id)]);
   }
+);
+
+/** Who the caller is signed in as (commander or responder, and which station), if anyone. The operator table is
+ *  private; this lets a console restore its sign-in, and notice when a scenario reload has signed responders out. */
+export const my_operator = spacetimedb.view(
+  { name: 'my_operator', public: true },
+  t.option(operator.rowType),
+  ctx => ctx.db.operator.identity.find(ctx.sender) ?? undefined
 );
 
 /** What a resident's phone shows: only their own request(s), with a coarse

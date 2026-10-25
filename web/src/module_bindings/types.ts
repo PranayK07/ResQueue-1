@@ -244,6 +244,9 @@ export const MockRequestInput = __t.object("MockRequestInput", {
 });
 export type MockRequestInput = __Infer<typeof MockRequestInput>;
 
+export const MyOperator = __t.object("MyOperator", {});
+export type MyOperator = __Infer<typeof MyOperator>;
+
 export const MyRequests = __t.object("MyRequests", {});
 export type MyRequests = __Infer<typeof MyRequests>;
 

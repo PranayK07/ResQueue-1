@@ -92,6 +92,7 @@ import ForecastCellRow from "./forecast_cell_table";
 import ForecastMetaRow from "./forecast_meta_table";
 import GridRow from "./grid_table";
 import IncidentRow from "./incident_table";
+import MyOperatorRow from "./my_operator_table";
 import MyRequestsRow from "./my_requests_table";
 import MyRiskRow from "./my_risk_table";
 import NewsArticleRow from "./news_article_table";
@@ -344,6 +345,13 @@ const tablesSchema = __schema({
       { name: 'world_version_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, WorldVersionRow),
+  myOperator: __table({
+    name: 'my_operator',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyOperatorRow),
   myRequests: __table({
     name: 'my_requests',
     indexes: [
@@ -470,6 +478,8 @@ const proceduresSchema = __procedures(
 
 type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "tables"> & {
   tables: typeof tablesSchema.schemaType.tables & {
+    /** @deprecated Use `myOperator` instead. This alias will be removed in the next major version. */
+    readonly "my_operator": Omit<typeof tablesSchema.schemaType.tables["myOperator"], "accessorName"> & { readonly accessorName: "my_operator" };
     /** @deprecated Use `myRequests` instead. This alias will be removed in the next major version. */
     readonly "my_requests": Omit<typeof tablesSchema.schemaType.tables["myRequests"], "accessorName"> & { readonly accessorName: "my_requests" };
     /** @deprecated Use `myRisk` instead. This alias will be removed in the next major version. */
@@ -508,6 +518,7 @@ const REMOTE_MODULE = {
 >;
 
 const tableAccessorAliases = {
+  "my_operator": "myOperator",
   "my_requests": "myRequests",
   "my_risk": "myRisk",
   "ops_assessment": "opsAssessment",
@@ -538,6 +549,8 @@ function __withTableAccessorAliases<T extends object>(target: T, freeze = false)
 
 type __DbViewBase = __DbConnectionImpl<typeof REMOTE_MODULE>["db"];
 export type DbView = __DbViewBase & {
+  /** @deprecated Use `myOperator` instead. This alias will be removed in the next major version. */
+  readonly "my_operator": __DbViewBase["myOperator"];
   /** @deprecated Use `myRequests` instead. This alias will be removed in the next major version. */
   readonly "my_requests": __DbViewBase["myRequests"];
   /** @deprecated Use `myRisk` instead. This alias will be removed in the next major version. */
@@ -562,6 +575,8 @@ export type DbView = __DbViewBase & {
 
 type __TablesBase = __QueryBuilder<typeof tablesSchema.schemaType>;
 export type Tables = __TablesBase & {
+  /** @deprecated Use `myOperator` instead. This alias will be removed in the next major version. */
+  readonly "my_operator": __TablesBase["myOperator"];
   /** @deprecated Use `myRequests` instead. This alias will be removed in the next major version. */
   readonly "my_requests": __TablesBase["myRequests"];
   /** @deprecated Use `myRisk` instead. This alias will be removed in the next major version. */
