@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 from ..core.danger import assess_requests
 from ..core.geo import Grid
-from ..core.risk import compose_risks, risk_snapshot
+from ..core.risk import compose_risks, news_context, risk_snapshot
 from ..stdb import Debouncer
 from ..planning import risk_to_reducer_args
 
@@ -83,7 +83,8 @@ class DangerEngine:
             assess_requests, grid, clock["sim_s"], points, stations, forecast, burning, closures, adjust=adjust)
 
         risks = await asyncio.to_thread(compose_risks, snapshot, reqs, assessments, travel, units, weighed,
-                                        meta=meta, cells=list(db.table("fire_risk_cell")), pipeline=pipeline)
+                                        meta=meta, cells=list(db.table("fire_risk_cell")), pipeline=pipeline,
+                                        context=news_context(a.planner.latest))
         sigs = {r["request_id"]: r["assessment_id"] for r in risks}
         changed = [r for r in risks if self._published.get(r["request_id"]) != sigs[r["request_id"]]]
         for i in range(0, len(changed), CHUNK):

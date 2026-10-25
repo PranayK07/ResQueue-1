@@ -70,6 +70,7 @@ class Planner:
         self.latest: Situation | None = None  # the policy's live fire / wind / news / reports input
         self.intake: IntakeReport | None = None  # the intake agent's last answer
         self._recorded: Situation | None = None
+        self._news_sig: tuple | None = None  # what the risk records currently say about news
         self._recorded_at = -1e9
         self.recorded_count = 0
         self.policy = make_policy()
@@ -149,6 +150,11 @@ class Planner:
         a.reports.weigh_all()
         sit = self.synthesize(hazard, news, inc["key"] if inc else "")
         self.latest = sit
+        news_sig = (sit.news_ok, sit.news_evacuation, sit.news_closures)
+        if news_sig != self._news_sig:  # news is part of each resident's risk record: reassess when it changes
+            self._news_sig = news_sig
+            if a.danger._debounce:
+                a.danger._debounce.trigger()
         now = time.monotonic()
         if sit.changed_materially(self._recorded) or now - self._recorded_at >= HEARTBEAT_ROW_S:
             if await a.db.try_call("record_situation", sit.to_row()):

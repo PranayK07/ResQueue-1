@@ -261,3 +261,39 @@ def test_unsupported_risk_states_are_explicit_and_json_finite(recorded, conditio
     if condition == "fallback":
         assert "checkpoint absent" in r["quality_flags"]
     json.dumps(r, allow_nan=False)
+
+
+def _risk(f, **kw):
+    return compose_risks(
+        f.snapshot, f.requests, f.danger, f.travel, f.units, kw.pop("weighed", f.weighed),
+        meta=f.meta, cells=f.cells, **kw,
+    )[0]
+
+
+def test_news_hints_flag_risk_without_changing_numbers(recorded):
+    from rescue.core.risk import news_context
+
+    f = inputs(recorded)
+    base = _risk(f)
+    ctx = news_context(SimpleNamespace(news_ok=True, news_evacuation=True, news_closures=2))
+    r = _risk(f, context=ctx)
+    assert any("evacuation reported" in x for x in r["quality_flags"])
+    assert any("2 road-closure" in x for x in r["quality_flags"])
+    assert "Other agents:" in r["reason"]
+    for k in ("level", "slack_s", "fire_eta_s", "travel_s", "wait_s", "scheduled_slack_s", "probabilities"):
+        assert r[k] == base[k]  # news is a hint: it never moves danger, routes or exposure
+    assert r["assessment_id"] != base["assessment_id"]  # but the change is a new, traceable assessment
+    assert news_context(None) is None and news_context(SimpleNamespace(news_ok=False)) is None
+    assert _risk(f, context=None) == base
+    json.dumps(r, allow_nan=False)
+
+
+def test_resident_sighting_is_crosschecked_against_learned_exposure(recorded):
+    f = inputs(recorded)  # fixture model: 20% at the shortest horizon; the resident reports a credible sighting
+    assert any("sighting not reflected" in x for x in _risk(f)["quality_flags"])
+    assert not any("sighting" in x for x in _risk(f, weighed={})["quality_flags"])  # no evidence, no cross-check
+    f.cells.clear()  # model output unavailable
+    r = _risk(f)
+    assert r["probabilities"] == [] and any("sighting is trusted" in x for x in r["quality_flags"])
+    assert r["fire_eta_s"] == 3600  # the sighting still drives the physical ETA, via the danger engine
+

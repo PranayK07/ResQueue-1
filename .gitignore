@@ -31,3 +31,4 @@ reports/wildfire_forecast/data_quality_history/split_manifest.json
 reports/wildfire_forecast/split_manifest.json
 reports/wildfire_forecast/diagnostics/boundary_metrics.json
 reports/wildfire_forecast/validation_threshold_metrics.json
+venv-risk/

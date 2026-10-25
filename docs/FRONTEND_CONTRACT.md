@@ -78,6 +78,15 @@ Subscribe to `my_risk` as a resident or `ops_risk` as a commander/responder/inta
 [RECORDED_RISK_PIPELINE.md](RECORDED_RISK_PIPELINE.md). Always display freshness alongside predictions;
 `current=false`, missing exposure or right-censored timing must not be presented as low risk.
 
+`assessment.quality_flags` (list of strings) and `assessment.reason` also carry hints from the other agents. They never
+change the numbers, so show them as notices next to the risk card:
+- `news: evacuation reported for the incident area (unverified hint)` and `news: N road-closure post(s) reported; ...`
+  come from the news agent's X posts. They are incident-wide, not per address.
+- `resident fire sighting not reflected by learned exposure ...` or `... while learned exposure is <state>; the sighting
+  is trusted` means a credible resident report (intake agent) disagrees with, or has no support from, the learned model.
+  The sooner physical ETA is used. Responders should review.
+The text is for display only. Do not parse it for logic; use the typed fields.
+
 Public `fire_risk_meta` / `fire_risk_cell` provide geographic probability maps. `risk_pipeline` reports
 activation/failure and the forecast ID. No personal information is stored in those public layers.
 Risk writes are commander-only; frontend writes still use the existing request/report/override reducers.

@@ -13,6 +13,39 @@ import math
 
 from .slack import MARGIN_S
 
+# A credible resident sighting means fire is close. If the learned model gives the shortest horizon less than this
+# probability for that cell, the two sources disagree and a human should look; the sooner physical ETA is kept.
+SIGHTING_MODEL_GAP = 0.25
+
+
+def news_context(situation) -> dict | None:
+    """Hints from the news agent (Situation fields). None = news unavailable, so no news flags are added."""
+    if situation is None or not situation.news_ok:
+        return None
+    return dict(news_evacuation=bool(situation.news_evacuation), news_closures=int(situation.news_closures))
+
+
+def context_flags(context, w, probabilities, state) -> list[str]:
+    """Flags from the other agents. They never change numbers: news is a hint, and resident evidence is already
+    applied to the physical ETA by the danger engine."""
+    flags = []
+    if context:
+        if context.get("news_evacuation"):
+            flags.append("news: evacuation reported for the incident area (unverified hint)")
+        if context.get("news_closures"):
+            flags.append(
+                f"news: {context['news_closures']} road-closure post(s) reported; travel times do not reflect them"
+            )
+    if w and w.fire_credible:
+        if probabilities and probabilities[0] < SIGHTING_MODEL_GAP:
+            flags.append(
+                f"resident fire sighting not reflected by learned exposure ({probabilities[0]:.0%} at the shortest "
+                "horizon); the sooner physical ETA is used"
+            )
+        elif not probabilities:
+            flags.append(f"resident fire sighting while learned exposure is {state}; the sighting is trusted")
+    return flags
+
 
 def units_stamp(units):
     return "|".join(f"{u['id']}:{u.get('updated_at', 0)}" for u in sorted(units, key=lambda u: u["id"]))
@@ -34,7 +67,7 @@ def risk_snapshot(now_s, scenario, versions, units, meta=None, pipeline=None):
 
 
 def compose_risks(
-    snapshot, requests, assessments, travel, units, weighed, *, meta=None, cells=(), pipeline=None
+    snapshot, requests, assessments, travel, units, weighed, *, meta=None, cells=(), pipeline=None, context=None
 ):
     """Return one complete risk record for each physically assessed active request.
 
@@ -132,6 +165,10 @@ def compose_risks(
             row_flags.append("coarse exposure interval straddles assistance completion; review needed")
         if not leg:
             row_flags.append("no station-unit route estimate available")
+        other = context_flags(context, w, probabilities, request_state)
+        row_flags.extend(other)
+        if other:
+            reason += " Other agents: " + "; ".join(other) + "."
         row = dict(
             request_id=rid,
             schema_version="resident-risk-v1",
