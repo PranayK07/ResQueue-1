@@ -9,9 +9,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-      - run: pip install -r agents/requirements-forecast.in
+      - run: pip install -r agents/requirements-forecast.in -r agents/requirements.txt
       - run: python -m pytest -q
       - run: PYTHONPATH=agents python agents/scripts/test_planning.py
+      - run: PYTHONPATH=agents python agents/scripts/test_reports.py
       - run: ruff check agents/rescue/forecast_ml tests
       - run: ruff format --check agents/rescue/forecast_ml tests
       - uses: actions/setup-node@v4

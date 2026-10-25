@@ -181,6 +181,11 @@ export const fireRiskMeta = table({ name: 'fire_risk_meta', public: true }, {
   weatherVersion: t.u64(),
   fireVersion: t.u64(),
   updatedAt: t.timestamp(),
+  // Appended fields preserve migration from the original geographic risk tables.
+  forecastId: t.string().default(''),
+  observationId: t.string().default(''),
+  scenario: t.string().default(''),
+  sourceIssueUtcS: t.f64().default(0),
 });
 
 export const fireRiskCell = table({ name: 'fire_risk_cell', public: true }, {
@@ -646,6 +651,46 @@ export const UnreachableInput = t.object('UnreachableInput', {
   recommendation: t.string(),
 });
 
+/** Public pipeline health carries no resident data. */
+export const riskPipeline = table({ name: 'risk_pipeline', public: true }, {
+  id: t.u8().primaryKey(), scenario: t.string(), sourceId: t.string(),
+  status: t.string(), activeBackend: t.string(), reason: t.string(),
+  forecastId: t.string(), updatedAt: t.timestamp(),
+});
+
+export const RiskSnapshotInput = t.object('RiskSnapshotInput', {
+  scenario: t.string(), assessedAtS: t.f64(), unitsStamp: t.string(),
+  weatherVersion: t.u64(), fireVersion: t.u64(), roadsVersion: t.u64(),
+  requestsVersion: t.u64(), forecastVersion: t.u64(), riskUpdatedAt: t.u64(), pipelineUpdatedAt: t.u64(),
+});
+
+const riskValues = {
+  assessmentId: t.string(), schemaVersion: t.string(),
+  level: t.string(), slackS: t.f64(), fireEtaS: t.f64(), extractS: t.f64(),
+  stationId: t.u32(), travelS: t.option(t.f64()), waitS: t.option(t.f64()),
+  scheduledSlackS: t.option(t.f64()), reachable: t.bool(),
+  headcount: t.u32(), needs: t.string(), credibility: t.f64(),
+  reportedUrgency: t.f64(), trapped: t.bool(), injured: t.bool(), reportNote: t.string(),
+  forecastId: t.string(), modelId: t.string(), forecastState: t.string(),
+  horizonsS: t.array(t.f64()), probabilities: t.array(t.f64()),
+  arrivalLowerS: t.option(t.f64()), arrivalUpperS: t.option(t.f64()),
+  exposureSlackLowerS: t.option(t.f64()), exposureSlackUpperS: t.option(t.f64()),
+  qualityFlags: t.array(t.string()), reason: t.string(),
+};
+export const RequestRiskInput = t.object('RequestRiskInput', {
+  requestId: t.u64(), ...riskValues, forecastIssueS: t.f64(),
+});
+
+/** Private per-resident prediction + assistance analysis, atomically published with danger/travel. */
+export const requestRisk = table({ name: 'request_risk' }, {
+  requestId: t.u64().primaryKey(), ...riskValues,
+  scenario: t.string(), assessedAtS: t.f64(), unitsStamp: t.string(),
+  weatherVersion: t.u64(), fireVersion: t.u64(), roadsVersion: t.u64(),
+  requestsVersion: t.u64(), forecastVersion: t.u64(), riskUpdatedAt: t.u64(), pipelineUpdatedAt: t.u64(),
+  dangerVersion: t.u64(), updatedAt: t.timestamp(),
+  forecastIssueS: t.f64().default(0),
+});
+
 const spacetimedb = schema(
   {
     agent,
@@ -661,6 +706,8 @@ const spacetimedb = schema(
     forecastMeta,
     fireRiskMeta,
     fireRiskCell,
+    riskPipeline,
+    requestRisk,
     worldVersion,
     roadClosure,
     newsArticle,

@@ -8,6 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import math
+import hashlib
+import json
+from dataclasses import replace
 
 import httpx
 from typing import TYPE_CHECKING
@@ -42,6 +45,10 @@ class ForecastEngine:
         self._fuel: FuelMap | None = None
         self._grid: Grid | None = None
         self._last_fire_run = 0.0
+        self._risk_busy = False
+        self._risk_sig = None
+        self._risk_status = None
+        self._risk_error = ""
         self._debounce: Debouncer | None = None
         self.learned = LearnedForecastBackend(settings.fire_forecast_backend,
             settings.fire_forecast_checkpoint, settings.fire_forecast_metadata)
@@ -57,7 +64,8 @@ class ForecastEngine:
         loop = asyncio.get_running_loop()
         if upd.touched("grid"):
             self._fuel = None  # new scenario
-        if upd.touched("grid", "weather") or loop.time() - self._last_fire_run >= FIRE_REFORECAST_S:
+        if (settings.fire_source == "recorded" or upd.touched("grid", "weather")
+                or loop.time() - self._last_fire_run >= FIRE_REFORECAST_S):
             self._last_fire_run = loop.time()
             self._debounce.trigger()
 
@@ -100,13 +108,80 @@ class ForecastEngine:
             self.log.warning("forecast publish failed (%s); will retry on the next fire/wind change", type(e).__name__)
             return
         self.host.set_part("forecast", "online", f"{len(cells)} cells at risk within {HORIZON_S / 3600:.0f} h")
-        # Main's simulation does not possess timestamped NIROPS observation
-        # history. Report an explicit fallback instead of guessing daily inputs
-        # from minute-level fire ticks or loading a random policy into danger.
-        supplementary = self.learned.forecast(None)
-        self.host.set_part("historical_risk", "degraded" if supplementary.requested != "simulation" else "online",
-                           supplementary.reason)
+        if settings.fire_source != "recorded":
+            await self._publish_risk_status("disabled" if settings.fire_forecast_backend == "simulation" else "fallback",
+                                            "Known recorded observation history is not configured")
         self.log.info("published forecast: %d cells, wind %.1f m/s from %.0f°", len(cells), wind.speed_mps, wind.from_deg)
+
+    async def _publish_risk_status(self, status, reason):
+        clock = self.db.table("sim_clock").one()
+        if not clock:
+            return
+        signature = (clock["scenario"], status, reason)
+        self.host.set_part("historical_risk", "online" if status == "disabled" else "degraded", reason)
+        state = self.db.table("risk_pipeline").one()
+        if (signature == self._risk_status and state and state["scenario"] == clock["scenario"]
+                and state["status"] == status and state["reason"] == reason[:1000]):
+            return
+        if await self.db.try_call("publish_risk_pipeline_status", clock["scenario"],
+                                  self.host.recorded.source_id if self.host.recorded else "unconfigured",
+                                  status, "simulation", reason):
+            self._risk_status = signature
+
+    async def recorded_tick(self):
+        """Retry until a complete known-observation forecast is committed; never acknowledge a failed transfer."""
+        if self._risk_busy:
+            return
+        self._risk_busy = True
+        try:
+            source = self.host.recorded
+            if source is None:
+                await self._publish_risk_status("error", self.host.recorded_error or "recorded input missing")
+                return
+            clock = self.db.table("sim_clock").one()
+            g = self.db.table("grid").one()
+            if not clock or not g:
+                return
+            if clock["scenario"] != source.scenario or not source.matches_grid(Grid.from_row(g)):
+                await self._publish_risk_status("error", "Recorded source scenario/grid differs from loaded world")
+                return
+            horizons = [float(h) for h in settings.fire_forecast_horizons_s.split(",")]
+            request, observation = source.request(clock["sim_s"], horizons)
+            if self.host.fire._recorded_observation != observation:
+                return  # the fire engine has not committed this acquisition yet
+            expected = {c["cell_id"] for c in source.fire_cells(clock["sim_s"])}
+            if expected != {c["cell_id"] for c in self.db.table("fire_cell")}:
+                return  # wait for the WebSocket replica to apply that same transaction
+            versions = dict(self.db.table("world_version").one())
+            signature = (source.scenario, observation, versions["weather"], versions["fire"], tuple(horizons))
+            meta = self.db.table("fire_risk_meta").one()
+            if signature == self._risk_sig and meta and meta.get("observation_id") == observation:
+                return
+            result = await asyncio.to_thread(self.learned.forecast, request)
+            if result.product is None:
+                await self._publish_risk_status("fallback", result.reason)
+                return
+            product = replace(result.product, issue_s=result.product.issue_s - source.start_utc_s,
+                              quality_flags=[*result.product.quality_flags, f"recorded source {source.source_id}"])
+            from ..forecast_ml.bridge import recorded_risk_arguments
+            forecast_id = hashlib.sha256(json.dumps([signature, product.model_id]).encode()).hexdigest()[:24]
+            args = recorded_risk_arguments(product, source.grid_record, versions, clock["sim_s"],
+                                           forecast_id, observation, source.scenario, request.issue_s)
+            await self.db.call("publish_recorded_fire_risk", *args, timeout=PUBLISH_TIMEOUT_S)
+            self._risk_sig = signature
+            self._risk_status = None
+            self._risk_error = ""
+            self.host.set_part("historical_risk", "online", f"forecast {forecast_id}, observation {observation}")
+            self.log.info("risk transfer committed forecast=%s observation=%s model=%s cells=%d",
+                          forecast_id, observation, product.model_id, product.grid.size)
+        except (OSError, ValueError, KeyError, ImportError, RuntimeError, httpx.HTTPError) as exc:
+            message = f"{type(exc).__name__}: {exc}"
+            if message != self._risk_error:
+                self.log.exception("recorded forecast failed; will retry")
+                self._risk_error = message
+            await self._publish_risk_status("error", message)
+        finally:
+            self._risk_busy = False
 
     async def publish_supplementary(self, product, grid_record, *, versions, clock_s,
                                     time_basis="historical_utc") -> None:

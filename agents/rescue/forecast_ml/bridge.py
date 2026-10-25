@@ -96,3 +96,31 @@ def product_from_rows(meta, rows):
         meta["observation_age_s"],
         meta["quality_flags"],
     )
+
+
+def recorded_risk_arguments(
+    product, grid_record, versions, clock_s, forecast_id, observation_id, scenario, issue_utc_s
+):
+    """Lossless dense f64 transport avoids repeating column names for ~50k cells.
+
+    Flatten order is horizon-major, then ascending valid cell id. The reducer
+    reconstructs/validates all rows in one transaction; no partial forecast is visible.
+    """
+    import json
+
+    ids = np.flatnonzero(product.valid).tolist()
+    probabilities = product.probabilities.reshape(len(product.horizons_s), -1)[:, ids].ravel().tolist()
+    observed = [i for i in ids if product.observed.ravel()[i]]
+    args = [
+        *risk_arguments(product, grid_record, versions, clock_s, time_basis="simulation")[:-1],
+        ids,
+        probabilities,
+        observed,
+        forecast_id,
+        observation_id,
+        scenario,
+        issue_utc_s,
+    ]
+    if len(json.dumps(args).encode()) > 1_900_000:
+        raise ValueError("recorded forecast exceeds transport budget; request fewer horizons (default: 3)")
+    return args

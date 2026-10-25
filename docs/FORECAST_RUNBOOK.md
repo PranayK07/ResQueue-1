@@ -97,3 +97,9 @@ ASI:One and frontend flows need their owners' credentials/application work; an
 isolated database contract test is not a claim that those flows were deployed.
 Maincloud/shared state must not be reset. Existing station stubs do not support
 measured completed-handoff outcomes.
+
+## Recorded agent integration
+
+The current recorded-incident agent/app path is documented in [RECORDED_RISK_PIPELINE.md](RECORDED_RISK_PIPELINE.md).
+It prepares portable bundles, runs validated forecasts through the hazard agent and publishes complete, scoped
+resident risk with routing/slack/evidence through the commander. The earlier isolated demo is retained separately.

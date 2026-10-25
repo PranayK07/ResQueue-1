@@ -9,11 +9,44 @@ out how long each person has before the fire reaches them, and builds a separate
 queue for each fire station. Residents, responders and the incident commander all
 see the same live state through SpacetimeDB.
 
-> **RL teammate: start at [docs/RL_INTEGRATION.md](docs/RL_INTEGRATION.md).** It says exactly what to implement and how to plug it in.
+> **Risk pipeline:** [recorded incident runbook and app contract](docs/RECORDED_RISK_PIPELINE.md).
+> Recorded fire observations now drive the trained U-Net through the hazard agent; the commander publishes
+> per-resident exposure, routing, slack and accepted evidence through `ops_risk` / `my_risk`.
+> [RL_INTEGRATION.md](docs/RL_INTEGRATION.md) describes the separate dispatch-policy extension.
 
 > **Everything here is simulated.** Synthetic residents, a simplified fire model,
 > no real dispatch. This is decision support for a human incident commander. It
 > never replaces 911.
+
+## Recorded-incident risk pipeline
+
+The RL workstream's current trained artifact is a **supervised fire U-Net**. Its job in this application is to
+provide risk prediction and analysis to the agents and people requesting assistance. Fire prediction,
+routing/travel, danger/slack and resident-evidence weighting all participate in the complete pipeline.
+`POLICY=lookahead` remains the working dispatcher; `POLICY=rl` still requires a separate dispatch implementation.
+Forecast selection and dispatch selection are independent.
+
+- `FIRE_SOURCE=recorded` loads a checksum-bound, portable observation bundle. T+0 maps to the first acquisition UTC;
+  future observations never become model inputs before their replay time. The recorded fire does not spread synthetic
+  ground truth between acquisitions. Physical forecasts continue supplying short-horizon travel deadlines.
+- The hazard agent publishes all learned probabilities losslessly in **one transaction**, using a compact dense
+  transport to stay within the HTTP body limit. `risk_pipeline` reports ready/fallback/error with forecast trace IDs.
+- The commander combines exposure with station travel, estimated unit wait, extraction time, physical slack and
+  accepted resident reports. `publish_risk_assessments` atomically writes risk, danger and travel, rejecting changed
+  input snapshots and retrying failed transfers. `PlanInput.requests[].risk` carries the complete current assessment.
+- Apps subscribe to **`my_risk`** (resident) or **`ops_risk`** (command/station/intake). Each card contains `assessment`,
+  `current`, and `stale_reason`; stale or expired estimates remain visibly marked while reassessment is pending.
+  Risk includes model/forecast/assessment IDs, input versions, probabilities/horizons, assistance timing, evidence,
+  uncertainty and a readable explanation. Intake chat status reads the same exposure estimates.
+  Consent withdrawal/closure purges the private risk row.
+
+The model supports **6–72-hour exposure horizons**; these do not imply precise minute-level arrival times.
+Recorded acquisition time is an idealized information-release assumption. Demo station locations, units and residents
+are synthetic. Real emergency-station discovery through Bright Data Google Maps remains deferred. The grid router
+remains a road-network approximation, and automated unit missions/frontends are still separate application work.
+
+See [the runbook](docs/RECORDED_RISK_PIPELINE.md) for bundle preparation, configuration, seeding, app subscriptions,
+reproducible tests, migration and failure diagnosis. No training runs during replay or normal CI.
 
 ## Architecture
 
@@ -75,6 +108,8 @@ agents/rescue/core/           pure models shared with the RL simulator
     slack.py                  slack formula, levels, extraction time, vulnerability weight
     policy.py                 Policy interface + B0/B1 baselines + Lookahead placeholder
 agents/rescue/agents/         one module per agent: commander, hazard, news, intake (base.py = registration/subscription/heartbeat)
+agents/rescue/forecast_ml/    trained U-Net, recorded source adapter, probability transport and frozen evaluation
+agents/rescue/core/risk.py    risk composition: exposure + assistance timing + accepted evidence + provenance
 agents/rescue/orchestrator/   the commander's engines: reports.py (weigh residents' claims), danger.py, planner.py (Situation + policy)
 agents/rescue/intake/         analysis.py: residents' text / voice / photos / video frames -> claims (Qwen3-VL on Hugging Face, keyword fallback)
     core/reports.py           how far a resident's claims may move danger and queues (credibility, corroboration, plausibility)
@@ -96,15 +131,15 @@ scripts/dev.sh                start DB -> publish -> seed -> run all agents
 | SpacetimeDB schema, reducers, views, timers | done, tested |
 | Python client (subscribe/replica/reconnect, reducer calls) | done, tested |
 | Agent base (register, subscribe, heartbeat, status protocol, local resolver) | done, tested |
-| `forecast` agent | **done**: re-forecasts on wind/fire change (~0.1 s) |
+| forecast engine (hazard) | **done**: re-forecasts on wind/fire change (~0.1 s) |
 | `intake` agent (resident-facing) | **done**: reads every ping and its reports (text, voice transcript, photos, video frames) into an `Assessment` it sends the commander (uAgents, acknowledged and re-sent until it is), using an open vision-language model on Hugging Face (`Qwen/Qwen3-VL-30B-A3B-Instruct` by default; keyword fallback offline). Its ASI:One chat is a test harness. Vision path verified against a stub, not yet against the live router |
 | `hazard` agent (fire + weather + forecast) | **done**: simulated fire spread every tick (NASA FIRMS detections with `FIRE_SOURCE=firms`, untested without a key); live NWS wind that defers to the commander's manual wind; ensemble arrival forecast; answers the commander's `HazardReportRequest` |
 | `commander` agent (ASI:One) | working: pools the hazard agent's fire + weather report and the news agent's headlines with queue state; `news`, `refresh news`, `track <x.com post>`, `ping <lat> <lon> [place]`, `window <from> <to>` / `window live`; login, status, fire, weather, wind, release wind, pause/resume, pin/unpin |
 | `news` agent (Bright Data X) | **done**: follows trusted wildfire accounts on X near the incident (`news_sources.json`) through Bright Data's X Posts scraper (or replays `fixtures/`), scores relevance (incident name/places, recency, account trust and locality), extracts evacuations/closures/shelters & relief/containment/acres, stores in `news_article`; answers `NewsReportRequest` / `NewsRefreshRequest` / `NewsTrackRequest`. Real API untested without a key (mock-tested: `scripts/test_news.py`) |
-| `delegation` agent (the **head agent**) | **synthesis done, policy TODO**: every `SITUATION_PERIOD_S` it asks the hazard and news agents for their typed reports, merges them into one `Situation` (`rescue/core/situation.py`), keeps it as `self.latest` for the policy, and records it in the `situation` table when something material changes. Records nothing, and reports `degraded`, if the hazard agent is silent |
-| `danger` agent | slack + level + travel time per request, via `rescue/core/danger.py` (written; end-to-end run on a throwaway database: 24 requests scored, 24 queued, 5 units dispatched) |
-| `delegation` planning loop | builds `PlanInput` from the database, runs the policy chosen by `POLICY` (`lookahead` placeholder by default, `rl` = the RL teammate's `rescue/rl_policy.py`), publishes the plan; not yet exercised with a real model. See `docs/RL_INTEGRATION.md` |
-| `station` | **stubs**: dispatched units do not progress yet |
+| Planner synthesis (inside commander) | **synthesis done, policy TODO**: every `SITUATION_PERIOD_S` it asks the hazard and news agents for their typed reports, merges them into one `Situation` (`rescue/core/situation.py`), keeps it as `self.latest` for the policy, and records it in the `situation` table when something material changes. Records nothing, and reports `degraded`, if the hazard agent is silent |
+| `danger` engine (inside commander) | risk + slack + level + travel time per request, via `rescue/core/danger.py` (written; end-to-end run on a throwaway database: 24 requests scored, 24 queued, 5 units dispatched) |
+| Commander planning loop | builds `PlanInput` from the database, runs the policy chosen by `POLICY` (`lookahead` placeholder by default, `rl` = the RL teammate's `rescue/rl_policy.py`), publishes the plan with current risk records and trace IDs; learned fire risk exercised through the real local agent mesh. The separate RL dispatcher remains a stub. See `docs/RL_INTEGRATION.md` |
+| Unit missions | Lifecycle reducers exist; automatic execution is not implemented |
 | Frontend | not started; generate bindings with `spacetime generate --lang typescript --out-dir <web>/src/module_bindings --module-path spacetimedb` |
 
 ## Quick start

@@ -84,7 +84,8 @@ class CommanderAgent(MeshAgent):
         "SELECT * FROM fire_cell", "SELECT * FROM forecast_cell", "SELECT * FROM forecast_meta", "SELECT * FROM road_closure",
         "SELECT * FROM world_version", "SELECT * FROM incident",
         "SELECT * FROM ops_request", "SELECT * FROM ops_queue", "SELECT * FROM ops_travel", "SELECT * FROM ops_flag",
-        "SELECT * FROM ops_assessment",
+        "SELECT * FROM ops_assessment", "SELECT * FROM ops_risk",
+        "SELECT * FROM fire_risk_meta", "SELECT * FROM fire_risk_cell", "SELECT * FROM risk_pipeline",
     ]
 
     def __init__(self) -> None:
@@ -176,6 +177,9 @@ class CommanderAgent(MeshAgent):
         if rs["reports_active"]:
             lines.append(f"🙋 Residents: {rs['reports_active']} requests with reports — {rs['reports_fire_credible']} credible fire sightings, "
                          f"{rs['reports_road_blocks']} blocked roads, {rs['reports_trapped']} trapped")
+        risk = self.db.table("risk_pipeline").one()
+        if risk:
+            lines.append(f"Risk pipeline: {risk['status']} ({risk['active_backend']}), forecast {risk['forecast_id'] or 'none'}; {risk['reason']}")
         lines += self.queue_lines(fire)
         return "\n".join(lines)
 

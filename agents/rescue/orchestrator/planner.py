@@ -29,7 +29,7 @@ from ..config import settings
 from ..core.policy import POLICIES
 from ..core.situation import Situation
 from ..messages import HazardReport, HazardReportRequest, IntakeReport, IntakeReportRequest, NewsReport, NewsReportRequest
-from ..planning import build_plan_input, plan_signature, plan_to_reducer_args, validate_plan
+from ..planning import build_plan_input, plan_signature, plan_to_reducer_args, validate_plan, risk_inputs_ready
 from ..stdb import Debouncer
 
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ HEARTBEAT_ROW_S = 300.0
 WIND_OBS_MAX_AGE_MIN = 180.0
 FORECAST_LAG_MAX_S = 90.0
 NEWS_MAX_AGE_MIN = 360.0
-WATCH = ["ops_request", "ops_travel", "ops_assessment", "unit", "world_version"]
+WATCH = ["ops_request", "ops_travel", "ops_assessment", "ops_risk", "unit", "world_version"]
 
 
 def _iso_micros(micros: int) -> str:
@@ -99,10 +99,13 @@ class Planner:
                 self._release = None
                 self._debounce.trigger()
             self._release = asyncio.get_running_loop().call_later(wait + 0.5, _fire)
+        requests, risks, queue = list(db.table("ops_request")), list(db.table("ops_risk")), list(db.table("ops_queue"))
+        if not risk_inputs_ready(requests, risks, hold, queue):
+            return  # preserve the last plan; do not mix new evidence with old danger/travel numbers
         inp = build_plan_input(
-            clock["sim_s"], list(db.table("ops_request")), list(db.table("ops_travel")), list(db.table("unit")),
-            list(db.table("station")), self.latest, queue=list(db.table("ops_queue")),
-            weighed=a.reports.weigh_all(), hold=hold)
+            clock["sim_s"], requests, list(db.table("ops_travel")), list(db.table("unit")),
+            list(db.table("station")), self.latest, queue=queue,
+            weighed=a.reports.weigh_all(), hold=hold, risks=risks)
         try:
             plan = await asyncio.to_thread(self.policy.plan, inp)
         except Exception as e:  # noqa: BLE001 - a model under development must not take the agent down

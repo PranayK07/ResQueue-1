@@ -53,6 +53,9 @@ class RequestState:
     trapped: bool = False
     injured: bool = False
     report_note: str = ""  # e.g. "credible fire sighting ~300 m away; people trapped"
+    # Complete, current resident-risk-v1 record. Forecast probabilities are exposure,
+    # not a replacement for fire_eta_s or a promise of rescue.
+    risk: dict | None = None
 
     @property
     def weight(self) -> float:
@@ -189,6 +192,8 @@ def _finalise(policy: str, inp: PlanInput, order: list[tuple[RequestState, int, 
             why.append("pinned by commander")
         if r.report_note:
             why.append(f"resident reports: {r.report_note}")
+        if r.risk:
+            why.append(f"risk assessment {r.risk['assessment_id']} ({r.risk['forecast_state']})")
         slack = _slack(r, arrive, inp.margin_s)
         resident += " Fire risk at your location is " + ("very high." if slack < 600 else "high." if slack < 1800 else "moderate.")
         plan.entries.append(Assignment(

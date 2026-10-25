@@ -1,0 +1,67 @@
+{
+  "schema_version": "recorded-risk-integration-verification-v1",
+  "date": "2026-10-25",
+  "merged_main": "a7d66b9efcfb10aa971b038f87b825ee60c406be",
+  "merge_commit": "046ed04",
+  "test_result": "116 passed; 7 existing Shapely deprecation warnings",
+  "training_performed": false,
+  "checks": [
+    "full pytest suite including opt-in real four-agent mesh",
+    "exact dense f64 and WebSocket probability transfer",
+    "resident evidence through intake and commander",
+    "station/resident/feed-agent scope",
+    "stale snapshot rejection",
+    "consent risk purge and all-request settlement",
+    "fractional paused clock",
+    "health status reset retry",
+    "planning/report checks",
+    "TypeScript typecheck and module publish/migration",
+    "Ruff check/format",
+    "bash syntax and git diff whitespace"
+  ],
+  "scope": "Functional replay integration on a known historical sequence; not a new accuracy benchmark or operational validation",
+  "server": "http://127.0.0.1:3157",
+  "database": "wrq-recorded-integration",
+  "pipeline_status": "ready",
+  "active_requests": 24,
+  "current_assessments": 24,
+  "geographic_rows": 49152,
+  "horizons_s": [
+    21600.0,
+    43200.0,
+    86400.0
+  ],
+  "forecast_id": "1bfe07805ea61abb69a4a515",
+  "observation_id": "4c68d422da8f06423bc53307",
+  "model_id": "f99ec7ae4a442e34",
+  "checkpoint_sha256": "40dff57a49da752513f51ec8bbe27c1f85d3725c9e4098a08f8bb9e9f5a997ca",
+  "metadata_sha256": "23b1ad4b72b2283d78c7757a17a6e46527fc07c78faf15846c7b8b92a203ea98",
+  "bundle_sha256": "71e2f246e5578751c777232bc8b9f2f34862a230bee26f286cd0a67465690923",
+  "observations_sha256": "577be1ff01e07f66cac3e244220f48374545143cc5ebffa18f8478dc8d638ed6",
+  "runtime": {
+    "python": "3.12.12",
+    "platform": "arm64",
+    "dependencies": {
+      "torch": "2.14.1",
+      "numpy": "2.5.4",
+      "uagents": "0.26.1",
+      "pyproj": "3.8.0"
+    }
+  },
+  "source_sha256": {
+    "spacetimedb/src/schema.ts": "86a10b4cd6896babc463b6518cb3561d08a027ad378f352e09a70caec9432eb3",
+    "spacetimedb/src/index.ts": "2a06e8e031a81d52df89ae8456859376bd2629ee6261bbedfc867a7acaca8cad",
+    "agents/rescue/forecast_ml/recorded.py": "e5777b1fa18c424335a39360dd630d84bc1a04567f990601fb8721fe5d024447",
+    "agents/rescue/forecast_ml/bridge.py": "10aca8cc58e1f5a983b873e4809e7af40060f11e47d620975c7b709aa4a6a20e",
+    "agents/rescue/hazard/forecast.py": "24fd990518e92d2992a8eeece2a18efeba7867795d0248aba2a1e88df1e96cf2",
+    "agents/rescue/core/risk.py": "0c71819ea18e8bd7de2f0a25a2c18298f77a90a60b156bc2673d769d6548b4a6",
+    "agents/rescue/orchestrator/danger.py": "5f552daad3f1c1dd3170c7ef2071269b68d1ed76399b7571fb8f2b4c743e0a42",
+    "agents/rescue/planning.py": "e94f6eac291356841990d4b6ba2a6b13277f1d3e1417b0b6e5319ce5e763b508"
+  },
+  "limits": [
+    "6-72h learned exposure; physical timing remains separate",
+    "synthetic stations/units/residents; station discovery deferred",
+    "keyword intake exercised; live vision provider not called",
+    "no frontend or automatic missions added"
+  ]
+}

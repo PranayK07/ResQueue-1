@@ -23,8 +23,8 @@ FEATURE_SCHEMA = "wildfire-supervised-known-perimeters-v2"
 
 
 def dispatch_policy_name(configured: str, forecast_backend: str) -> str:
-    """Learned fire configuration keeps the existing Lookahead dispatcher."""
-    return "lookahead" if forecast_backend == "learned" else configured
+    """Forecast activation and dispatch selection are independent contracts."""
+    return configured
 
 
 @dataclass
@@ -94,6 +94,8 @@ class LearnedForecastBackend:
         self.backend = backend
         self.checkpoint = Path(checkpoint) if checkpoint else None
         self.metadata_path = Path(metadata) if metadata else None
+        self._predictor = None
+        self._predictor_digest = None
 
     def forecast(self, request: ForecastRequest | None) -> BackendResult:
         def fallback(reason):
@@ -147,7 +149,11 @@ class LearnedForecastBackend:
                 return fallback("projected geographic grid CRS missing")
             from .unet import NativePredictor
 
-            predictor = NativePredictor(self.checkpoint, metadata)
+            digest = (gate["checkpoint_sha256"], sha256(self.metadata_path))
+            if self._predictor is None or self._predictor_digest != digest:
+                self._predictor = NativePredictor(self.checkpoint, metadata)
+                self._predictor_digest = digest
+            predictor = self._predictor
             if not predictor.metadata.get("trained") or not predictor.metadata.get("actual_parameter_update"):
                 return fallback("native checkpoint lacks demonstrated supervised training")
             result = predictor.forecast(
@@ -168,6 +174,7 @@ class LearnedForecastBackend:
                 source="learned",
                 quality_flags=[
                     *request.quality_flags,
+                    *result.get("quality_flags", []),
                     "historical acquisition used as idealized information availability",
                     "no historical weather; not validated minute-level dispatch timing",
                 ],

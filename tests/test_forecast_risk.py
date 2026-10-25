@@ -59,7 +59,8 @@ def test_safe_default_missing_checkpoint_and_failed_gates(tmp_path):
     assert LearnedForecastBackend().forecast(None).active == "simulation"
     assert "absent" in LearnedForecastBackend("learned", tmp_path / "missing.pt").forecast(None).reason
     assert "unsupported" in LearnedForecastBackend("hybrid").forecast(None).reason
-    assert dispatch_policy_name("learned", "learned") == "lookahead"
+    assert dispatch_policy_name("learned", "learned") == "learned"
+    assert dispatch_policy_name("rl", "learned") == "rl"
     model = tmp_path / "fixture.pt"
     model.write_bytes(b"not weights; gate refuses before model load")
     from rescue.forecast_ml.provenance import sha256

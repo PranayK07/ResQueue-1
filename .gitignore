@@ -14,6 +14,7 @@ agents/exports/
 /data/
 /runs/
 .venv-forecast/
+.venv-risk/
 .pytest_cache/
 .ruff_cache/
 *.pt
