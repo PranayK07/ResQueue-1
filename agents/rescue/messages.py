@@ -127,10 +127,13 @@ class NewsReportRequest(Model):
 class NewsItem(Model):
     title: str
     url: str
+    source: str  # the X account, "@handle"
+    official: bool  # a government agency account (news_sources.json)
     published: str
     relevance: float
     evacuation: bool
     closures: str
+    relief: str  # shelter / relief sentences, " | "-joined
     containment_pct: float  # -1 unknown
     acres: float  # -1 unknown
 
@@ -140,12 +143,60 @@ class NewsReport(Model):
     summary: str
     last_fetch: str
     source: str  # file | brightdata | off
+    accounts: list[str]  # "@handle"s the agent follows for the current focus
+    focus: str  # where and when it is looking, e.g. "Calistoga (38.579, -122.580) · 2020-09-27 → 2020-10-20"
 
 
 class NewsRefreshRequest(Model):
     pass
 
 
+class NewsTrackRequest(Model):
+    """Collect one X post by URL (the commander saw it) and score it like the rest."""
+    url: str
+
+
 class NewsRefreshResult(Model):
     ok: bool
     message: str
+
+
+# ─── Intake agent -> commander ──────────────────────────────────────────────
+
+class Assessment(Model):
+    """The intake agent's reading of everything one request sent (text, voice transcript, photos, video frames).
+    Claims, not facts: the commander weighs them (core/reports.py). Fields match the publish_assessment reducer."""
+    request_id: int
+    report_count: int
+    people: int  # 0 = not stated
+    needs: str  # comma list
+    injured: bool
+    trapped: bool
+    fire_seen: bool
+    fire_distance_m: float  # -1 = unknown
+    smoke: bool
+    road_blocked: bool
+    road_note: str
+    media_supports: bool  # the photos / frames themselves show the fire or blocked road
+    confidence: float
+    urgency: float
+    summary: str
+    resident_reply: str
+    analyzer: str  # vision model id, 'keywords' or 'form'
+
+
+class AssessmentAck(Model):
+    request_id: int
+    ok: bool  # recorded; False = the intake agent retries
+    detail: str
+
+
+class IntakeReportRequest(Model):
+    pass
+
+
+class IntakeReport(Model):
+    analyzer: str  # vision model id, or 'keywords'
+    requests_read: int
+    awaiting_ack: int  # readings the commander hasn't confirmed yet
+    summary: str

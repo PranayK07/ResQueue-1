@@ -4,7 +4,7 @@
 
 What it proves, from the database's own contents:
   1. every agent is registered, online and heart-beating
-  2. the head (delegation) agent is recording situations, i.e. its messages to the hazard and news agents work
+  2. the head (commander) agent is recording situations, i.e. its messages to the hazard and news agents work
   3. what it recorded matches the real world tables (fire area, wind, news), so the agents agree with each other
   4. no row in the log came from an empty world (fire 0 and wind 0)
 
@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from rescue.config import settings  # noqa: E402
 from rescue.stdb import SpacetimeClient  # noqa: E402
 
-EXPECTED = ["hazard", "news", "delegation", "commander", "intake", "danger", "station-1", "station-2", "station-3"]
+EXPECTED = ["commander", "hazard", "news", "intake"]  # the head agent and its three subagents
 HEAD_ROW_MAX_AGE_S = 360  # rows are written on material change, plus a heartbeat row every 300 s
 
 results: list[tuple[str, str]] = []
@@ -64,14 +64,16 @@ async def main() -> int:
     # 2. head agent is recording
     sits = await db.sql("SELECT * FROM situation")
     if not sits:
-        say("FAIL", "head agent: no situation rows yet (is delegation running, and the module published?)")
+        say("FAIL", "head agent: no situation rows yet (is the commander running, and the module published?)")
         return finish()
     latest = max(sits, key=lambda r: r["id"])
     lat_age = age_s(latest["at"])
     if lat_age > HEAD_ROW_MAX_AGE_S:
         say("FAIL", f"head agent: newest situation row is {lat_age:.0f}s old (should be under {HEAD_ROW_MAX_AGE_S}s)")
     else:
-        say("PASS", f"head agent: recording ({len(sits)} rows, newest {lat_age:.0f}s old)")
+        say("PASS", f"head agent: recording ({len(sits)} rows, newest {lat_age:.0f}s old); field reports: "
+                    f"{latest['reports_active']} requests read, {latest['reports_fire_credible']} credible fire sightings, "
+                    f"{latest['reports_road_blocks']} blocked roads")
 
     # 3. empty-world rows
     bad = [r["id"] for r in sits if r["fire_area_sq_km"] == 0 and r["wind_speed_mps"] == 0]
@@ -101,10 +103,14 @@ async def main() -> int:
         else:
             say("WARN", f"wind: head recorded {latest['wind_speed_mps']:.1f} m/s from {latest['wind_from_deg']:.0f}° but weather table says "
                         f"{w['wind_speed_mps']:.1f} from {w['wind_from_deg']:.0f}° (changed since the last row; re-run in a minute)")
-        inc = await db.sql("SELECT key FROM incident")
-        key = inc[0]["key"] if inc else ""
-        arts = await db.sql("SELECT relevance, incident FROM news_article")
-        relevant = min(20, sum(1 for x in arts if x["incident"] == key and x["relevance"] >= 0.5))  # head asks for the top 20
+        inc = (await db.sql("SELECT * FROM incident") or [None])[0]
+        key = inc["key"] if inc else ""
+        # the news agent's time window: the incident's, or live (the last NEWS_LIVE_LOOKBACK_H hours)
+        now_us = int(time.time() * 1e6)
+        lo, hi = (inc["news_from"], inc["news_to"]) if inc else (now_us - int(settings.news_live_lookback_h * 3.6e9), now_us)
+        arts = await db.sql("SELECT relevance, incident, published_at FROM news_article")
+        relevant = min(20, sum(1 for x in arts if x["incident"] == key and lo <= (x["published_at"] or 0) <= hi
+                               and x["relevance"] >= 0.5))  # head asks for the top 20
         if not latest["news_ok"]:
             say("WARN", "news: head recorded news_ok=false (news agent didn't answer that cycle)")
         elif latest["news_relevant"] == relevant:

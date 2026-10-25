@@ -1,0 +1,34 @@
+{
+  "_note": "Trusted X accounts the news agent follows through Bright Data's X Posts scraper. Handles and areas are written from memory of public accounts: open each https://x.com/<handle> before a demo (a wrong handle comes back from Bright Data as an error row, which the news agent logs). lat/lon/radius_km is the area an account covers; the agent follows the accounts whose area includes the incident (see rescue/news/sources.py). official = a government agency (trust 1.0); the rest are established relief orgs, utilities and trackers (0.7). kind: fire | emergency (sheriff, county OES: evacuation orders) | relief (shelters, aid) | weather | transport (road closures) | utility (power shutoffs) | tracker.",
+  "accounts": [
+    {"handle": "CAL_FIRE", "name": "CAL FIRE", "kind": "fire", "official": true, "lat": 37.2, "lon": -119.5, "radius_km": 800},
+    {"handle": "CALFIRE_ButteCo", "name": "CAL FIRE Butte Unit / Butte County Fire", "kind": "fire", "official": true, "lat": 39.67, "lon": -121.6, "radius_km": 55},
+    {"handle": "CALFIRELNU", "name": "CAL FIRE Sonoma-Lake-Napa Unit", "kind": "fire", "official": true, "lat": 38.75, "lon": -122.55, "radius_km": 110},
+    {"handle": "LAFD", "name": "Los Angeles Fire Department", "kind": "fire", "official": true, "lat": 34.05, "lon": -118.35, "radius_km": 35},
+    {"handle": "LACOFD", "name": "Los Angeles County Fire Department", "kind": "fire", "official": true, "lat": 34.35, "lon": -118.2, "radius_km": 90},
+
+    {"handle": "Cal_OES", "name": "California Governor's Office of Emergency Services", "kind": "emergency", "official": true, "lat": 37.2, "lon": -119.5, "radius_km": 800},
+    {"handle": "ButteSheriff", "name": "Butte County Sheriff", "kind": "emergency", "official": true, "lat": 39.67, "lon": -121.6, "radius_km": 55},
+    {"handle": "CountyofButte", "name": "County of Butte", "kind": "emergency", "official": true, "lat": 39.67, "lon": -121.6, "radius_km": 55},
+    {"handle": "CountyofNapa", "name": "County of Napa", "kind": "emergency", "official": true, "lat": 38.5, "lon": -122.33, "radius_km": 45},
+    {"handle": "SonomaSheriff", "name": "Sonoma County Sheriff", "kind": "emergency", "official": true, "lat": 38.53, "lon": -122.89, "radius_km": 55},
+
+    {"handle": "RedCross", "name": "American Red Cross", "kind": "relief", "official": false, "lat": 39.8, "lon": -98.6, "radius_km": 4500},
+
+    {"handle": "NWSSacramento", "name": "NWS Sacramento", "kind": "weather", "official": true, "lat": 39.3, "lon": -121.4, "radius_km": 200},
+    {"handle": "NWSBayArea", "name": "NWS San Francisco Bay Area", "kind": "weather", "official": true, "lat": 37.4, "lon": -122.0, "radius_km": 170},
+    {"handle": "NWSEureka", "name": "NWS Eureka", "kind": "weather", "official": true, "lat": 40.8, "lon": -123.7, "radius_km": 170},
+    {"handle": "NWSReno", "name": "NWS Reno", "kind": "weather", "official": true, "lat": 39.5, "lon": -119.8, "radius_km": 150},
+    {"handle": "NWSHanford", "name": "NWS Hanford", "kind": "weather", "official": true, "lat": 36.6, "lon": -119.4, "radius_km": 170},
+    {"handle": "NWSLosAngeles", "name": "NWS Los Angeles", "kind": "weather", "official": true, "lat": 34.4, "lon": -118.7, "radius_km": 140},
+    {"handle": "NWSSanDiego", "name": "NWS San Diego", "kind": "weather", "official": true, "lat": 33.0, "lon": -116.8, "radius_km": 120},
+
+    {"handle": "CaltransDist3", "name": "Caltrans District 3 (Sacramento Valley / Sierra)", "kind": "transport", "official": true, "lat": 39.3, "lon": -121.3, "radius_km": 170},
+    {"handle": "CaltransDist4", "name": "Caltrans District 4 (Bay Area)", "kind": "transport", "official": true, "lat": 37.8, "lon": -122.2, "radius_km": 120},
+    {"handle": "CaltransDist7", "name": "Caltrans District 7 (Los Angeles / Ventura)", "kind": "transport", "official": true, "lat": 34.2, "lon": -118.4, "radius_km": 110},
+
+    {"handle": "PGE4Me", "name": "PG&E", "kind": "utility", "official": false, "lat": 38.3, "lon": -121.2, "radius_km": 420},
+
+    {"handle": "NIFC_Fire", "name": "National Interagency Fire Center", "kind": "tracker", "official": true, "lat": 39.8, "lon": -98.6, "radius_km": 4500}
+  ]
+}

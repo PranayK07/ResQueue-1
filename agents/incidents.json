@@ -1,13 +1,16 @@
 {
-  "_note": "Real incidents the demo can replay. Dates, places and queries are from memory of public coverage: verify before pitching. Every query is one billed Bright Data input (~100 page loads), so keep the lists short. 'start' is the real-world time that sim T+0 maps to (UTC).",
+  "_note": "Real incidents the demo can replay. Dates, places, names and centers are from memory of public coverage: verify before pitching. 'start' is the real-world time that sim T+0 maps to (UTC). 'queries' are the names that identify the fire in posts ('Camp Fire' also matches #CampFire). 'center' [lat, lon] picks the nearby X accounts from news_sources.json; 'accounts' (handles) are always followed for this incident; 'posts' are X status URLs collected by URL on every refresh (one billed record each), the reliable way to get coverage of a past fire.",
   "glass-fire-2020": {
     "name": "Glass Fire (Napa/Sonoma, fall 2020)",
     "start": "2020-09-27T10:48:00Z",
     "news_from": "2020-09-27",
     "news_to": "2020-10-20",
     "location": "Napa Valley California",
-    "queries": ["Glass Fire Napa evacuation", "Glass Fire Highway 29 closure"],
-    "places": ["Napa", "Calistoga", "St. Helena", "Deer Park", "Angwin", "Howell Mountain", "Silverado Trail", "Santa Rosa", "Sonoma County", "Highway 29", "Highway 128"]
+    "center": [38.56, -122.5],
+    "queries": ["Glass Fire"],
+    "places": ["Napa", "Calistoga", "St. Helena", "Deer Park", "Angwin", "Howell Mountain", "Silverado Trail", "Santa Rosa", "Sonoma County", "Highway 29", "Highway 128"],
+    "accounts": [],
+    "posts": []
   },
   "lnu-lightning-2020": {
     "name": "LNU Lightning Complex incl. Hennessey Fire (Napa, Aug 2020)",
@@ -15,8 +18,11 @@
     "news_from": "2020-08-17",
     "news_to": "2020-10-02",
     "location": "Napa California",
-    "queries": ["LNU Lightning Complex Napa evacuation", "Hennessey Fire Napa"],
-    "places": ["Napa", "Lake Berryessa", "Hennessey", "Vacaville", "Winters", "Solano County", "Lake County", "Sonoma County", "Wooden Valley"]
+    "center": [38.55, -122.3],
+    "queries": ["LNU Lightning Complex", "Hennessey Fire"],
+    "places": ["Napa", "Lake Berryessa", "Hennessey", "Vacaville", "Winters", "Solano County", "Lake County", "Sonoma County", "Wooden Valley"],
+    "accounts": [],
+    "posts": []
   },
   "camp-fire-2018": {
     "name": "Camp Fire (Paradise, Nov 2018)",
@@ -24,7 +30,10 @@
     "news_from": "2018-11-08",
     "news_to": "2018-11-25",
     "location": "Paradise California",
-    "queries": ["Camp Fire Paradise evacuation", "Camp Fire Butte County road closure"],
-    "places": ["Paradise", "Magalia", "Concow", "Pulga", "Chico", "Butte County", "Skyway", "Pentz Road"]
+    "center": [39.76, -121.62],
+    "queries": ["Camp Fire"],
+    "places": ["Paradise", "Magalia", "Concow", "Pulga", "Chico", "Butte County", "Skyway", "Pentz Road"],
+    "accounts": [],
+    "posts": []
   }
 }

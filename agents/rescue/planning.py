@@ -1,16 +1,18 @@
 """Pure translation between SpacetimeDB rows and the policy interface (no uAgents, no network).
 
-    rows (ops_request, ops_travel, unit, station, ops_queue) + Situation  --build_plan_input-->  PlanInput
+    rows (ops_request, ops_travel, unit, station, ops_queue) + Situation + weighed field reports
+        --build_plan_input-->  PlanInput
     Plan  --plan_to_reducer_args-->  arguments of the `publish_plan` reducer
 
 This is the seam the RL workstream plugs into: a policy is anything with `.name` and `.plan(PlanInput) -> Plan`
-(core/policy.py). The delegation agent calls build_plan_input, runs the policy, and publishes the result."""
+(core/policy.py). The commander agent calls build_plan_input, runs the policy, and publishes the result."""
 from __future__ import annotations
 
 import math
 from collections.abc import Iterable
 
 from .core.policy import Plan, PlanInput, RequestState, UnitState
+from .core.reports import Weighed
 from .core.situation import Situation
 
 PLANNABLE = ("pending", "queued")  # a request whose unit is already committed is the database's to keep, not the policy's
@@ -26,7 +28,12 @@ def build_plan_input(
     stations: Iterable[dict],
     situation: Situation | None = None,
     queue: Iterable[dict] = (),
+    weighed: dict[int, Weighed] | None = None,
+    hold: set[int] = frozenset(),
 ) -> PlanInput:
+    """`weighed`: the commander's reading of each request's field reports. `hold`: requests the intake agent
+    hasn't analyzed yet (the commander only holds them for a short grace period)."""
+    weighed = weighed or {}
     names = {s["id"]: s["name"] for s in stations}
     travel_by_req: dict[int, dict[int, float]] = {}
     for t in travel:
@@ -37,12 +44,18 @@ def build_plan_input(
     reqs = []
     for r in requests:
         if r["status"] not in PLANNABLE or r["location_purged"] or r["fire_eta_s"] is None or r["id"] not in travel_by_req:
-            continue  # not assessed by the danger agent yet, or not the policy's to place
+            continue  # not assessed for danger yet, or not the policy's to place
+        if r["id"] in hold and r["id"] not in current:
+            continue  # its reports are still being read; a request already queued keeps its place meanwhile
         legs = {sid: travel_by_req[r["id"]].get(sid, math.inf) for sid in names}
+        w = weighed.get(r["id"])
         reqs.append(RequestState(
-            id=r["id"], headcount=r["headcount"], needs=r["needs"], fire_eta_s=r["fire_eta_s"], extract_s=r["extract_s"],
+            id=r["id"], headcount=w.headcount if w else r["headcount"], needs=w.needs if w else r["needs"],
+            fire_eta_s=r["fire_eta_s"], extract_s=r["extract_s"],
             travel_s=legs, pinned_station=r["pinned_station_id"], current_station=current.get(r["id"], 0),
             created_s=r["created_sim_s"],
+            **({"credibility": w.credibility, "reported_urgency": w.reported_urgency, "trapped": w.trapped,
+                "injured": w.injured, "report_note": w.note} if w else {}),
         ))
 
     us = []

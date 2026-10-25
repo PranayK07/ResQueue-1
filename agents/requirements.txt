@@ -6,4 +6,4 @@ websockets>=15
 numpy>=2.1
 python-dotenv>=1.0
 pydantic>=2.9
-openai>=1.50        # ASI:One LLM is OpenAI-compatible
+openai>=1.50        # OpenAI-compatible APIs: ASI:One LLM, and the Hugging Face router (intake's vision model)

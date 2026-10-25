@@ -49,7 +49,7 @@ async def main() -> None:
     inc_key = a.incident or sc.get("incident")
     if inc_key:
         inc = incidents.get(inc_key)
-        await db.call("set_incident", *inc.reducer_args())
+        await incidents.select(db, inc)
         print(f"incident: {inc.name} (news {inc.news_from:%Y-%m-%d} → {inc.news_to:%Y-%m-%d})")
 
     if not a.no_residents:

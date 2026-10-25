@@ -2,7 +2,7 @@
 
 SpacetimeDB change (wind / fire) -> debounce -> ensemble -> one reducer call,
 so a wind-slider drag re-forecasts within ~0.5 s and every downstream agent
-(danger -> delegation) reacts to the new forecast rows.
+(the commander: danger -> plan) reacts to the new forecast rows.
 """
 from __future__ import annotations
 

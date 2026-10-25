@@ -1,7 +1,7 @@
 """The head agent's synthesized view of the incident.
 
-One typed record pooling the hazard agent's fire + weather reports with the news agent's signals.
-The delegation agent builds it live and writes it to SpacetimeDB (`situation` table); the RL
+One typed record pooling the hazard agent's fire + weather reports, the news agent's signals, and residents'
+field reports (intake agent, weighed by core/reports.py). The commander agent builds it live and writes it to SpacetimeDB (`situation` table); the RL
 workstream can build the same record from the simulator, and read the table's history as
 training / evaluation data. Pure data: no network or uAgents imports.
 
@@ -16,7 +16,7 @@ from dataclasses import asdict, dataclass
 # ─── Model input ────────────────────────────────────────────────────────────
 # A fixed-order numeric encoding of the environment, for a learned policy. STARTING POINT: change it freely,
 # but bump FEATURE_VERSION and store the version with any trained model so training and serving agree.
-FEATURE_VERSION = 2
+FEATURE_VERSION = 3
 FEATURE_NAMES = [
     "fire_area_log",  # log1p(km²) / 6, so ~400 km² is ~1
     "fire_growth_frac",  # fraction of current area added in the last <= 30 sim-min, clipped to [0, 1]
@@ -32,6 +32,8 @@ FEATURE_NAMES = [
     "nearest_station_dist",  # min over stations of km / 30, clipped to 1
     "wind_age",  # wind_age_min / 180, clipped to 1; 1.0 when unknown
     "data_fresh",  # 0 when any input is stale
+    # v3: residents' field reports (counts / 10, clipped to 1)
+    "reports_active", "reports_fire_credible", "reports_road_blocks", "reports_trapped",
 ]
 
 
@@ -71,6 +73,11 @@ class Situation:
     news_age_min: float = -1.0
     data_fresh: bool = True
     stale_reasons: str = ""
+    # Field reports, as weighed by the commander (core/reports.summarize)
+    reports_active: int = 0
+    reports_fire_credible: int = 0
+    reports_road_blocks: int = 0
+    reports_trapped: int = 0
 
     def to_row(self) -> dict:
         return asdict(self)
@@ -95,6 +102,9 @@ class Situation:
             or self.news_evacuation != prev.news_evacuation
             or self.news_closures != prev.news_closures
             or self.data_fresh != prev.data_fresh
+            or self.reports_fire_credible != prev.reports_fire_credible
+            or self.reports_road_blocks != prev.reports_road_blocks
+            or self.reports_trapped != prev.reports_trapped
         )
 
     def feature_vector(self) -> list[float]:
@@ -120,4 +130,6 @@ class Situation:
             clip(min(dists, default=30.0) / 30),
             clip(self.wind_age_min / 180) if self.wind_age_min >= 0 else 1.0,
             float(self.data_fresh),
+            clip(self.reports_active / 10), clip(self.reports_fire_credible / 10), clip(self.reports_road_blocks / 10),
+            clip(self.reports_trapped / 10),
         ]

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "fixture-1",
+    "user_posted": "CALFIRE_ButteCo",
+    "name": "SYNTHETIC TEST (CAL FIRE Butte format)",
+    "description": "SYNTHETIC TEST: #CampFire EVACUATION ORDER for Paradise and Magalia. The fire is 20,000 acres and 0% contained. Skyway is closed between Paradise and Chico; Pentz Road is shut down near Pentz.",
+    "date_posted": "2018-11-08T18:00:00.000Z",
+    "url": "https://example.invalid/x/CALFIRE_ButteCo/status/fixture-1",
+    "hashtags": ["CampFire"],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
+  },
+  {
+    "id": "fixture-2",
+    "user_posted": "RedCross",
+    "name": "SYNTHETIC TEST (Red Cross format)",
+    "description": "SYNTHETIC TEST: Shelters are open in Chico and Oroville for people evacuating from the #CampFire.\nLarge animals can go to the Butte County fairgrounds.",
+    "date_posted": "2018-11-09T02:10:00.000Z",
+    "url": "https://example.invalid/x/RedCross/status/fixture-2",
+    "hashtags": ["CampFire"],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
+  },
+  {
+    "id": "fixture-3",
+    "user_posted": "NWSSacramento",
+    "name": "SYNTHETIC TEST (NWS Sacramento format)",
+    "description": "SYNTHETIC TEST: Red Flag Warning continues through Saturday for the northern Sacramento Valley and foothills. Gusty northeast winds 25 to 45 mph and low humidity.",
+    "date_posted": "2018-11-08T15:00:00.000Z",
+    "url": "https://example.invalid/x/NWSSacramento/status/fixture-3",
+    "hashtags": [],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
+  },
+  {
+    "id": "fixture-4",
+    "user_posted": "CALFIRELNU",
+    "name": "SYNTHETIC TEST (CAL FIRE LNU format)",
+    "description": "SYNTHETIC TEST: #GlassFire grew to 11,000 acres overnight in Napa County. Evacuation orders for Calistoga and St. Helena. Highway 29 is closed between St. Helena and Calistoga. 0% contained.",
+    "date_posted": "2020-09-28T15:15:00.000Z",
+    "url": "https://example.invalid/x/CALFIRELNU/status/fixture-4",
+    "hashtags": ["GlassFire"],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
+  },
+  {
+    "id": "fixture-5",
+    "user_posted": "NWSBayArea",
+    "name": "SYNTHETIC TEST (NWS Bay Area format)",
+    "description": "SYNTHETIC TEST: Morning fog along the coast this week, with light winds and no fire weather concerns.",
+    "date_posted": "2022-01-23T07:47:00.000Z",
+    "url": "https://example.invalid/x/NWSBayArea/status/fixture-5",
+    "hashtags": [],
+    "likes": 0, "reposts": 0, "replies": 0, "views": 0,
+    "is_verified": true,
+    "quoted_post": null
+  }
+]
