@@ -191,6 +191,23 @@ class AssessmentAck(Model):
     detail: str
 
 
+class SignalRequest(Model):
+    """The commander hands a (mock or relayed) distress signal to the intake subagent, which files it exactly like a
+    resident's ping plus one text report, so it travels the whole pipeline: intake -> commander -> risk -> queue."""
+    lat: float
+    lon: float
+    headcount: int
+    needs: str  # comma list
+    text: str  # what the signal says; read by the intake analyzer like any resident report
+    label: str
+
+
+class SignalAck(Model):
+    request_id: int  # 0 = not filed
+    ok: bool
+    detail: str
+
+
 class IntakeReportRequest(Model):
     pass
 

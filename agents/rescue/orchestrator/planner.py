@@ -82,7 +82,7 @@ class Planner:
 
     def on_ready(self, ctx: Context) -> None:
         ctx.logger.info(f"dispatch policy: {settings.policy} -> {self.policy.name}")
-        self._debounce = Debouncer(self.plan, delay=0.3, min_interval=2.0)
+        self._debounce = Debouncer(self.plan, delay=0.1, min_interval=0.5)
         self.agent.db.on_update(WATCH, lambda _u: self._debounce.trigger())
         self._debounce.trigger()
 

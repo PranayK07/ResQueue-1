@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+import uuid
 from typing import Any
 
 from uagents import Context
@@ -42,14 +43,15 @@ from ..chat import build_chat_protocol, push, text
 from ..config import settings
 from ..core.slack import fmt_min
 from ..intake.analysis import Analyzer, ReportIn
-from ..messages import Assessment, AssessmentAck, IntakeReport, IntakeReportRequest
+from ..mesh import address_of
+from ..messages import Assessment, AssessmentAck, IntakeReport, IntakeReportRequest, SignalAck, SignalRequest
 from ..stdb import ReducerError, Update
 from .base import MeshAgent
 
 NEEDS = ["mobility", "medical", "oxygen", "infant", "elderly", "pets"]
 ACTIVE = ("pending", "queued", "assigned", "en_route", "on_scene")
 _LATLON = re.compile(r"(-?\d{1,2}\.\d+)\s*[, ]\s*(-?\d{1,3}\.\d+)")
-SETTLE_S = 2.0  # wait this long after a report for the rest of a burst (photo + caption) before reading
+SETTLE_S = 0.3  # wait this long after a report for the rest of a burst (photo + caption) before reading
 RESEND_S = 10.0  # re-send readings the commander hasn't acknowledged
 
 
@@ -91,6 +93,38 @@ class IntakeAgent(MeshAgent):
                     analyzer=self.analyzer.name, requests_read=len(self._read), awaiting_ack=len(self._unacked),
                     summary=f"{len(self._read)} requests read with {self.analyzer.name}"
                             + (f", {len(self._unacked)} readings waiting for the commander" if self._unacked else "")))
+
+        @self.agent.on_message(SignalRequest, replies=SignalAck)
+        async def _signal(ctx: Context, sender: str, msg: SignalRequest):
+            """The commander relays a signal (the ASI:One demo's mock signal): file it like a resident's ping plus a text
+            report. The normal reading -> assessment -> risk -> queue pipeline does the rest."""
+            if sender != address_of("commander"):
+                ctx.logger.warning(f"ignored signal from {sender[:16]}…: only the commander may relay signals")
+                return
+            if not await self.when_ready(ctx):
+                await ctx.send(sender, SignalAck(request_id=0, ok=False, detail="intake agent is still loading the world"))
+                return
+            ref = f"signal:{uuid.uuid4().hex[:10]}"
+            try:
+                await self.db.call("submit_help_request_for", ref, "signal", msg.lat, msg.lon, max(1, min(50, msg.headcount)),
+                                   msg.needs, msg.label[:500], 1440)
+                rid = 0
+                for _ in range(40):  # our replica learns of the new row a moment after the reducer commits
+                    rid = next((r["id"] for r in self.db.table("ops_request") if r["external_ref"] == ref), 0)
+                    if rid:
+                        break
+                    await asyncio.sleep(0.25)
+                if not rid:
+                    raise RuntimeError("request not visible yet")
+                if msg.text.strip():
+                    await self.db.call("submit_report", rid, ref, "text", msg.text[:4000], "", "")
+            except ReducerError as e:
+                await ctx.send(sender, SignalAck(request_id=0, ok=False, detail=e.message[:200]))
+                return
+            except Exception as e:  # noqa: BLE001
+                await ctx.send(sender, SignalAck(request_id=0, ok=False, detail=f"{type(e).__name__}: {e}"[:200]))
+                return
+            await ctx.send(sender, SignalAck(request_id=rid, ok=True, detail="filed"))
 
         @self.agent.on_interval(period=RESEND_S)
         async def _resend(ctx: Context):

@@ -105,7 +105,9 @@ class ForecastEngine:
         except (httpx.TimeoutException, httpx.TransportError, ReducerError) as e:
             # The write is an idempotent upsert, so a timeout is safe to retry on the next trigger.
             self.host.set_part("forecast", "degraded", f"publish failed: {type(e).__name__}")
-            self.log.warning("forecast publish failed (%s); will retry on the next fire/wind change", type(e).__name__)
+            self.log.warning("forecast publish failed (%s: %s); retrying", type(e).__name__, getattr(e, "message", e))
+            if isinstance(e, ReducerError) and self._debounce:
+                self._debounce.trigger()  # a stale snapshot lost a race with a world change: recompute now, don't wait for the next one
             return
         self.host.set_part("forecast", "online", f"{len(cells)} cells at risk within {HORIZON_S / 3600:.0f} h")
         if settings.fire_source != "recorded":

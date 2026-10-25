@@ -252,19 +252,22 @@ Dates, names and centers in the catalog are from memory of public coverage: veri
 
 ## Agents
 
-Addresses are derived from `AGENT_SEED_PREFIX`. Print the current table with
-`cd agents && ../venv/bin/python -m rescue.mesh` and paste it here before
-submitting.
+One head agent (**commander**) orchestrates three subagents. Judges and users talk to the commander in ASI:One. The
+subagents run behind it and coordinate through SpacetimeDB and typed uAgents messages. The commander's full architecture,
+message table and example chat are in [agents/agent_readmes/commander.md](agents/agent_readmes/commander.md).
 
-| Agent | Role | What it owns |
+| Agent | Role | Address |
 |---|---|---|
-| wildfire-hazard | hazard | fire perimeter → `fire_cell`, NWS wind → `weather` (ignored while commander has manual control), ensemble arrival times → `forecast_cell` |
-| wildfire-news | news | trusted X accounts near the incident, via Bright Data's X scraper → `news_article` (signals are hints for the commander, never auto-applied) |
-| wildfire-danger | danger | time-dependent routing + slack → `help_request.level/slack_s`, `travel_estimate` |
-| wildfire-delegation | delegation | per-station queues via policy → `publish_plan` |
-| wildfire-station-1..3 | station | unit missions for one station |
-| wildfire-intake | intake | ASI:One resident help desk |
-| wildfire-commander | commander | ASI:One incident-command console |
+| **wildfire-commander** (ASI:One entry point) | Head agent: pools the subagents' reports, scores danger, builds station queues | `agent1qdfdzq2ga6mgrv2lnltpq6rvvsps9cz0sq38cg079kca660dh857x5f8y30` |
+| wildfire-hazard | Fire perimeter, wind, physical ensemble and learned U-Net forecast | `agent1qtgg77a64ge3s9x7dwfe0xvygtycsmrs32qx2ce4fxwuyj5w8afcqzf5lv7` |
+| wildfire-news | Trusted wildfire accounts on X via Bright Data; hints for the commander | `agent1qvf5umfps3q8wt0evup4lga9ukmss5y6x7puten9mwdpc5xqcy22j9ena79` |
+| wildfire-intake | Reads residents' reports (text, voice, photo, video) into structured claims | `agent1qtqgj8yp9emj5me8evu8h0mh5jgd6h60nr9pf9xrc4v8qvgu6mfh53h6vv6` |
+
+Addresses derive from `AGENT_SEED_PREFIX`; the table above is for the submitted deployment. Print yours with
+`cd agents && ../venv-risk/bin/python -m rescue.mesh`.
+
+**Test it in ASI:One:** message the commander with `status`, then
+`signal 35.6322 -112.7351 2 people elderly, smoke visible down the street, we can still drive out`.
 
 ## Data flow to the head agent
 
@@ -353,3 +356,9 @@ report whose weather source is `none`. Before this fix a restart could log a fir
   `set_weather`. Column names on the wire are snake_case.
 - `AGENTS.md` and `.cursor/rules/` are SpacetimeDB's official AI-assistant rules
   for the 2.x TypeScript module API.
+
+## Demo access
+
+The commander's read-only commands (`status`, `signal`, `reports`, `fire`, `weather`, `news`, `help`) need no login.
+Control commands (`wind`, `pause`, `resume`, `pin`, `unpin`, `refresh news`, `incident`, `ping`, `window`) need
+`login ka9Nrv0euv`, the operator passcode for this demo deployment.

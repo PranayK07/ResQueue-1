@@ -31,7 +31,7 @@ spacetime publish --server "$SERVER" -y ${CLEAR[@]+"${CLEAR[@]}"} "$DB"
 
 if [ "${FIRE_SOURCE:-sim}" = "recorded" ]; then
   : "${RECORDED_INCIDENT_PATH:?set RECORDED_INCIDENT_PATH to a prepared bundle}"
-  (cd agents && "../$PY" scripts/seed_recorded_incident.py "$RECORDED_INCIDENT_PATH" --run)
+  (cd agents && "../$PY" scripts/seed_recorded_incident.py "$RECORDED_INCIDENT_PATH" --run --speed "${SIM_SPEED:-1}")
 else
   (cd agents && "../$PY" scripts/seed_scenario.py scenarios/paradise_demo.json --run)
 fi

@@ -297,3 +297,26 @@ def test_resident_sighting_is_crosschecked_against_learned_exposure(recorded):
     assert r["probabilities"] == [] and any("sighting is trusted" in x for x in r["quality_flags"])
     assert r["fire_eta_s"] == 3600  # the sighting still drives the physical ETA, via the danger engine
 
+
+
+def test_decision_lines_show_station_danger_exposure_and_agent_trace():
+    from rescue.core.decision import decision_lines
+
+    risk = dict(level="critical", slack_s=-240.0, probabilities=[0.2, 0.6], horizons_s=[21600.0, 86400.0],
+                forecast_state="right_censored",
+                quality_flags=["news: evacuation reported for the incident area (unverified hint)", "other"])
+    queue = dict(rank=2, unit_id=7, eta_s=1500.0, policy="lookahead", reason="most urgent at this station")
+    assessment = dict(analyzer="keywords", summary="trapped; road blocked")
+    sit = SimpleNamespace(fire_area_sq_km=1.6, wind_speed_mps=0.0, news_relevant=2, news_evacuation=True, news_closures=1)
+    text = "\n".join(decision_lines(9, {"level": "critical"}, queue, risk, assessment, "road blocked accepted",
+                                    "Station 1", "Engine 7", 300.0, sit))
+    for part in ("signal #9", "CRITICAL", "arrives about 4 min before", "Station 1, rank 2", "Engine 7 dispatched, ETA about 20 min",
+                 "60% within 24 h", "Intake** read it (keywords)", "Hazard:** fire 1.6 km²", "2 relevant X post", "evacuation reported",
+                 "Dispatch policy:**", "Notices: news: evacuation"):
+        assert part in text, part
+    assert "other" not in text.split("Notices:")[1]
+    pending = "\n".join(decision_lines(9, {"level": "high"}, None, None, None, "", "", "", 0.0, None))
+    assert "HIGH" in pending and "not placed in a queue yet" in pending
+    gone = "\n".join(decision_lines(9, {"level": "unreachable"}, None, dict(level="unreachable", slack_s=-1e9, probabilities=[1.0],
+                      horizons_s=[86400.0], forecast_state="already_observed", quality_flags=[]), None, "", "", "", 0.0, None))
+    assert "no unit can reach" in gone and "escalated to the commander" in gone and "-16666" not in gone

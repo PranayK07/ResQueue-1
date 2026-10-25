@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from ..agents.commander import CommanderAgent
 
 ACTIVE = ("pending", "queued", "assigned", "en_route", "on_scene")
-RECOMPUTE_MIN_S = 5.0
+RECOMPUTE_MIN_S = 1.0
 CHUNK = 100
 WATCH = ["forecast_cell", "ops_request", "ops_assessment", "road_closure", "unit", "sim_clock", "grid", "fire_risk_meta", "fire_risk_cell", "risk_pipeline"]
 
@@ -35,7 +35,7 @@ class DangerEngine:
         self._debounce: Debouncer | None = None
 
     def on_ready(self) -> None:
-        self._debounce = Debouncer(self.assess, delay=0.3, min_interval=RECOMPUTE_MIN_S)
+        self._debounce = Debouncer(self.assess, delay=0.1, min_interval=RECOMPUTE_MIN_S)
         self.agent.db.on_update(WATCH, self._changed)
         self._debounce.trigger()
 
