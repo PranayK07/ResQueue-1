@@ -67,6 +67,7 @@ class IntakeAgent(MeshAgent):
         "SELECT * FROM ops_queue",
         "SELECT * FROM ops_report",
         "SELECT * FROM ops_assessment",
+        "SELECT * FROM ops_risk",
         "SELECT * FROM ops_message",
     ]
 
@@ -178,13 +179,25 @@ class IntakeAgent(MeshAgent):
     def status_text(self, r: dict) -> str:
         q = self.db.table("ops_queue").get(r["id"])
         now = self.sim_now()
+        card = next((c for c in self.db.table("ops_risk") if c["assessment"]["request_id"] == r["id"]), None)
+        risk_text = ""
+        if card:
+            risk = card["assessment"]
+            if not card["current"]:
+                risk_text = " Your risk estimate is being refreshed."
+            elif risk["probabilities"]:
+                hours = max(0, risk["forecast_issue_s"] + risk["horizons_s"][-1] - now) / 3600
+                risk_text = (f" Forecast exposure estimate: {risk['probabilities'][-1]:.0%} chance of this area being affected"
+                             f" by fire within about {hours:.1f} hours. Actual timing may differ.")
+            else:
+                risk_text = " A current fire-exposure estimate is unavailable; your request and reports remain with responders."
         if r["status"] == "pending" or not q:
-            return f"Request #{r['id']} received. We're assessing your location against the fire forecast."
+            return f"Request #{r['id']} received. We're assessing your location against the fire forecast." + risk_text
         station = (self.db.table("station").get(q["station_id"]) or {}).get("name", "a station")
         if q["unit_id"]:
             unit = (self.db.table("unit").get(q["unit_id"]) or {}).get("callsign", "A unit")
-            return f"{unit} from {station} is assigned to you, ETA about {fmt_min(q['eta_s'] - now)}. {q['resident_reason']}"
-        return f"{q['resident_reason']} Estimated arrival in about {fmt_min(q['eta_s'] - now)}."
+            return f"{unit} from {station} is assigned to you, ETA about {fmt_min(q['eta_s'] - now)}. {q['resident_reason']}" + risk_text
+        return f"{q['resident_reason']} Estimated arrival in about {fmt_min(q['eta_s'] - now)}." + risk_text
 
     # ── chat ────────────────────────────────────────────────────────────────
 

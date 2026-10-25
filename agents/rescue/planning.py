@@ -14,10 +14,28 @@ from collections.abc import Iterable
 from .core.policy import Plan, PlanInput, RequestState, UnitState
 from .core.reports import Weighed
 from .core.situation import Situation
+from .sats import option
 
 PLANNABLE = ("pending", "queued")  # a request whose unit is already committed is the database's to keep, not the policy's
 # Until station agents report real free_at times, a unit that is not available is assumed busy this long.
 UNIT_BUSY_DEFAULT_S = 1800.0
+
+
+def risk_to_reducer_args(snapshot, risks, travel):
+    """Typed HTTP reducer options use SATS some/none; retain all other risk fields unchanged."""
+    optional = ("travel_s", "wait_s", "scheduled_slack_s", "arrival_lower_s", "arrival_upper_s",
+                "exposure_slack_lower_s", "exposure_slack_upper_s")
+    wire = [{**r, **{key: option(r[key]) for key in optional}} for r in risks]
+    return snapshot, wire, travel
+
+
+def risk_inputs_ready(requests, risks, hold=frozenset(), queue=()):
+    """Keep the existing plan while report/location/unit changes await atomic risk publication."""
+    current = {c["assessment"]["request_id"] for c in risks if c["current"]}
+    queued = {q["request_id"] for q in queue}
+    return all(r["id"] in current for r in requests
+               if r["status"] in PLANNABLE and not r["location_purged"]
+               and (r["id"] not in hold or r["id"] in queued))
 
 
 def build_plan_input(
@@ -30,10 +48,12 @@ def build_plan_input(
     queue: Iterable[dict] = (),
     weighed: dict[int, Weighed] | None = None,
     hold: set[int] = frozenset(),
+    risks: Iterable[dict] = (),
 ) -> PlanInput:
     """`weighed`: the commander's reading of each request's field reports. `hold`: requests the intake agent
     hasn't analyzed yet (the commander only holds them for a short grace period)."""
     weighed = weighed or {}
+    risk_by_req = {card["assessment"]["request_id"]: card["assessment"] for card in risks if card["current"]}
     names = {s["id"]: s["name"] for s in stations}
     travel_by_req: dict[int, dict[int, float]] = {}
     for t in travel:
@@ -54,6 +74,7 @@ def build_plan_input(
             fire_eta_s=r["fire_eta_s"], extract_s=r["extract_s"],
             travel_s=legs, pinned_station=r["pinned_station_id"], current_station=current.get(r["id"], 0),
             created_s=r["created_sim_s"],
+            risk=risk_by_req.get(r["id"]),
             **({"credibility": w.credibility, "reported_urgency": w.reported_urgency, "trapped": w.trapped,
                 "injured": w.injured, "report_note": w.note} if w else {}),
         ))
@@ -107,5 +128,6 @@ def plan_to_reducer_args(plan: Plan) -> tuple[str, list[dict], list[dict]]:
 
 def plan_signature(plan: Plan) -> tuple:
     """What matters for 'did the plan change?': who goes to which station, in what order, with which unit."""
-    return (tuple(sorted((e.request_id, e.station_id, e.rank, e.unit_id) for e in plan.entries)),
-            tuple(sorted(rid for rid, _, _ in plan.unreachable)))
+    return (plan.policy, tuple(sorted((e.request_id, e.station_id, e.rank, e.unit_id,
+                                      round(e.eta_s / 30), e.reason, e.resident_reason) for e in plan.entries)),
+            tuple(sorted(plan.unreachable)))

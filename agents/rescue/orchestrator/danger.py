@@ -15,22 +15,23 @@ from typing import TYPE_CHECKING
 
 from ..core.danger import assess_requests
 from ..core.geo import Grid
+from ..core.risk import compose_risks, risk_snapshot
 from ..stdb import Debouncer
+from ..planning import risk_to_reducer_args
 
 if TYPE_CHECKING:
     from ..agents.commander import CommanderAgent
 
 ACTIVE = ("pending", "queued", "assigned", "en_route", "on_scene")
 RECOMPUTE_MIN_S = 5.0
-QUANT_S = 60.0  # slack ticks down every second of sim time; only republish when it moved by about a minute
 CHUNK = 100
-WATCH = ["forecast_cell", "ops_request", "ops_assessment", "road_closure", "unit", "sim_clock", "grid"]
+WATCH = ["forecast_cell", "ops_request", "ops_assessment", "road_closure", "unit", "sim_clock", "grid", "fire_risk_meta", "fire_risk_cell", "risk_pipeline"]
 
 
 class DangerEngine:
     def __init__(self, agent: "CommanderAgent") -> None:
         self.agent = agent
-        self._published: dict[int, tuple] = {}  # request_id -> signature of the last published assessment
+        self._published: dict[int, str] = {}  # request_id -> signature of the last published assessment
         self._debounce: Debouncer | None = None
 
     def on_ready(self) -> None:
@@ -39,7 +40,7 @@ class DangerEngine:
         self._debounce.trigger()
 
     def _changed(self, upd) -> None:
-        if upd.touched("grid"):
+        if upd.resync or upd.touched("grid"):
             self._published.clear()  # new scenario
         if self._debounce:
             self._debounce.trigger()
@@ -61,6 +62,14 @@ class DangerEngine:
             a.set_part("danger", "online", "no active requests")
             return
 
+        versions = dict(db.table("world_version").one())
+        fm = db.table("forecast_meta").one()
+        if not fm or fm["weather_version"] != versions["weather"] or fm["fire_version"] != versions["fire"]:
+            a.set_part("danger", "degraded", "waiting for physical forecast matching current fire/weather")
+            return
+        units = list(db.table("unit"))
+        meta, pipeline = db.table("fire_risk_meta").one(), db.table("risk_pipeline").one()
+        snapshot = risk_snapshot(clock["sim_s"], clock["scenario"], versions, units, meta, pipeline)
         weighed = a.reports.weigh_all()
         forecast = {r["cell_id"]: r["arrival_early_s"] for r in db.table("forecast_cell")}
         burning = {r["cell_id"] for r in db.table("fire_cell")}
@@ -73,23 +82,20 @@ class DangerEngine:
         assessments, travel = await asyncio.to_thread(
             assess_requests, grid, clock["sim_s"], points, stations, forecast, burning, closures, adjust=adjust)
 
-        by_req: dict[int, list[dict]] = {}
-        for t in travel:
-            by_req.setdefault(t["request_id"], []).append(t)
-        changed_a, changed_t, sigs = [], [], {}
-        for d in assessments:
-            ts = by_req.get(d["request_id"], [])
-            sig = (d["level"], round(d["slack_s"] / QUANT_S), round(d["fire_eta_s"] / QUANT_S), round(d["extract_s"]),
-                   tuple(-1 if not t["reachable"] else round(t["travel_s"] / QUANT_S) for t in ts))
-            if self._published.get(d["request_id"]) != sig:
-                changed_a.append(d)
-                changed_t += ts
-                sigs[d["request_id"]] = sig
-        for i in range(0, len(changed_a), CHUNK):
-            part = changed_a[i:i + CHUNK]
-            ids = {d["request_id"] for d in part}
-            if await db.try_call("publish_danger", part, [t for t in changed_t if t["request_id"] in ids]):
+        risks = await asyncio.to_thread(compose_risks, snapshot, reqs, assessments, travel, units, weighed,
+                                        meta=meta, cells=list(db.table("fire_risk_cell")), pipeline=pipeline)
+        sigs = {r["request_id"]: r["assessment_id"] for r in risks}
+        changed = [r for r in risks if self._published.get(r["request_id"]) != sigs[r["request_id"]]]
+        for i in range(0, len(changed), CHUNK):
+            part = changed[i:i + CHUNK]
+            ids = {r["request_id"] for r in part}
+            if await db.try_call("publish_risk_assessments", *risk_to_reducer_args(
+                    snapshot, part, [t for t in travel if t["request_id"] in ids])):
                 self._published.update({rid: sigs[rid] for rid in ids})
+                a.log.info("risk transfer committed scenario=%s requests=%d forecast=%s",
+                           snapshot["scenario"], len(ids), part[0]["forecast_id"])
+            elif self._debounce:
+                self._debounce.trigger()  # reconnects and racing updates must not lose an assessment
         levels = [d["level"] for d in assessments]
         a.set_part("danger", "online", f"{len(assessments)} requests assessed: " + ", ".join(
             f"{n} {k}" for k in ("unreachable", "critical", "high", "moderate") if (n := levels.count(k)))

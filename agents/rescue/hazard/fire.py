@@ -47,6 +47,7 @@ class FireEngine:
         self.detections: list[tuple[float, int, float]] = []  # pending FIRMS injections (sim_s, cell, intensity)
         self.last_detection = ""
         self._busy = False
+        self._recorded_observation = None
 
     async def on_ready(self, ctx: Context) -> None:
         self.db.on_update(["grid", "weather", "fire_cell"], self._changed)
@@ -80,6 +81,7 @@ class FireEngine:
         self.truth = None
         self.dirty = True
         self.history.clear()
+        self._recorded_observation = None
 
     async def _load_firms(self, ctx: Context) -> None:
         if not (self.grid and self.grid.valid):
@@ -117,6 +119,24 @@ class FireEngine:
         now = clock["sim_s"]
         self._busy = True
         try:
+            if settings.fire_source == "recorded":
+                source = self.host.recorded
+                if source is None:
+                    self.host.set_part("fire", "degraded", self.host.recorded_error or "recorded source missing")
+                    return
+                if clock["scenario"] != source.scenario or not source.matches_grid(self.grid):
+                    self.host.set_part("fire", "degraded", "recorded source does not match loaded scenario/grid")
+                    return
+                _, observation = source.request(now, [21600.0])
+                if observation != self._recorded_observation:
+                    cells = await asyncio.to_thread(source.fire_cells, now)
+                    if not await self.db.try_call("upsert_fire_cells", cells, True, "perimeter"):
+                        return  # do not acknowledge until the observation is committed
+                    self._recorded_observation = observation
+                    self.burning = {c["cell_id"]: c["ignited_s"] for c in cells}
+                    self.dirty = True
+                self.host.set_part("fire", "online", f"recorded {observation}; {len(self.burning)} affected cells")
+                return
             new: dict[int, tuple[float, float]] = {}
             source = "sim"
             # 1. satellite detections that have "happened" by now
@@ -204,7 +224,7 @@ class FireEngine:
             if nearest:
                 lines.append(f"No station threatened within 3 h; nearest is {nearest.station} at {nearest.distance_km:.1f} km")
         return FireReport(
-            source="firms+sim" if self.last_detection else "sim",
+            source="recorded" if settings.fire_source == "recorded" else "firms+sim" if self.last_detection else "sim",
             sim_min=round(now / 60, 1),
             burning_cells=len(self.burning),
             area_km2=round(self.area_km2(), 2),

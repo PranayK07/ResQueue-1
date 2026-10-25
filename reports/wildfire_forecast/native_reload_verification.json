@@ -1,0 +1,123 @@
+{
+  "actual_native_trained_state": {
+    "actual_parameter_update": true,
+    "actual_updates": 1776,
+    "trained": true,
+    "validation_complete": true
+  },
+  "calibration": {
+    "approximate_because": "fixed 0.2 soft Dice auxiliary and finite model optimization; assess empirical Brier/ECE",
+    "fit_partition": "train",
+    "fitted_calibration_parameters": false,
+    "logit_subtraction": 3.912023005428146,
+    "method": "analytic_weighted_bce_logit_prior_correction",
+    "pos_weight": 50.0
+  },
+  "checkpoint": "/Users/pranaykakkar/.codex/worktrees/fire-rl-codex/wildfire-rescue/runs/supervised/seed-202/best.pt",
+  "checkpoint_bytes_unchanged": true,
+  "checkpoint_sha256": "40dff57a49da752513f51ec8bbe27c1f85d3725c9e4098a08f8bb9e9f5a997ca",
+  "copied_checkpoint_sha256": "40dff57a49da752513f51ec8bbe27c1f85d3725c9e4098a08f8bb9e9f5a997ca",
+  "deployment_caveat": "NativePredictor permits explicit untrained shape fixtures; production LearnedForecastBackend separately requires trained/export/validation/inference gates and exact checkpoint SHA. This selected checkpoint itself has verified actual trained state.",
+  "device": "cpu",
+  "feature_names": [
+    "current",
+    "previous",
+    "observed_growth",
+    "valid",
+    "horizon_hours",
+    "previous_gap_hours",
+    "meters_per_pixel",
+    "history_available"
+  ],
+  "feature_schema": "wildfire-supervised-known-perimeters-v2",
+  "limitations": [
+    "This is same-device CPU copy/reload parity, not a CPU-versus-MPS numerical parity claim.",
+    "The analytic class-weight correction is approximate with the fixed Dice auxiliary and finite optimization; this check does not establish probability calibration.",
+    "No target label scores, model selection, fitting or held-out prediction reruns were performed."
+  ],
+  "metadata_mutation_rejections": {
+    "architecture": "external architecture differs from checkpoint",
+    "calibration": "external calibration differs from checkpoint",
+    "checkpoint_sha256": "checkpoint checksum differs from selected receipt",
+    "feature_schema": "external feature_schema differs from checkpoint",
+    "model_identity": "external model_identity differs from checkpoint",
+    "normalization": "external normalization differs from checkpoint"
+  },
+  "modalities": {
+    "actual_UTC_gaps": true,
+    "ensemble": false,
+    "fuel": false,
+    "historical_weather": false,
+    "known_perimeter_masks": true,
+    "precise_arrival_time": false,
+    "projected_meters_per_pixel": true,
+    "terrain": false
+  },
+  "model_identity": "f99ec7ae4a442e34",
+  "native_parameter_sha256": "f99ec7ae4a442e341cc2a6960045589415af0c490b5b9fcf701682dcad5f4202",
+  "normalization_equal_native_campaign": true,
+  "optimizer_created_or_invoked": false,
+  "parity_cases": [
+    {
+      "analytic_correction_max_absolute_difference": 0.0,
+      "current_footprint_retained": true,
+      "feature_shape": [
+        8,
+        128,
+        128
+      ],
+      "feature_tensor_max_absolute_difference": 0.0,
+      "group_id": "group-0078e0cc93a30a40c359",
+      "history_available_channel": false,
+      "invalid_cells_nan": true,
+      "issue_index": 0,
+      "issue_utc_s": 1662692820.0,
+      "known_observation_count": 1,
+      "later_masks_provided_to_predictor": false,
+      "pair_id": "abfc20b3a9a390163ff87dc97f80a31f7d2d31fec79eda2c366458758e3785c9",
+      "partition": "validation",
+      "probability_max_absolute_difference_after_bytecopy_reload": 0.0,
+      "requested_horizon_s": 85680.0,
+      "sequence_id": "sequence-efdf36bd5fed3fa5624f8697",
+      "target_labels_used_for_score": false
+    },
+    {
+      "analytic_correction_max_absolute_difference": 0.0,
+      "current_footprint_retained": true,
+      "feature_shape": [
+        8,
+        128,
+        128
+      ],
+      "feature_tensor_max_absolute_difference": 0.0,
+      "group_id": "group-0078e0cc93a30a40c359",
+      "history_available_channel": true,
+      "invalid_cells_nan": true,
+      "issue_index": 2,
+      "issue_utc_s": 1662863580.0,
+      "known_observation_count": 3,
+      "later_masks_provided_to_predictor": false,
+      "pair_id": "0333a5fa9b238128b4b89c3ffac81d43779b6dc796a01bb63bd322710c541363",
+      "partition": "validation",
+      "probability_max_absolute_difference_after_bytecopy_reload": 0.0,
+      "requested_horizon_s": 86760.0,
+      "sequence_id": "sequence-efdf36bd5fed3fa5624f8697",
+      "target_labels_used_for_score": false
+    }
+  ],
+  "schema_version": "supervised-native-cpu-reload-verification-v1",
+  "scope": "byte-identical native checkpoint copy/reload, two validation history prefixes, no fitting and no test predictions",
+  "selected_epoch": 4,
+  "selected_seed": 202,
+  "selected_threshold": 0.05,
+  "source_only_docstring_change": {
+    "after_sha256": "5164c61fc1142f04bc1dccfe70c361ed6018f75116252f691c4177c59773454e",
+    "before_sha256": "64559af077ddb1598846af81a7ae8c38f698f77b79572be9c81e30c3fe8ba2aa",
+    "behavior_ast_unchanged": true,
+    "description": "replaced obsolete negative controller references with a supervised-native docstring; checkpoint and features unchanged",
+    "path": "/Users/pranaykakkar/.codex/worktrees/fire-rl-codex/wildfire-rescue/agents/rescue/forecast_ml/unet.py",
+    "training_source_sha256": "64559af077ddb1598846af81a7ae8c38f698f77b79572be9c81e30c3fe8ba2aa"
+  },
+  "status": "passed",
+  "test_model_predictions_rerun": false
+}

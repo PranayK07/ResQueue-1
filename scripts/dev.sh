@@ -29,5 +29,10 @@ echo "publishing $DB to $SERVER"
 spacetime publish --server "$SERVER" -y ${CLEAR[@]+"${CLEAR[@]}"} "$DB"
 [ "${1:-}" = "db" ] && exit 0
 
-(cd agents && "../$PY" scripts/seed_scenario.py scenarios/paradise_demo.json --run)
+if [ "${FIRE_SOURCE:-sim}" = "recorded" ]; then
+  : "${RECORDED_INCIDENT_PATH:?set RECORDED_INCIDENT_PATH to a prepared bundle}"
+  (cd agents && "../$PY" scripts/seed_recorded_incident.py "$RECORDED_INCIDENT_PATH" --run)
+else
+  (cd agents && "../$PY" scripts/seed_scenario.py scenarios/paradise_demo.json --run)
+fi
 cd agents && exec "../$PY" -m rescue.run_all

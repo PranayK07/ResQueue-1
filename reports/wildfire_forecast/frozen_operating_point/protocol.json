@@ -1,0 +1,88 @@
+{
+  "all_defined_iou": "TP/(TP+FP+FN) on every pair with nonempty actual or predicted growth; false alarms on no-growth pairs count as0; both-empty undefined",
+  "bootstrap": {
+    "interval": "percentile2.5\u201397.5% for incident macro means and paired U-Net-minus-baseline group differences",
+    "missing": "per-model defined groups; paired intervals first intersect metric-specific defined PAIRS, then average within groups; all admitted/excluded counts saved",
+    "resamples": 2000,
+    "seed": 20261024,
+    "unit": "whole incident group; all pair means move together"
+  },
+  "calibration": {
+    "assignment": "left closed, right open except final bin includes1; fixed equal-width bins",
+    "bins": 10,
+    "edges": [
+      0.0,
+      0.1,
+      0.2,
+      0.30000000000000004,
+      0.4,
+      0.5,
+      0.6000000000000001,
+      0.7000000000000001,
+      0.8,
+      0.9,
+      1.0
+    ],
+    "pooled_sufficient_statistics": [
+      "count",
+      "positive_count",
+      "probability_sum"
+    ]
+  },
+  "conditional_iou": "only pairs with positive observed growth in the declared domain",
+  "expected_groups_per_model": 105,
+  "expected_pairs_per_model": 303,
+  "front": {
+    "affected_anchor": "current & valid",
+    "anchor": "current footprint available at each forecast ISSUE; not sequence index0",
+    "coarse_pixels": "no forced inclusion; front can be empty when neighboring center exceeds1000m",
+    "definition": "valid & ~current & center_distance_to_current_affected<=1000m",
+    "distance": "scipy EDT center-to-nearest-affected-cell-center in projected meters",
+    "future_targets_in_front_definition": false,
+    "inclusive_upper_bound": true,
+    "name": "front_1000m",
+    "no_affected_anchor": "empty front, distance unknown",
+    "radius_m": 1000.0,
+    "regions_searched": 1
+  },
+  "frozen_utc": "2026-10-25T05:53:10.532137+00:00",
+  "grid_shape": [
+    128,
+    128
+  ],
+  "growth_domain": "valid & ~current",
+  "macro": "mean defined pair metrics within group, then mean defined group metrics; defined/undefined counts retained",
+  "model_loading": false,
+  "models": [
+    "persistence",
+    "existing_physical",
+    "growth_extrapolation",
+    "unet"
+  ],
+  "new_inference": false,
+  "no_threshold_search": true,
+  "operating_point": {
+    "checkpoint_sha256": "40dff57a49da752513f51ec8bbe27c1f85d3725c9e4098a08f8bb9e9f5a997ca",
+    "selected_epoch": 4,
+    "selected_seed": 202,
+    "selected_threshold": 0.05
+  },
+  "pooled": "exact repeated-cell-forecast-weighted metrics; descriptive, separately named, not independent fires",
+  "protocol_clarification": "Before any front calculation, INITIAL was clarified to current issue-time footprint. No sequence-first front metrics were computed.",
+  "schema_version": "frozen-growth-operating-point-protocol-v1",
+  "source_hashes": {
+    "evaluation_pairs": "833c236b668a8d76b2965bf5c71e0d289afcc114edb04c98d3f54c49ffbe7f6e",
+    "freeze_receipt": "a39389f48b6238e34eec4593d7f4745c08f5a0f436d9e142eb40b38c19798c59",
+    "original_metrics": "fe77b180fa26cd3d1855e78b9ec9d5287753e69b3d510cf2f98fabb5262c99ad",
+    "original_protocol": "6b0bf5fabe60ae25b2cd9d2d117d8a4632bf77bc908e571722faa29e0b9d00ae",
+    "saved_predictions": "dbaf088e2f1cb879ca7da57e47f79b065f3a92b9db356a49613d0273cba54450",
+    "training_receipt": "b6fe03fbec807cd7996fae027a8e1de4c320fef0d7ad9c96e19913915ca88850"
+  },
+  "test_panel_status": "held out from fitting, previously inspected, reused diagnostic evidence",
+  "thresholds": {
+    "0.05": "frozen validation-selected main operating point, applied to all methods",
+    "0.5": "fixed diagnostic comparator, applied to all methods"
+  },
+  "training": false,
+  "undefined": "zero denominator, empty domain, and single-observed-class ROC-AUC/AP remain null"
+}

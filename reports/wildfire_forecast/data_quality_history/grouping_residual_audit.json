@@ -1,0 +1,975 @@
+{
+  "schema_version": "nirops-residual-grouping-audit-v1",
+  "dataset_sha256": "676b63dc21c85ecd27208b39333d8bc0bdd3692a3376eed263af089d04299a83",
+  "split_manifest_sha256": "50b169602f05605ae3bd905c6702b8244043195abd295d49b09d2d0d617d9301",
+  "method": "Read-only source attributes and earliest source geometries; candidate links share original Incident_C prefix before underscore within acquisition year. No performance inspected.",
+  "status": "complex_holdout_requirement_failed",
+  "direct_comparison_gate": "not_directly_comparable_until_effective_parent_groups_match_and_complex_isolation_is_resolved",
+  "frozen_memberships_changed": false,
+  "candidate_parent_count": 12,
+  "cross_partition_candidate_parent_count": 8,
+  "source_grouping_limitation": "Credible per-component IRWINID and Inc Number can differ inside a source-named complex; the frozen graph did not also connect source parent prefixes.",
+  "recommendation": "Retain existing campaign as diagnostic. Define a new versioned conservative parent graph using reviewed source parent prefixes plus credible identifiers, freeze before any new model selection, and retrain only with authorization and remaining budget. Do not silently repair or remove final-test cases after performance inspection.",
+  "candidate_parents": [
+    {
+      "year": 2020,
+      "source_parent_prefix": "AZ-SCA-002036",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "train",
+        "validation"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "AZSCA002036VALLEY",
+          "Incident_C": "AZ-SCA-002036_Valley",
+          "Inc Name": "Valley",
+          "Inc Number": "AZ-SCA-002037",
+          "IRWINID": "5be7b0f2-937e-4ffd-b89d-73c0552d9f97",
+          "group_id": "group-9b5e410ec140d5c4167e",
+          "split": "train",
+          "source_record_count": 7,
+          "first_acquisition_utc": "2020-07-14T04:00:00+00:00",
+          "last_acquisition_utc": "2020-07-21T02:16:00+00:00",
+          "first_source_fid": 11978,
+          "first_observation_representative_lonlat": [
+            -110.27182412857132,
+            33.40383972300006
+          ]
+        },
+        {
+          "component_id": "AZSCA002036BLUERIVER2",
+          "Incident_C": "AZ-SCA-002036_BlueRiver2",
+          "Inc Name": "Blue River 2",
+          "Inc Number": "AZ-SCA-002036",
+          "IRWINID": "4290efa4-26bd-4687-b563-73303038b2c1",
+          "group_id": "group-f89006e274d5f6e3842e",
+          "split": "validation",
+          "source_record_count": 7,
+          "first_acquisition_utc": "2020-07-15T00:01:00+00:00",
+          "last_acquisition_utc": "2020-07-22T02:16:00+00:00",
+          "first_source_fid": 11971,
+          "first_observation_representative_lonlat": [
+            -110.2561859660504,
+            33.48644917450005
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "AZ-SCA-002036_Valley",
+            "AZ-SCA-002036_BlueRiver2"
+          ],
+          "first_observation_point_distance_km": 9.277072910354619,
+          "acquisition_range_overlap_hours": 146.25,
+          "cross_partition": true
+        }
+      ]
+    },
+    {
+      "year": 2020,
+      "source_parent_prefix": "CA-MDF-000486",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "train"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "CAMDF000486ALLEN",
+          "Incident_C": "CA-MDF-000486_Allen",
+          "Inc Name": "ALLEN",
+          "Inc Number": "CA-MDF-000470",
+          "IRWINID": "a7920665-a4bb-47fa-871c-976d3213ab40",
+          "group_id": "group-336722814fd25ea87db2",
+          "split": "train",
+          "source_record_count": 6,
+          "first_acquisition_utc": "2020-07-24T06:38:00+00:00",
+          "last_acquisition_utc": "2020-07-29T04:17:00+00:00",
+          "first_source_fid": 827,
+          "first_observation_representative_lonlat": [
+            -121.06993332072399,
+            41.357700863500035
+          ]
+        },
+        {
+          "component_id": "CAMDF000486CALDWELL",
+          "Incident_C": "CA-MDF-000486_Caldwell",
+          "Inc Name": "CALDWELL",
+          "Inc Number": "CA-BNP-000479",
+          "IRWINID": "29649803-b9d9-4f8d-9a38-a0cddc6fd2d2",
+          "group_id": "group-5b64ee96a0b037c2b963",
+          "split": "train",
+          "source_record_count": 16,
+          "first_acquisition_utc": "2020-07-24T06:53:00+00:00",
+          "last_acquisition_utc": "2020-08-14T03:45:00+00:00",
+          "first_source_fid": 833,
+          "first_observation_representative_lonlat": [
+            -121.44343178272172,
+            41.66939178050002
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "CA-MDF-000486_Allen",
+            "CA-MDF-000486_Caldwell"
+          ],
+          "first_observation_point_distance_km": 46.588733677065576,
+          "acquisition_range_overlap_hours": 117.4,
+          "cross_partition": false
+        }
+      ]
+    },
+    {
+      "year": 2020,
+      "source_parent_prefix": "NM-GNF-000226",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "train",
+        "validation"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "NMGNF000226GOOD",
+          "Incident_C": "NM-GNF-000226_Good",
+          "Inc Name": "Good",
+          "Inc Number": "NM-GNF-000226",
+          "IRWINID": "05d46c54-1361-480e-b6f4-3d811cea2af8",
+          "group_id": "group-52ffdb1c3560cda34990",
+          "split": "train",
+          "source_record_count": 16,
+          "first_acquisition_utc": "2020-06-08T06:12:00+00:00",
+          "last_acquisition_utc": "2020-07-08T03:05:00+00:00",
+          "first_source_fid": 12319,
+          "first_observation_representative_lonlat": [
+            -108.32916424332129,
+            33.18952293850006
+          ]
+        },
+        {
+          "component_id": "NMGNF000226CUB",
+          "Incident_C": "NM-GNF-000226_Cub",
+          "Inc Name": "Cub",
+          "Inc Number": "NM-GNF-000343",
+          "IRWINID": "816aba86-b4a5-4f19-80ca-e914f85829a5",
+          "group_id": "group-9ea33b844ca5a19efe4c",
+          "split": "validation",
+          "source_record_count": 11,
+          "first_acquisition_utc": "2020-07-01T03:11:00+00:00",
+          "last_acquisition_utc": "2020-07-15T03:15:00+00:00",
+          "first_source_fid": 12308,
+          "first_observation_representative_lonlat": [
+            -108.55075023981315,
+            33.313053987000046
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "NM-GNF-000226_Good",
+            "NM-GNF-000226_Cub"
+          ],
+          "first_observation_point_distance_km": 24.780853771032998,
+          "acquisition_range_overlap_hours": 167.9,
+          "cross_partition": true
+        }
+      ]
+    },
+    {
+      "year": 2021,
+      "source_parent_prefix": "AZ-ASF-000662",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "test",
+        "train"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "AZASF000662WYRICK",
+          "Incident_C": "AZ-ASF-000662_Wyrick",
+          "Inc Name": "Wyrick",
+          "Inc Number": "AZ-ASF-000662",
+          "IRWINID": "0a92275d-5e4b-4067-892b-e375a8e263a4",
+          "group_id": "group-1ec2ef59cef127897721",
+          "split": "test",
+          "source_record_count": 6,
+          "first_acquisition_utc": "2021-06-22T07:33:00+00:00",
+          "last_acquisition_utc": "2021-06-29T04:20:00+00:00",
+          "first_source_fid": 11584,
+          "first_observation_representative_lonlat": [
+            -110.61834132106557,
+            34.491636775000046
+          ]
+        },
+        {
+          "component_id": "AZASF000662WESTCHEV",
+          "Incident_C": "AZ-ASF-000662_WestChev",
+          "Inc Name": "West Chev",
+          "Inc Number": "AZ-ASF-000682",
+          "IRWINID": "17431d0d-45d5-4786-84d9-4d93e8d0076d",
+          "group_id": "group-608e23ab567c93beeac1",
+          "split": "train",
+          "source_record_count": 6,
+          "first_acquisition_utc": "2021-06-22T07:33:00+00:00",
+          "last_acquisition_utc": "2021-06-29T04:25:00+00:00",
+          "first_source_fid": 11578,
+          "first_observation_representative_lonlat": [
+            -110.82949049655718,
+            34.49724435550007
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "AZ-ASF-000662_Wyrick",
+            "AZ-ASF-000662_WestChev"
+          ],
+          "first_observation_point_distance_km": 19.403193990921654,
+          "acquisition_range_overlap_hours": 164.78333333333333,
+          "cross_partition": true
+        }
+      ]
+    },
+    {
+      "year": 2021,
+      "source_parent_prefix": "AZ-COF-000642",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "train",
+        "validation"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "AZCOF000642BACKBONE",
+          "Incident_C": "AZ-COF-000642_Backbone",
+          "Inc Name": "Backbone",
+          "Inc Number": "AZ-COF-000642",
+          "IRWINID": "115e090b-6f4f-4e50-a28b-aba11b9d876b",
+          "group_id": "group-b40069f9de70c1657d9c",
+          "split": "train",
+          "source_record_count": 12,
+          "first_acquisition_utc": "2021-06-19T07:00:00+00:00",
+          "last_acquisition_utc": "2021-07-01T03:17:00+00:00",
+          "first_source_fid": 11710,
+          "first_observation_representative_lonlat": [
+            -111.6785075427322,
+            34.38095964250007
+          ]
+        },
+        {
+          "component_id": "AZCOF000642SNAKE",
+          "Incident_C": "AZ-COF-000642_Snake",
+          "Inc Name": "Snake",
+          "Inc Number": "AZ-COF-000692",
+          "IRWINID": "e3c32d56-5f70-4d50-9005-3e4ba9d8a803",
+          "group_id": "group-26878d912a8bb4ce47ed",
+          "split": "validation",
+          "source_record_count": 3,
+          "first_acquisition_utc": "2021-06-24T02:51:00+00:00",
+          "last_acquisition_utc": "2021-06-26T05:07:00+00:00",
+          "first_source_fid": 11722,
+          "first_observation_representative_lonlat": [
+            -111.44763194295348,
+            34.56679305100005
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "AZ-COF-000642_Backbone",
+            "AZ-COF-000642_Snake"
+          ],
+          "first_observation_point_distance_km": 29.57765162139755,
+          "acquisition_range_overlap_hours": 50.266666666666666,
+          "cross_partition": true
+        }
+      ]
+    },
+    {
+      "year": 2021,
+      "source_parent_prefix": "CA-SHF-001187",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "test",
+        "validation"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "CASHF001187MONUMENT",
+          "Incident_C": "CA-SHF-001187_Monument",
+          "Inc Name": "MONUMENT",
+          "Inc Number": "CA-SHF-001187",
+          "IRWINID": "9cf3a69a-a888-4bcd-aa7a-703d75d47e78",
+          "group_id": "group-69d959bf7dbc76e61da1",
+          "split": "validation",
+          "source_record_count": 73,
+          "first_acquisition_utc": "2021-08-01T08:55:00+00:00",
+          "last_acquisition_utc": "2021-10-15T01:00:00+00:00",
+          "first_source_fid": 1232,
+          "first_observation_representative_lonlat": [
+            -123.30889817922906,
+            40.743513172000064
+          ]
+        },
+        {
+          "component_id": "CASHF001187KNOB",
+          "Incident_C": "CA-SHF-001187_Knob",
+          "Inc Name": "Knob",
+          "Inc Number": "CA-SRF-000795",
+          "IRWINID": "a722e0fb-c96c-40f8-a762-c6c8b7cf8966",
+          "group_id": "group-acf770af3ec79d51a033",
+          "split": "test",
+          "source_record_count": 12,
+          "first_acquisition_utc": "2021-08-31T03:00:00+00:00",
+          "last_acquisition_utc": "2021-10-01T02:40:00+00:00",
+          "first_source_fid": 1220,
+          "first_observation_representative_lonlat": [
+            -123.63074721024796,
+            40.909292199500044
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "CA-SHF-001187_Monument",
+            "CA-SHF-001187_Knob"
+          ],
+          "first_observation_point_distance_km": 32.8028829776495,
+          "acquisition_range_overlap_hours": 743.6666666666666,
+          "cross_partition": true
+        }
+      ]
+    },
+    {
+      "year": 2021,
+      "source_parent_prefix": "MT-HLF-005079",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "train"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "MTHLF005079ELLIS",
+          "Incident_C": "MT-HLF-005079_Ellis",
+          "Inc Name": "Ellis",
+          "Inc Number": "MT-HLF-005074",
+          "IRWINID": "540b0706-b4d2-448e-82f0-10e8e777a57c",
+          "group_id": "group-2975611646ad2939fcc9",
+          "split": "train",
+          "source_record_count": 19,
+          "first_acquisition_utc": "2021-07-11T06:20:00+00:00",
+          "last_acquisition_utc": "2021-08-08T06:55:00+00:00",
+          "first_source_fid": 6105,
+          "first_observation_representative_lonlat": [
+            -111.26323175815045,
+            46.837115502000046
+          ]
+        },
+        {
+          "component_id": "MTHLF005079BALSINGER",
+          "Incident_C": "MT-HLF-005079_Balsinger",
+          "Inc Name": "Balsinger",
+          "Inc Number": "MT-HLF-005075",
+          "IRWINID": "e4a175fc-9d5b-485b-bddc-99890ecb0a55",
+          "group_id": "group-8864cac29e4cc452b57b",
+          "split": "train",
+          "source_record_count": 31,
+          "first_acquisition_utc": "2021-07-11T06:20:00+00:00",
+          "last_acquisition_utc": "2021-08-25T03:13:00+00:00",
+          "first_source_fid": 6074,
+          "first_observation_representative_lonlat": [
+            -110.92751641344637,
+            46.991462559500064
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "MT-HLF-005079_Ellis",
+            "MT-HLF-005079_Balsinger"
+          ],
+          "first_observation_point_distance_km": 30.796815932405778,
+          "acquisition_range_overlap_hours": 672.5833333333334,
+          "cross_partition": false
+        }
+      ]
+    },
+    {
+      "year": 2021,
+      "source_parent_prefix": "OR-FWF-210422",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "train"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "ORFWF210422WILLOWVALLEY",
+          "Incident_C": "OR-FWF-210422_WillowValley",
+          "Inc Name": "Willow Valley",
+          "Inc Number": "OR-LAD-210420",
+          "IRWINID": "2cd53f56-632f-451d-940b-191d4d380484",
+          "group_id": "group-d6d6a385ac895ae8996c",
+          "split": "train",
+          "source_record_count": 7,
+          "first_acquisition_utc": "2021-08-14T02:15:00+00:00",
+          "last_acquisition_utc": "2021-08-20T01:23:00+00:00",
+          "first_source_fid": 7104,
+          "first_observation_representative_lonlat": [
+            -121.08039363855055,
+            42.00223387484348
+          ]
+        },
+        {
+          "component_id": "ORFWF210422PATTONMEADOW",
+          "Incident_C": "OR-FWF-210422_PattonMeadow",
+          "Inc Name": "Patton Meadow",
+          "Inc Number": "OR-FWF-210419",
+          "IRWINID": "5cb9ff37-7eb4-439e-9452-5c400a1ee468",
+          "group_id": "group-c293f2e44a771d1b8a60",
+          "split": "train",
+          "source_record_count": 13,
+          "first_acquisition_utc": "2021-08-14T02:45:00+00:00",
+          "last_acquisition_utc": "2021-08-27T02:07:00+00:00",
+          "first_source_fid": 7091,
+          "first_observation_representative_lonlat": [
+            -120.57380445400122,
+            42.21221854080309
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "OR-FWF-210422_WillowValley",
+            "OR-FWF-210422_PattonMeadow"
+          ],
+          "first_observation_point_distance_km": 47.954945847474264,
+          "acquisition_range_overlap_hours": 142.63333333333333,
+          "cross_partition": false
+        }
+      ]
+    },
+    {
+      "year": 2021,
+      "source_parent_prefix": "OR-WIF-210307",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "train"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "ORWIF210307KWIS",
+          "Incident_C": "OR-WIF-210307_Kwis",
+          "Inc Name": "Kwis",
+          "Inc Number": "OR-WIF-210287",
+          "IRWINID": "0aaa2a4b-9f0d-4d28-8dcd-e210fd4b6955",
+          "group_id": "group-87c508cf50dd35e82b03",
+          "split": "train",
+          "source_record_count": 40,
+          "first_acquisition_utc": "2021-07-30T19:00:00+00:00",
+          "last_acquisition_utc": "2021-09-09T04:03:00+00:00",
+          "first_source_fid": 9020,
+          "first_observation_representative_lonlat": [
+            -122.35900812002825,
+            43.76420792150006
+          ]
+        },
+        {
+          "component_id": "ORWIF210307GALES",
+          "Incident_C": "OR-WIF-210307_Gales",
+          "Inc Name": "Middle Fork Complex",
+          "Inc Number": "OR-WIF-210307",
+          "IRWINID": "b9b83dbe-921d-4d4b-a9c7-68710b29283d",
+          "group_id": "group-6511313b38be2b1b684a",
+          "split": "train",
+          "source_record_count": 46,
+          "first_acquisition_utc": "2021-08-01T18:06:00+00:00",
+          "last_acquisition_utc": "2021-09-24T03:46:00+00:00",
+          "first_source_fid": 8974,
+          "first_observation_representative_lonlat": [
+            -122.47470838007474,
+            43.94933665056601
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "OR-WIF-210307_Kwis",
+            "OR-WIF-210307_Gales"
+          ],
+          "first_observation_point_distance_km": 22.57513051275685,
+          "acquisition_range_overlap_hours": 921.95,
+          "cross_partition": false
+        }
+      ]
+    },
+    {
+      "year": 2023,
+      "source_parent_prefix": "AZ-CNF-000552",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "test",
+        "validation"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "AZCNF000552CORRAL",
+          "Incident_C": "AZ-CNF-000552_Corral",
+          "Inc Name": "CORRAL",
+          "Inc Number": "AZ-CNF-000552",
+          "IRWINID": "e178d0ad-4146-4868-9c45-80d6ed0ce8ad",
+          "group_id": "group-88486ad1ae3455d94e52",
+          "split": "test",
+          "source_record_count": 5,
+          "first_acquisition_utc": "2023-07-02T04:12:00+00:00",
+          "last_acquisition_utc": "2023-07-06T05:31:00+00:00",
+          "first_source_fid": 11666,
+          "first_observation_representative_lonlat": [
+            -111.1560362904606,
+            31.442610270439502
+          ]
+        },
+        {
+          "component_id": "AZCNF000552BEEHIVE",
+          "Incident_C": "AZ-CNF-000552_Beehive",
+          "Inc Name": "BEEHIVE",
+          "Inc Number": "AZ-CNF-000554",
+          "IRWINID": "c2cfbfa6-615f-46bf-83e9-011488f68c6e",
+          "group_id": "group-a4ed8cfc215a03843324",
+          "split": "validation",
+          "source_record_count": 9,
+          "first_acquisition_utc": "2023-07-02T04:12:00+00:00",
+          "last_acquisition_utc": "2023-07-10T05:06:00+00:00",
+          "first_source_fid": 11657,
+          "first_observation_representative_lonlat": [
+            -111.16336459111695,
+            31.50071091000865
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "AZ-CNF-000552_Corral",
+            "AZ-CNF-000552_Beehive"
+          ],
+          "first_observation_point_distance_km": 6.479593306495433,
+          "acquisition_range_overlap_hours": 97.31666666666666,
+          "cross_partition": true
+        }
+      ]
+    },
+    {
+      "year": 2023,
+      "source_parent_prefix": "CA-KNF-007022",
+      "distinct_current_groups": 2,
+      "current_partitions": [
+        "train",
+        "validation"
+      ],
+      "explicit_complex_in_component_name": false,
+      "components": [
+        {
+          "component_id": "CAKNF007022HAPPYCAMPWEST",
+          "Incident_C": "CA-KNF-007022_HappyCampWest",
+          "Inc Name": "HAPPY CAMP COMPLEX",
+          "Inc Number": "CA-KNF-007022",
+          "IRWINID": "5ca009dc-d74b-419e-a2e9-0f6231b6191c",
+          "group_id": "group-7ef7d7fd4f302c27e9d2",
+          "split": "validation",
+          "source_record_count": 26,
+          "first_acquisition_utc": "2023-08-20T04:35:00+00:00",
+          "last_acquisition_utc": "2023-09-28T05:47:00+00:00",
+          "first_source_fid": 511,
+          "first_observation_representative_lonlat": [
+            -123.51433421966595,
+            41.60510545410347
+          ]
+        },
+        {
+          "component_id": "CAKNF007022TITUS",
+          "Incident_C": "CA-KNF-007022_Titus",
+          "Inc Name": "TITUS",
+          "Inc Number": "CA-KNF-006950",
+          "IRWINID": "cebad372-d78a-4139-ba47-67f696b5dbd2",
+          "group_id": "group-5094fc80d53df661cda9",
+          "split": "train",
+          "source_record_count": 17,
+          "first_acquisition_utc": "2023-08-20T04:35:00+00:00",
+          "last_acquisition_utc": "2023-09-30T05:02:00+00:00",
+          "first_source_fid": 543,
+          "first_observation_representative_lonlat": [
+            -123.28833777981255,
+            41.59021073400004
+          ]
+        },
+        {
+          "component_id": "CAKNF007022HAPPYCAMPEAST",
+          "Incident_C": "CA-KNF-007022_HappyCampEast",
+          "Inc Name": "HAPPY CAMP COMPLEX",
+          "Inc Number": "CA-KNF-007022",
+          "IRWINID": "5ca009dc-d74b-419e-a2e9-0f6231b6191c",
+          "group_id": "group-7ef7d7fd4f302c27e9d2",
+          "split": "validation",
+          "source_record_count": 23,
+          "first_acquisition_utc": "2023-08-20T04:39:00+00:00",
+          "last_acquisition_utc": "2023-09-20T03:47:00+00:00",
+          "first_source_fid": 488,
+          "first_observation_representative_lonlat": [
+            -123.01930398125593,
+            41.77155873750007
+          ]
+        },
+        {
+          "component_id": "CAKNF007022LAKE",
+          "Incident_C": "CA-KNF-007022_Lake",
+          "Inc Name": "HAPPY CAMP COMPLEX",
+          "Inc Number": "CA-KNF-007022",
+          "IRWINID": "5ca009dc-d74b-419e-a2e9-0f6231b6191c",
+          "group_id": "group-7ef7d7fd4f302c27e9d2",
+          "split": "validation",
+          "source_record_count": 6,
+          "first_acquisition_utc": "2023-08-24T09:15:00+00:00",
+          "last_acquisition_utc": "2023-08-29T03:49:00+00:00",
+          "first_source_fid": 537,
+          "first_observation_representative_lonlat": [
+            -123.14063911712682,
+            41.57228892700002
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "CA-KNF-007022_HappyCampWest",
+            "CA-KNF-007022_Titus"
+          ],
+          "first_observation_point_distance_km": 18.913939976443917,
+          "acquisition_range_overlap_hours": 937.2,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "CA-KNF-007022_HappyCampWest",
+            "CA-KNF-007022_HappyCampEast"
+          ],
+          "first_observation_point_distance_km": 45.16971732817995,
+          "acquisition_range_overlap_hours": 743.1333333333333,
+          "cross_partition": false
+        },
+        {
+          "components": [
+            "CA-KNF-007022_HappyCampWest",
+            "CA-KNF-007022_Lake"
+          ],
+          "first_observation_point_distance_km": 31.371916092880216,
+          "acquisition_range_overlap_hours": 114.56666666666666,
+          "cross_partition": false
+        },
+        {
+          "components": [
+            "CA-KNF-007022_Titus",
+            "CA-KNF-007022_HappyCampEast"
+          ],
+          "first_observation_point_distance_km": 30.124412645114557,
+          "acquisition_range_overlap_hours": 743.1333333333333,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "CA-KNF-007022_Titus",
+            "CA-KNF-007022_Lake"
+          ],
+          "first_observation_point_distance_km": 12.476646195962122,
+          "acquisition_range_overlap_hours": 114.56666666666666,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "CA-KNF-007022_HappyCampEast",
+            "CA-KNF-007022_Lake"
+          ],
+          "first_observation_point_distance_km": 24.329653715557587,
+          "acquisition_range_overlap_hours": 114.56666666666666,
+          "cross_partition": false
+        }
+      ]
+    },
+    {
+      "year": 2024,
+      "source_parent_prefix": "OR-UPF-000303",
+      "distinct_current_groups": 6,
+      "current_partitions": [
+        "test",
+        "train"
+      ],
+      "explicit_complex_in_component_name": true,
+      "components": [
+        {
+          "component_id": "ORUPF000303DIAMONDCOMPLEXLOAFER",
+          "Incident_C": "OR-UPF-000303_DiamondComplex_Loafer",
+          "Inc Name": "LOAFER",
+          "Inc Number": "OR-UPF-240283",
+          "IRWINID": "be9d70a7-c2af-4d61-a840-ab162a3d5e6a",
+          "group_id": "group-76eb84a5ac18af3aae5b",
+          "split": "test",
+          "source_record_count": 52,
+          "first_acquisition_utc": "2024-07-22T07:50:00+00:00",
+          "last_acquisition_utc": "2024-10-03T05:13:00+00:00",
+          "first_source_fid": 8065,
+          "first_observation_representative_lonlat": [
+            -122.27430478797422,
+            43.30011129100333
+          ]
+        },
+        {
+          "component_id": "ORUPF000303DIAMONDCOMPLEXPOTTER",
+          "Incident_C": "OR-UPF-000303_DiamondComplex_Potter",
+          "Inc Name": "POTTER",
+          "Inc Number": "OR-UPF-240226",
+          "IRWINID": "96a6e72c-7ad2-44eb-9dd4-13667b1de557",
+          "group_id": "group-402fc96accd1c86fe88f",
+          "split": "train",
+          "source_record_count": 52,
+          "first_acquisition_utc": "2024-07-22T07:50:00+00:00",
+          "last_acquisition_utc": "2024-10-03T05:13:00+00:00",
+          "first_source_fid": 8220,
+          "first_observation_representative_lonlat": [
+            -122.30565576077322,
+            43.36212251609128
+          ]
+        },
+        {
+          "component_id": "ORUPF000303DIAMONDCOMPLEXPINEBENCH",
+          "Incident_C": "OR-UPF-000303_DiamondComplex_PineBench",
+          "Inc Name": "PINE BENCH",
+          "Inc Number": "OR-UPF-240227",
+          "IRWINID": "ca2e8aef-4398-4a96-a80e-d60141fee763",
+          "group_id": "group-0a98f33cb5e3c8ac17c5",
+          "split": "test",
+          "source_record_count": 52,
+          "first_acquisition_utc": "2024-07-22T07:50:00+00:00",
+          "last_acquisition_utc": "2024-10-03T05:13:00+00:00",
+          "first_source_fid": 8168,
+          "first_observation_representative_lonlat": [
+            -122.49485187403258,
+            43.312573500117
+          ]
+        },
+        {
+          "component_id": "ORUPF000303DIAMONDCOMPLEXLEMOLO",
+          "Incident_C": "OR-UPF-000303_DiamondComplex_Lemolo",
+          "Inc Name": "LEMOLO",
+          "Inc Number": "OR-UPF-240258",
+          "IRWINID": "5732b673-665d-4d63-ab58-ffbb247f36bb",
+          "group_id": "group-64289cc5892996286bee",
+          "split": "train",
+          "source_record_count": 52,
+          "first_acquisition_utc": "2024-07-22T07:50:00+00:00",
+          "last_acquisition_utc": "2024-10-03T05:13:00+00:00",
+          "first_source_fid": 8013,
+          "first_observation_representative_lonlat": [
+            -122.16624851589444,
+            43.32306249323952
+          ]
+        },
+        {
+          "component_id": "ORUPF000303DIAMONDCOMPLEXTRAIL",
+          "Incident_C": "OR-UPF-000303_DiamondComplex_Trail",
+          "Inc Name": "TRAIL",
+          "Inc Number": "OR-UPF-240220",
+          "IRWINID": "a550050c-a81a-4c6c-bbaa-088b799e5eac",
+          "group_id": "group-6e3907b7e08b5b222792",
+          "split": "train",
+          "source_record_count": 50,
+          "first_acquisition_utc": "2024-07-22T07:50:00+00:00",
+          "last_acquisition_utc": "2024-10-01T06:16:00+00:00",
+          "first_source_fid": 8272,
+          "first_observation_representative_lonlat": [
+            -122.11077168589604,
+            43.15517594526369
+          ]
+        },
+        {
+          "component_id": "ORUPF000303DIAMONDCOMPLEXOOYA",
+          "Incident_C": "OR-UPF-000303_DiamondComplex_Ooya",
+          "Inc Name": "OOYA",
+          "Inc Number": "OR-UPF-240252",
+          "IRWINID": "3364184b-6ad4-4941-b79e-c6d6f76490e3",
+          "group_id": "group-26f4dd438af437fc944b",
+          "split": "train",
+          "source_record_count": 51,
+          "first_acquisition_utc": "2024-07-23T03:20:00+00:00",
+          "last_acquisition_utc": "2024-10-03T05:13:00+00:00",
+          "first_source_fid": 8117,
+          "first_observation_representative_lonlat": [
+            -122.20676177618157,
+            43.391353680128304
+          ]
+        }
+      ],
+      "pair_evidence": [
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Loafer",
+            "OR-UPF-000303_DiamondComplex_Potter"
+          ],
+          "first_observation_point_distance_km": 7.343616070452346,
+          "acquisition_range_overlap_hours": 1749.3833333333334,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Loafer",
+            "OR-UPF-000303_DiamondComplex_PineBench"
+          ],
+          "first_observation_point_distance_km": 17.94750130641953,
+          "acquisition_range_overlap_hours": 1749.3833333333334,
+          "cross_partition": false
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Loafer",
+            "OR-UPF-000303_DiamondComplex_Lemolo"
+          ],
+          "first_observation_point_distance_km": 9.1296657132131,
+          "acquisition_range_overlap_hours": 1749.3833333333334,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Loafer",
+            "OR-UPF-000303_DiamondComplex_Trail"
+          ],
+          "first_observation_point_distance_km": 20.87511885219779,
+          "acquisition_range_overlap_hours": 1702.4333333333334,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Loafer",
+            "OR-UPF-000303_DiamondComplex_Ooya"
+          ],
+          "first_observation_point_distance_km": 11.521757201847404,
+          "acquisition_range_overlap_hours": 1729.8833333333334,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Potter",
+            "OR-UPF-000303_DiamondComplex_PineBench"
+          ],
+          "first_observation_point_distance_km": 16.3002362816908,
+          "acquisition_range_overlap_hours": 1749.3833333333334,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Potter",
+            "OR-UPF-000303_DiamondComplex_Lemolo"
+          ],
+          "first_observation_point_distance_km": 12.108384814729563,
+          "acquisition_range_overlap_hours": 1749.3833333333334,
+          "cross_partition": false
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Potter",
+            "OR-UPF-000303_DiamondComplex_Trail"
+          ],
+          "first_observation_point_distance_km": 27.910658081975843,
+          "acquisition_range_overlap_hours": 1702.4333333333334,
+          "cross_partition": false
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Potter",
+            "OR-UPF-000303_DiamondComplex_Ooya"
+          ],
+          "first_observation_point_distance_km": 8.647456919584712,
+          "acquisition_range_overlap_hours": 1729.8833333333334,
+          "cross_partition": false
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_PineBench",
+            "OR-UPF-000303_DiamondComplex_Lemolo"
+          ],
+          "first_observation_point_distance_km": 26.68156330088826,
+          "acquisition_range_overlap_hours": 1749.3833333333334,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_PineBench",
+            "OR-UPF-000303_DiamondComplex_Trail"
+          ],
+          "first_observation_point_distance_km": 35.76539413700811,
+          "acquisition_range_overlap_hours": 1702.4333333333334,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_PineBench",
+            "OR-UPF-000303_DiamondComplex_Ooya"
+          ],
+          "first_observation_point_distance_km": 24.94265530358108,
+          "acquisition_range_overlap_hours": 1729.8833333333334,
+          "cross_partition": true
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Lemolo",
+            "OR-UPF-000303_DiamondComplex_Trail"
+          ],
+          "first_observation_point_distance_km": 19.18834416412992,
+          "acquisition_range_overlap_hours": 1702.4333333333334,
+          "cross_partition": false
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Lemolo",
+            "OR-UPF-000303_DiamondComplex_Ooya"
+          ],
+          "first_observation_point_distance_km": 8.26747229980244,
+          "acquisition_range_overlap_hours": 1729.8833333333334,
+          "cross_partition": false
+        },
+        {
+          "components": [
+            "OR-UPF-000303_DiamondComplex_Trail",
+            "OR-UPF-000303_DiamondComplex_Ooya"
+          ],
+          "first_observation_point_distance_km": 27.371511932692833,
+          "acquisition_range_overlap_hours": 1682.9333333333334,
+          "cross_partition": false
+        }
+      ]
+    }
+  ],
+  "source_documentation": {
+    "mendeley": "https://data.mendeley.com/datasets/95rj5d379g/1",
+    "description": "Active infrared-interpreted footprints, not complete burned area;737 source events; timestamps may be reconstructed; no guarantee supplied that every distinct IRWINID is an independent parent complex.",
+    "research_paper": "https://doi.org/10.1038/s41597-026-07695-1",
+    "research_paper_retrieval": "publisher access redirect prevented full text retrieval in this audit; no unverified paper-specific grouping claim made"
+  },
+  "audit_sha256": "d6636bfb7f6167939a9e7850569ff8f0fb391ab61c0a9c0e11e71969cb408fd9"
+}

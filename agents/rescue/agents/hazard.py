@@ -30,10 +30,20 @@ class HazardAgent(MeshAgent):
         "SELECT * FROM station",
         "SELECT * FROM forecast_cell",
         "SELECT * FROM world_version",
+        "SELECT * FROM risk_pipeline",
+        "SELECT * FROM fire_risk_meta",
     ]
 
     def __init__(self) -> None:
         super().__init__("hazard")
+        self.recorded = None
+        self.recorded_error = ""
+        if settings.fire_source == "recorded":
+            try:
+                from ..forecast_ml.recorded import RecordedIncident
+                self.recorded = RecordedIncident.load(settings.recorded_incident_path)
+            except (OSError, ValueError, KeyError, TypeError, EOFError, ImportError) as exc:
+                self.recorded_error = f"{type(exc).__name__}: {exc}"
         self.fire = FireEngine(self)
         self.weather = WeatherEngine(self)
         self.forecast = ForecastEngine(self)
@@ -56,6 +66,8 @@ class HazardAgent(MeshAgent):
         @self.agent.on_interval(period=1.0)
         async def _fire_tick(_ctx: Context):
             await self.fire.tick()
+            if settings.fire_source == "recorded":
+                await self.forecast.recorded_tick()
 
         @self.agent.on_interval(period=settings.weather_poll_s)
         async def _weather_poll(ctx: Context):

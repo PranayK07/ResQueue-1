@@ -1,0 +1,5153 @@
+[
+  {
+    "component_id": "ORMED000243RUMCREEK",
+    "from_index": 0,
+    "group_id": "group-0225906d6cd8f9883a39",
+    "horizon_s": 85380.0,
+    "issue_s": 1661143680.0,
+    "pair_id": "250ce0d3e4b133b375a69902",
+    "region": "unknown",
+    "sequence_id": "sequence-05cababe48abb3fffa2b8891",
+    "source_row_ids": [
+      "c8d766c5b65f66dadbe49d06a914eb8f5207f3be370ae13aa8d7d51a8659479e",
+      "86613dc4766225dff276d4017dc600691ffacc26e09c7fa55231298a1c057cb0"
+    ],
+    "target_s": 1661229060.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "ORMED000243RUMCREEK",
+    "from_index": 12,
+    "group_id": "group-0225906d6cd8f9883a39",
+    "horizon_s": 88200.0,
+    "issue_s": 1662177900.0,
+    "pair_id": "2acbd245ee61d1e79dd924fe",
+    "region": "unknown",
+    "sequence_id": "sequence-05cababe48abb3fffa2b8891",
+    "source_row_ids": [
+      "de4c2f30d6ddccaf9b76cee1c93857603faa506414b8dec1dff8336d828d511c",
+      "746cd4a40144474a07b2383c2adad6a60af50bae6149dd94779c8dc97d0abb7a"
+    ],
+    "target_s": 1662266100.0,
+    "to_index": 13,
+    "year": 2022
+  },
+  {
+    "component_id": "ORMED000243RUMCREEK",
+    "from_index": 23,
+    "group_id": "group-0225906d6cd8f9883a39",
+    "horizon_s": 172440.0,
+    "issue_s": 1663383840.0,
+    "pair_id": "42721decb87d34b897ecdd2e",
+    "region": "unknown",
+    "sequence_id": "sequence-05cababe48abb3fffa2b8891",
+    "source_row_ids": [
+      "a0be5d08cc6316468864fa5e34289c2516ee794ca25866d610468abe7df131e1",
+      "c827769d36fd2f3345277e0846e5df15bf12b788bd8980915a79b35234459d59"
+    ],
+    "target_s": 1663556280.0,
+    "to_index": 24,
+    "year": 2022
+  },
+  {
+    "component_id": "CASHU010480FAWN",
+    "from_index": 0,
+    "group_id": "group-0307d964641f303248d1",
+    "horizon_s": 85260.0,
+    "issue_s": 1632454800.0,
+    "pair_id": "8d15b9456d2213fc6002ebe7",
+    "region": "unknown",
+    "sequence_id": "sequence-8286fd067632bc95c605f330",
+    "source_row_ids": [
+      "d04cc0ca0c51af7f9c3ccd8d2a64daadb62afa5ba76962a03b8fdf7f2d629a55",
+      "64438766cd44241acd84e3d9c9b2c9b7d535642ecf80ef8be5ce3e961bb5f166"
+    ],
+    "target_s": 1632540060.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "CASHU010480FAWN",
+    "from_index": 2,
+    "group_id": "group-0307d964641f303248d1",
+    "horizon_s": 91620.0,
+    "issue_s": 1632627780.0,
+    "pair_id": "fad79a2291d573f9203f194f",
+    "region": "unknown",
+    "sequence_id": "sequence-8286fd067632bc95c605f330",
+    "source_row_ids": [
+      "da08b7c11e0c1b44547470136ccbd3ec8840be545c9cb809a2fb2dbb395ac355",
+      "9f4ce3bf948b99451944fa1dc672b7e2d3ed79b2ae241e2fbfe589929585b455"
+    ],
+    "target_s": 1632719400.0,
+    "to_index": 3,
+    "year": 2021
+  },
+  {
+    "component_id": "CASHU010480FAWN",
+    "from_index": 4,
+    "group_id": "group-0307d964641f303248d1",
+    "horizon_s": 100200.0,
+    "issue_s": 1632852120.0,
+    "pair_id": "1ea31fe5de3c0d10faaa95dc",
+    "region": "unknown",
+    "sequence_id": "sequence-8286fd067632bc95c605f330",
+    "source_row_ids": [
+      "b6d092681b5ff03a247862573931af3f46e71fa29d26f6d40859874ae25fe7b0",
+      "fb3b989f306558270436a81ef43b358632c63e59098fb32cbdf318769e18d4ff"
+    ],
+    "target_s": 1632952320.0,
+    "to_index": 5,
+    "year": 2021
+  },
+  {
+    "component_id": "WYMRF000408EASTTROUBLESOME",
+    "from_index": 0,
+    "group_id": "group-065eaa8acdfd4d6b6a6e",
+    "horizon_s": 88620.0,
+    "issue_s": 1602824580.0,
+    "pair_id": "06cc387cf66c5d2b1672a936",
+    "region": "unknown",
+    "sequence_id": "sequence-705b00a3b032369f2fae60e2",
+    "source_row_ids": [
+      "2be5a356d6ad5ab07104de1b17ebf01ab584d9df898c85e4fb7f6b6f95f3e6ba",
+      "1580848d5b0b8d35079fd875b4ec61fcaf2f556371cd5443ec4cdcb76b26abe1"
+    ],
+    "target_s": 1602913200.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "WYMRF000408EASTTROUBLESOME",
+    "from_index": 3,
+    "group_id": "group-065eaa8acdfd4d6b6a6e",
+    "horizon_s": 82740.0,
+    "issue_s": 1603077660.0,
+    "pair_id": "bb425b809b2a1dba03103bb1",
+    "region": "unknown",
+    "sequence_id": "sequence-705b00a3b032369f2fae60e2",
+    "source_row_ids": [
+      "59cbe61b6144dea18458fffdbf9b0089e00ce92362a9633c0f3cb81b7d26e6d3",
+      "81605a77c3bfdb3be76a4375439a3b2632e6e6ad707c13a4542bb772315a60cb"
+    ],
+    "target_s": 1603160400.0,
+    "to_index": 4,
+    "year": 2020
+  },
+  {
+    "component_id": "WYMRF000408EASTTROUBLESOME",
+    "from_index": 6,
+    "group_id": "group-065eaa8acdfd4d6b6a6e",
+    "horizon_s": 173400.0,
+    "issue_s": 1603348200.0,
+    "pair_id": "5a2206c7eb2396844a996339",
+    "region": "unknown",
+    "sequence_id": "sequence-705b00a3b032369f2fae60e2",
+    "source_row_ids": [
+      "2e5e9dfe1e9dc64fe555a33e8c1c9df3e518bd055772f0d84d10a2f661a935a0",
+      "68dd27be7c66db0db3ff145c263d39d2a26c4d1dcd7991c96d685d99eef3287c"
+    ],
+    "target_s": 1603521600.0,
+    "to_index": 7,
+    "year": 2020
+  },
+  {
+    "component_id": "MTNWS00274LGRAVELPIT",
+    "from_index": 0,
+    "group_id": "group-0da977ac5ac5d4abf7a3",
+    "horizon_s": 88560.0,
+    "issue_s": 1691208780.0,
+    "pair_id": "3d3f9e332b3159841259efa9",
+    "region": "unknown",
+    "sequence_id": "sequence-e0b76c1364dd1c071de4e758",
+    "source_row_ids": [
+      "08aa6690f33e8135abec9a42acbf332cc88c2cc5f822cb3d035101cc3ab6d9b3",
+      "5d4784ef2bb687f1a82d697d211a55465e5a80bc71474b7ed289a61cad69ba78"
+    ],
+    "target_s": 1691297340.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "MTNWS00274LGRAVELPIT",
+    "from_index": 1,
+    "group_id": "group-0da977ac5ac5d4abf7a3",
+    "horizon_s": 82620.0,
+    "issue_s": 1691297340.0,
+    "pair_id": "5fe4f1fc1a97620803d37d70",
+    "region": "unknown",
+    "sequence_id": "sequence-e0b76c1364dd1c071de4e758",
+    "source_row_ids": [
+      "5d4784ef2bb687f1a82d697d211a55465e5a80bc71474b7ed289a61cad69ba78",
+      "0c6fef98563f9c5a455d7f31fe4091c969d0a2f892cad5d1f0c5bcf713dd5272"
+    ],
+    "target_s": 1691379960.0,
+    "to_index": 2,
+    "year": 2023
+  },
+  {
+    "component_id": "ORWIF240365HIYU",
+    "from_index": 0,
+    "group_id": "group-15754f0888554fc20c9a",
+    "horizon_s": 77760.0,
+    "issue_s": 1725867000.0,
+    "pair_id": "962ee69aee1ab5f2b4b8a4fe",
+    "region": "unknown",
+    "sequence_id": "sequence-4be563351b7961c0fbd79446",
+    "source_row_ids": [
+      "2442c268f9789b02e672f47c3baaa7a87adf4d48d06be170bf201bd09f7c1d44",
+      "50226900c0791e6e2da9ff1dd0454677116fb7baa893b5095a4ea63c0dfe397f"
+    ],
+    "target_s": 1725944760.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "ORWIF240365HIYU",
+    "from_index": 1,
+    "group_id": "group-15754f0888554fc20c9a",
+    "horizon_s": 97020.0,
+    "issue_s": 1726804140.0,
+    "pair_id": "af0391fc52aab794b990977b",
+    "region": "unknown",
+    "sequence_id": "sequence-656991770168d4d93ca5259f",
+    "source_row_ids": [
+      "cfba529507f90151e2e4f735ee7b360eb1a935e472ea598eb5a9a1c676e70a26",
+      "248235cb1004fab49a47b55f13f4b1403f6b74b2d2990916ffdfbd7eaf60951a"
+    ],
+    "target_s": 1726901160.0,
+    "to_index": 2,
+    "year": 2024
+  },
+  {
+    "component_id": "ORWIF240365HIYU",
+    "from_index": 2,
+    "group_id": "group-15754f0888554fc20c9a",
+    "horizon_s": 87120.0,
+    "issue_s": 1728874620.0,
+    "pair_id": "280760d7360caebd2f6ebe7e",
+    "region": "unknown",
+    "sequence_id": "sequence-33931bdda0cb351f6fb5ccc1",
+    "source_row_ids": [
+      "b98ef617d06ea48c1743ada30e5d6a40132a64662ab13e897a77941fa40c4f0c",
+      "46bb7e51aec1748ec7bcffcf303db73a30b7d0058ceac3ffb274c0c62cd3d965"
+    ],
+    "target_s": 1728961740.0,
+    "to_index": 3,
+    "year": 2024
+  },
+  {
+    "component_id": "COARF000636CAMERONPEAK",
+    "from_index": 0,
+    "group_id": "group-173429065af63470e526",
+    "horizon_s": 88200.0,
+    "issue_s": 1597635000.0,
+    "pair_id": "95a6baf55fd549258813d481",
+    "region": "unknown",
+    "sequence_id": "sequence-34bfebf29cba95be48777140",
+    "source_row_ids": [
+      "51b4d4f094c4539e12a1d6db531254df8ccf634ae9d693bab9425c0b780790ef",
+      "937ba5a904de60e7770e7ad907288f679da5b2767212e716dd9dad896eaed89a"
+    ],
+    "target_s": 1597723200.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "COARF000636CAMERONPEAK",
+    "from_index": 29,
+    "group_id": "group-173429065af63470e526",
+    "horizon_s": 153600.0,
+    "issue_s": 1600484400.0,
+    "pair_id": "0a0af21438d3bb7c8d6978ae",
+    "region": "unknown",
+    "sequence_id": "sequence-34bfebf29cba95be48777140",
+    "source_row_ids": [
+      "e0a6e128b6735076944ffc99dac6ff953b20dd892d86620b49ae53d154edcec3",
+      "076eca369ddf06a83f7925a1592f26b32e0ba204193983aecb68e85915dc27b1"
+    ],
+    "target_s": 1600638000.0,
+    "to_index": 30,
+    "year": 2020
+  },
+  {
+    "component_id": "COARF000636CAMERONPEAK",
+    "from_index": 28,
+    "group_id": "group-173429065af63470e526",
+    "horizon_s": 160200.0,
+    "issue_s": 1603175400.0,
+    "pair_id": "47fa3ae7b3f5ab14ebe496af",
+    "region": "unknown",
+    "sequence_id": "sequence-abee30d3e9c6df61f504184f",
+    "source_row_ids": [
+      "a3d8a1b6c351c84e2f123b8f29ad194953738c6cf48114ef7cbec2d0b8583865",
+      "0c9b63af1921b0f7e1e4abdfff431463134682a90de19b6248fc1cca27d3bc34"
+    ],
+    "target_s": 1603335600.0,
+    "to_index": 29,
+    "year": 2020
+  },
+  {
+    "component_id": "IDNCF000321BWESTFORK",
+    "from_index": 0,
+    "group_id": "group-177598cce66736d895c9",
+    "horizon_s": 91680.0,
+    "issue_s": 1691894700.0,
+    "pair_id": "029fde504844436552b7689b",
+    "region": "unknown",
+    "sequence_id": "sequence-30decf4603dd651c7ba1eb68",
+    "source_row_ids": [
+      "0096e6efa1a2a12058d6943a47c7b0fddd7c08f50f35a2aad684e0facfba532c",
+      "def3a6721670b023f2e11e1e262d8fc7273bac650724d5f1b70e667173413f39"
+    ],
+    "target_s": 1691986380.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "IDNCF000321BWESTFORK",
+    "from_index": 1,
+    "group_id": "group-177598cce66736d895c9",
+    "horizon_s": 87360.0,
+    "issue_s": 1691986380.0,
+    "pair_id": "204dc1545c654962660f64dc",
+    "region": "unknown",
+    "sequence_id": "sequence-30decf4603dd651c7ba1eb68",
+    "source_row_ids": [
+      "def3a6721670b023f2e11e1e262d8fc7273bac650724d5f1b70e667173413f39",
+      "10e9f4173982c17fac3ed14d7cd981d5b788ff7d455f35bb1316b62b72ea245c"
+    ],
+    "target_s": 1692073740.0,
+    "to_index": 2,
+    "year": 2023
+  },
+  {
+    "component_id": "IDNCF000321BWESTFORK",
+    "from_index": 2,
+    "group_id": "group-177598cce66736d895c9",
+    "horizon_s": 176220.0,
+    "issue_s": 1692073740.0,
+    "pair_id": "648098988d0af9265a56c5fa",
+    "region": "unknown",
+    "sequence_id": "sequence-30decf4603dd651c7ba1eb68",
+    "source_row_ids": [
+      "10e9f4173982c17fac3ed14d7cd981d5b788ff7d455f35bb1316b62b72ea245c",
+      "0424360065dd5bb8bcfef5650ea315075ab59f9b74416404e83d83527b7d3b4a"
+    ],
+    "target_s": 1692249960.0,
+    "to_index": 3,
+    "year": 2023
+  },
+  {
+    "component_id": "IDSCF022105MOOSE",
+    "from_index": 0,
+    "group_id": "group-1b24ca017e39067f7c9e",
+    "horizon_s": 89520.0,
+    "issue_s": 1658202060.0,
+    "pair_id": "8796478dcd136f1cc507e8e0",
+    "region": "unknown",
+    "sequence_id": "sequence-a545bff895c9aa12f2939cb2",
+    "source_row_ids": [
+      "05200c23767f39ee333b52790090e0899f1a6c320b71bc62710304839fb6fe27",
+      "094a8c1a1c064aa3e1646c6de72ca77097372e1a4b5bee0b12af30b019bdef14"
+    ],
+    "target_s": 1658291580.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "IDSCF022105MOOSE",
+    "from_index": 32,
+    "group_id": "group-1b24ca017e39067f7c9e",
+    "horizon_s": 86460.0,
+    "issue_s": 1661063160.0,
+    "pair_id": "e94c66dbdd05e107b4b64bdc",
+    "region": "unknown",
+    "sequence_id": "sequence-a545bff895c9aa12f2939cb2",
+    "source_row_ids": [
+      "20e19ba30c029c7a6a56838e179448b0cc8e09a77a9d6de36d225eec9296b216",
+      "52e169e93b5a06aa746253487c460b3e90d49137edd8d8937904cdac0f763797"
+    ],
+    "target_s": 1661149620.0,
+    "to_index": 33,
+    "year": 2022
+  },
+  {
+    "component_id": "IDSCF022105MOOSE",
+    "from_index": 4,
+    "group_id": "group-1b24ca017e39067f7c9e",
+    "horizon_s": 254820.0,
+    "issue_s": 1665374160.0,
+    "pair_id": "c70adb72e42910e3eb554b11",
+    "region": "unknown",
+    "sequence_id": "sequence-c16c7e63c20fd99970c10cc6",
+    "source_row_ids": [
+      "cb90c7e97d273adb769b36243ac88a2d032d62d4cd63ce6887e2b35404fbaa95",
+      "7e6805cb3cd13d17d4378267c2c5598b532c125adace15569734aa0a57e6ca13"
+    ],
+    "target_s": 1665628980.0,
+    "to_index": 5,
+    "year": 2022
+  },
+  {
+    "component_id": "CASRF000729BOISE",
+    "from_index": 0,
+    "group_id": "group-1dde3bdb1297aba89eb6",
+    "horizon_s": 47520.0,
+    "issue_s": 1723319820.0,
+    "pair_id": "8eb8b02ffe9a1efed23c2d6f",
+    "region": "unknown",
+    "sequence_id": "sequence-940e01614c26b4bc72181088",
+    "source_row_ids": [
+      "32c03c9279e837d6167a3ebf329bb9b818affe416323a8fa938c45656448a49c",
+      "a7ef5b92ad340c237070a40788a4fe1741885b1a85ec23bc1eff4a968a084654"
+    ],
+    "target_s": 1723367340.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "CASRF000729BOISE",
+    "from_index": 9,
+    "group_id": "group-1dde3bdb1297aba89eb6",
+    "horizon_s": 89040.0,
+    "issue_s": 1724139360.0,
+    "pair_id": "4ca6eb5a4a0126ca17710fda",
+    "region": "unknown",
+    "sequence_id": "sequence-940e01614c26b4bc72181088",
+    "source_row_ids": [
+      "76f9ebfa8a5be0446aa37bbbd702be9aeac07a3a610853f89f0fdc44e0e82d24",
+      "0354441ceb4fc41c006b7d14a5fb1f574b98ded4b4c04f786adfc7846beb2786"
+    ],
+    "target_s": 1724228400.0,
+    "to_index": 10,
+    "year": 2024
+  },
+  {
+    "component_id": "CASRF000729BOISE",
+    "from_index": 1,
+    "group_id": "group-1dde3bdb1297aba89eb6",
+    "horizon_s": 62880.0,
+    "issue_s": 1725963360.0,
+    "pair_id": "a635e7d826fb21e1daae772c",
+    "region": "unknown",
+    "sequence_id": "sequence-3ba610930de3bcdb57e7b701",
+    "source_row_ids": [
+      "fc137e8f69b215f793f9aeed03c62ac6cdd90965cfb5667ce15c925266211551",
+      "b4f751ec91efca472e0456cdda6e4fe8046ba18ad80cdcb86511b02dd1e71333"
+    ],
+    "target_s": 1726026240.0,
+    "to_index": 2,
+    "year": 2024
+  },
+  {
+    "component_id": "ORFWF200196BENYOUNG",
+    "from_index": 0,
+    "group_id": "group-203546f7f4ee89e4299c",
+    "horizon_s": 82920.0,
+    "issue_s": 1595571000.0,
+    "pair_id": "67671d2905f6c725623c7427",
+    "region": "unknown",
+    "sequence_id": "sequence-04ae1bb58e27bff0b13595d3",
+    "source_row_ids": [
+      "e7c59a8d7930053fe555fa0b200cd9fbb3eafc33b237345dcde5441b3455fea6",
+      "c17b3d77ed8877a49c7361014c0f17954ac66a0dc12de1ff27198d7e9b8068e3"
+    ],
+    "target_s": 1595653920.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "ORFWF200196BENYOUNG",
+    "from_index": 1,
+    "group_id": "group-203546f7f4ee89e4299c",
+    "horizon_s": 85080.0,
+    "issue_s": 1595653920.0,
+    "pair_id": "d7647c8cda5decb403b9b294",
+    "region": "unknown",
+    "sequence_id": "sequence-04ae1bb58e27bff0b13595d3",
+    "source_row_ids": [
+      "c17b3d77ed8877a49c7361014c0f17954ac66a0dc12de1ff27198d7e9b8068e3",
+      "ac5b551a0b0a6c3db8aeb5770e03e8c7cb16be1a6624b5c0cee42dc756095dff"
+    ],
+    "target_s": 1595739000.0,
+    "to_index": 2,
+    "year": 2020
+  },
+  {
+    "component_id": "IDNCF000774WILLIAMSCREEK",
+    "from_index": 0,
+    "group_id": "group-21534ea0617b3b538a7e",
+    "horizon_s": 167460.0,
+    "issue_s": 1662012480.0,
+    "pair_id": "4dbe0ede0fc21d3103f3fdd0",
+    "region": "unknown",
+    "sequence_id": "sequence-d031f704e78c70b284fb5acf",
+    "source_row_ids": [
+      "df974c4d4512796d1f88027d22a87a8004b56625beb4d512aa465ab74e93709b",
+      "a0729b5b872e794271d39e4743ff8f19a50b129c1d5764e1cdab4adbde83484d"
+    ],
+    "target_s": 1662179940.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "IDNCF000774WILLIAMSCREEK",
+    "from_index": 5,
+    "group_id": "group-21534ea0617b3b538a7e",
+    "horizon_s": 84720.0,
+    "issue_s": 1662535800.0,
+    "pair_id": "bf6bc497968a8450f5c9c1f2",
+    "region": "unknown",
+    "sequence_id": "sequence-d031f704e78c70b284fb5acf",
+    "source_row_ids": [
+      "6bb5e14ec9e18fb91bf971f6d16d8eb92c29d2b52b67b67cdddaa095ce6bd54e",
+      "0d50563ccb4aef8664b8751f83f7bfa5849b8e70dbb7f13be024f543fc06515a"
+    ],
+    "target_s": 1662620520.0,
+    "to_index": 6,
+    "year": 2022
+  },
+  {
+    "component_id": "IDNCF000774WILLIAMSCREEK",
+    "from_index": 10,
+    "group_id": "group-21534ea0617b3b538a7e",
+    "horizon_s": 256920.0,
+    "issue_s": 1662960360.0,
+    "pair_id": "8e93d28eeea901c51970c3b9",
+    "region": "unknown",
+    "sequence_id": "sequence-d031f704e78c70b284fb5acf",
+    "source_row_ids": [
+      "065da72667b5a9bb48b1f2a4d34c50dbf32f660461ef7a74e8f91bdfa6c9a6b5",
+      "368eff4f9a157eb028b046d7110266f870ced6e558bd6f73d5d6e02c58334605"
+    ],
+    "target_s": 1663217280.0,
+    "to_index": 11,
+    "year": 2022
+  },
+  {
+    "component_id": "WANWS000150BOLT",
+    "from_index": 0,
+    "group_id": "group-243995337dc3fcb36a5f",
+    "horizon_s": 115620.0,
+    "issue_s": 1663361700.0,
+    "pair_id": "b1fc486bd24f9a20f2884a66",
+    "region": "unknown",
+    "sequence_id": "sequence-51b871e6b4e33809f61056ee",
+    "source_row_ids": [
+      "340e5e0586a2db525dee11d1cc7a1ae53144fcd152e4a228d6752dba3af66ee4",
+      "ce4da1942bfa91d37af6ecc992944c2f771cd0600d51512ad3527463e6f7110f"
+    ],
+    "target_s": 1663477320.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "WANWS000150BOLT",
+    "from_index": 14,
+    "group_id": "group-243995337dc3fcb36a5f",
+    "horizon_s": 90540.0,
+    "issue_s": 1664767020.0,
+    "pair_id": "0b0b5c829b6b153aa76449ec",
+    "region": "unknown",
+    "sequence_id": "sequence-51b871e6b4e33809f61056ee",
+    "source_row_ids": [
+      "4a49f30849823c72f3c597b3252f7456d6186076408d949a2572113d013267bd",
+      "d45e6375be93bd0f6514a6d3e5acdd225871cd30e644d0c8059d4dd971fca973"
+    ],
+    "target_s": 1664857560.0,
+    "to_index": 15,
+    "year": 2022
+  },
+  {
+    "component_id": "WANWS000150BOLT",
+    "from_index": 28,
+    "group_id": "group-243995337dc3fcb36a5f",
+    "horizon_s": 82920.0,
+    "issue_s": 1666146900.0,
+    "pair_id": "b74dbb46519b1adf48644658",
+    "region": "unknown",
+    "sequence_id": "sequence-51b871e6b4e33809f61056ee",
+    "source_row_ids": [
+      "629dc0927fd5df2493d921dbb09adb42ce90b2c19fc32e914bdb7a8048c97bc5",
+      "a24971f1d39419a3e8a0081cbb89234146e6c18c52f556197db445e249add331"
+    ],
+    "target_s": 1666229820.0,
+    "to_index": 29,
+    "year": 2022
+  },
+  {
+    "component_id": "NVELD040155HEATHCANYON",
+    "from_index": 0,
+    "group_id": "group-24b144f2ab33b0c901bb",
+    "horizon_s": 128760.0,
+    "issue_s": 1658729640.0,
+    "pair_id": "d5592b3aa89de50329e81ed8",
+    "region": "unknown",
+    "sequence_id": "sequence-ab899e03cfceeb4cb146cb28",
+    "source_row_ids": [
+      "e8c8555e4247f49764c8e22a7925011056d520494f11a5731c740088fa7c1f7e",
+      "9638215ae6b9c3bb6453796a705a7678510fcca4eeac80c745351f29ee21d8bf"
+    ],
+    "target_s": 1658858400.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "NVELD040155HEATHCANYON",
+    "from_index": 2,
+    "group_id": "group-24b144f2ab33b0c901bb",
+    "horizon_s": 92040.0,
+    "issue_s": 1658895540.0,
+    "pair_id": "10922f80cb83cc69eb8e516c",
+    "region": "unknown",
+    "sequence_id": "sequence-ab899e03cfceeb4cb146cb28",
+    "source_row_ids": [
+      "bac160e34456af3dd4da0947a153d4a0d980bf062f1da995566f60835a77759a",
+      "a198bcefd46441d5eda5c073afb5f9718682ca504f8587052c9c475ae065bf35"
+    ],
+    "target_s": 1658987580.0,
+    "to_index": 3,
+    "year": 2022
+  },
+  {
+    "component_id": "NVELD040155HEATHCANYON",
+    "from_index": 3,
+    "group_id": "group-24b144f2ab33b0c901bb",
+    "horizon_s": 171060.0,
+    "issue_s": 1658987580.0,
+    "pair_id": "d28d236c268b8af66cd8507b",
+    "region": "unknown",
+    "sequence_id": "sequence-ab899e03cfceeb4cb146cb28",
+    "source_row_ids": [
+      "a198bcefd46441d5eda5c073afb5f9718682ca504f8587052c9c475ae065bf35",
+      "f4e55cc6c1127f03723aa6a3c8a584053887397338fd26ec7711b204e2e603b5"
+    ],
+    "target_s": 1659158640.0,
+    "to_index": 4,
+    "year": 2022
+  },
+  {
+    "component_id": "ORFWF210422WILLOWVALLEY",
+    "from_index": 0,
+    "group_id": "group-28fc01ebb9eec35ead8e",
+    "horizon_s": 85380.0,
+    "issue_s": 1628907300.0,
+    "pair_id": "0559f0ee4dd3bc1be12614fe",
+    "region": "unknown",
+    "sequence_id": "sequence-7ead6cba38505d0efaed624f",
+    "source_row_ids": [
+      "87a05c6edd4b201a13f86aff755c91d6ffb91170df5d006ddd0a128900b0d075",
+      "d0deb9ae88354591c7b1319497b2a33e9e2d3e1ae9cdebb8ad9a34914e6d565a"
+    ],
+    "target_s": 1628992680.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "ORFWF210422PATTONMEADOW",
+    "from_index": 4,
+    "group_id": "group-28fc01ebb9eec35ead8e",
+    "horizon_s": 74940.0,
+    "issue_s": 1629262260.0,
+    "pair_id": "0da28cb11a59779539fa15b4",
+    "region": "unknown",
+    "sequence_id": "sequence-2d080f48db18348346deda94",
+    "source_row_ids": [
+      "d5b821d7efb6c801bfc47e24ba4a3323e1eb18abb31c79f061a5ad83f92dc878",
+      "a95ae1c1c62516070f58f631e758bea3228c9aea720a4cbce4d51c973e622edc"
+    ],
+    "target_s": 1629337200.0,
+    "to_index": 5,
+    "year": 2021
+  },
+  {
+    "component_id": "ORFWF210422PATTONMEADOW",
+    "from_index": 11,
+    "group_id": "group-28fc01ebb9eec35ead8e",
+    "horizon_s": 171780.0,
+    "issue_s": 1629858240.0,
+    "pair_id": "8720c146a9c9766e2e6df018",
+    "region": "unknown",
+    "sequence_id": "sequence-2d080f48db18348346deda94",
+    "source_row_ids": [
+      "f28d59d063152cdd136ae913a4ac55226f0b8c3939e23c373384cd0607b48841",
+      "9436f6c01439969b70da4e7f6e9e30e2a905532243cf8fd5280fe93637fd01b9"
+    ],
+    "target_s": 1630030020.0,
+    "to_index": 12,
+    "year": 2021
+  },
+  {
+    "component_id": "CABDF012958RADFORD",
+    "from_index": 0,
+    "group_id": "group-29addf2a5aec630467f0",
+    "horizon_s": 78900.0,
+    "issue_s": 1662441180.0,
+    "pair_id": "af7c1c93baed7a628b627c34",
+    "region": "unknown",
+    "sequence_id": "sequence-3deca07175c19d80ac1e7eed",
+    "source_row_ids": [
+      "dfc2dfcd32a161482a64f07f0cded4b3baa97ac90e18b0561aab15509e89ed72",
+      "0db77103e36a9c2451f64fa512a65ad5521f53cb5fcf5daea4751f9e196c97ba"
+    ],
+    "target_s": 1662520080.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "CABDF012958RADFORD",
+    "from_index": 4,
+    "group_id": "group-29addf2a5aec630467f0",
+    "horizon_s": 79860.0,
+    "issue_s": 1662786600.0,
+    "pair_id": "efa8691626cecd71c84c83aa",
+    "region": "unknown",
+    "sequence_id": "sequence-3deca07175c19d80ac1e7eed",
+    "source_row_ids": [
+      "f3f7b0c47fbe0a3fcee4bbb9cd32e7c63db8d3e17f10e00964e2bb204be240a4",
+      "d8ed12e8b4f8995e4e778619809eb9c28eb49c28de047c91fc853667b2f3100f"
+    ],
+    "target_s": 1662866460.0,
+    "to_index": 5,
+    "year": 2022
+  },
+  {
+    "component_id": "CABDF012958RADFORD",
+    "from_index": 8,
+    "group_id": "group-29addf2a5aec630467f0",
+    "horizon_s": 100260.0,
+    "issue_s": 1663124040.0,
+    "pair_id": "76d631e7e6e3fa8459be52b7",
+    "region": "unknown",
+    "sequence_id": "sequence-3deca07175c19d80ac1e7eed",
+    "source_row_ids": [
+      "fab324d1b82a7fe052562108f9855e63183f1ebb12f120031def1d78185f9405",
+      "d2431870d62021edf2281758ca07875bc965e16167b95aed31bfc64bed45c100"
+    ],
+    "target_s": 1663224300.0,
+    "to_index": 9,
+    "year": 2022
+  },
+  {
+    "component_id": "IDIPF000385ENEASPEAK",
+    "from_index": 0,
+    "group_id": "group-2a9e5c2ebbed7e77adb9",
+    "horizon_s": 84000.0,
+    "issue_s": 1660710900.0,
+    "pair_id": "175d8d5900963ffc4cfd075a",
+    "region": "unknown",
+    "sequence_id": "sequence-45b811846303fbb812d3bcb9",
+    "source_row_ids": [
+      "123d00868eec095de8fe4b70677f7f86b4c93a9b716bcf58c3bde49c1fc2cec8",
+      "331bfabdb08b2fdb2c984eb2f5666ecb6e102b69300dc8fafaee3f4c117d77c4"
+    ],
+    "target_s": 1660794900.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "IDIPF000385ENEASPEAK",
+    "from_index": 7,
+    "group_id": "group-2a9e5c2ebbed7e77adb9",
+    "horizon_s": 86040.0,
+    "issue_s": 1661314920.0,
+    "pair_id": "794c1d159526b70730bc0246",
+    "region": "unknown",
+    "sequence_id": "sequence-45b811846303fbb812d3bcb9",
+    "source_row_ids": [
+      "93d1a74bd215578b944476e05a18bb9f245659f353653a3b2fdbbf4de3c8f6bf",
+      "caaaa90761c74298dafb2cbce58f4a6f0c3dcedf80bd69eb377e6f004f6a019a"
+    ],
+    "target_s": 1661400960.0,
+    "to_index": 8,
+    "year": 2022
+  },
+  {
+    "component_id": "IDIPF000385ENEASPEAK",
+    "from_index": 13,
+    "group_id": "group-2a9e5c2ebbed7e77adb9",
+    "horizon_s": 91380.0,
+    "issue_s": 1662175260.0,
+    "pair_id": "6160bb851da25e9d08311e13",
+    "region": "unknown",
+    "sequence_id": "sequence-45b811846303fbb812d3bcb9",
+    "source_row_ids": [
+      "890ba518512ea1a88d58792e8600496b6f5886b07bce13abe948757e7931007a",
+      "84a65ec224cfec58c12bb5ad8542683db00d659009b1fce60de24e78a97b5784"
+    ],
+    "target_s": 1662266640.0,
+    "to_index": 14,
+    "year": 2022
+  },
+  {
+    "component_id": "CALNU011083SITES",
+    "from_index": 0,
+    "group_id": "group-2dcce72e524e2aca1f5f",
+    "horizon_s": 92040.0,
+    "issue_s": 1718776800.0,
+    "pair_id": "7ccf9217b8c9cbe948e7ae10",
+    "region": "unknown",
+    "sequence_id": "sequence-34388adf8d8079c233faa30d",
+    "source_row_ids": [
+      "a24f1d62b5f58e464040ec962db6b143fef98befc13979e22a2cec9630e63d0d",
+      "04955bbb431f2d15329d371f1c40256415b5601c8377c1297315a76a599a8c36"
+    ],
+    "target_s": 1718868840.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "CALNU011083SITES",
+    "from_index": 3,
+    "group_id": "group-2dcce72e524e2aca1f5f",
+    "horizon_s": 83400.0,
+    "issue_s": 1719031800.0,
+    "pair_id": "ac1b6b44fc98f03ee329ea73",
+    "region": "unknown",
+    "sequence_id": "sequence-34388adf8d8079c233faa30d",
+    "source_row_ids": [
+      "1da58df060cf3b253bdec3d5ae6a948cf926a0ef10b6e9b12940fe474e4c7d89",
+      "f702faf91700b4dce17d0b466de31ec164f7dc543ccedc243681f19f53a2759e"
+    ],
+    "target_s": 1719115200.0,
+    "to_index": 4,
+    "year": 2024
+  },
+  {
+    "component_id": "CALNU011083SITES",
+    "from_index": 5,
+    "group_id": "group-2dcce72e524e2aca1f5f",
+    "horizon_s": 70500.0,
+    "issue_s": 1719201600.0,
+    "pair_id": "061e3fe3fc9178db91e65c56",
+    "region": "unknown",
+    "sequence_id": "sequence-34388adf8d8079c233faa30d",
+    "source_row_ids": [
+      "ff511c914ec3b318c8845a5ec7084705df95d3a280e5f51ecdd68b5c25bdf2d3",
+      "3d884f3a46dc72ce082a637ab01f511954146d5d7a8e6c46ee6058076f0a5147"
+    ],
+    "target_s": 1719272100.0,
+    "to_index": 6,
+    "year": 2024
+  },
+  {
+    "component_id": "AZFTA000336MCDONALDTANK",
+    "from_index": 0,
+    "group_id": "group-30ba63f8b83b7c5afb91",
+    "horizon_s": 97260.0,
+    "issue_s": 1622080860.0,
+    "pair_id": "a5af1942b139ff761cb99f75",
+    "region": "unknown",
+    "sequence_id": "sequence-0a1f80f27dd7ae5d9d01c2bb",
+    "source_row_ids": [
+      "10f9c4779e42108e1b480954a0065267299d00bb3c1c1442c50306ef7efb6aaa",
+      "3685f706ff2b82a879ad80ac0faf71deda1123f21d341102a3490ce58d498ba6"
+    ],
+    "target_s": 1622178120.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "AZFTA000336MCDONALDTANK",
+    "from_index": 1,
+    "group_id": "group-30ba63f8b83b7c5afb91",
+    "horizon_s": 79500.0,
+    "issue_s": 1622178120.0,
+    "pair_id": "09f2af634516939ef06922d6",
+    "region": "unknown",
+    "sequence_id": "sequence-0a1f80f27dd7ae5d9d01c2bb",
+    "source_row_ids": [
+      "3685f706ff2b82a879ad80ac0faf71deda1123f21d341102a3490ce58d498ba6",
+      "0c73855a0598286d3b84dd822e3f3c7defd69675683e1e174751318b9785f971"
+    ],
+    "target_s": 1622257620.0,
+    "to_index": 2,
+    "year": 2021
+  },
+  {
+    "component_id": "AZFTA000336MCDONALDTANK",
+    "from_index": 2,
+    "group_id": "group-30ba63f8b83b7c5afb91",
+    "horizon_s": 89100.0,
+    "issue_s": 1622257620.0,
+    "pair_id": "f7ea9db9131e34ac20062a7c",
+    "region": "unknown",
+    "sequence_id": "sequence-0a1f80f27dd7ae5d9d01c2bb",
+    "source_row_ids": [
+      "0c73855a0598286d3b84dd822e3f3c7defd69675683e1e174751318b9785f971",
+      "d8d40cc9d11c5b9b1ea11218ee8cc83288051d393533f935ee82dc8c5428f4f2"
+    ],
+    "target_s": 1622346720.0,
+    "to_index": 3,
+    "year": 2021
+  },
+  {
+    "component_id": "CACZU005205CZULIGHTNING",
+    "from_index": 0,
+    "group_id": "group-31d0e36a32a3b5e85bd0",
+    "horizon_s": 98100.0,
+    "issue_s": 1597902000.0,
+    "pair_id": "bb93adba584a3c538d9bdd2a",
+    "region": "unknown",
+    "sequence_id": "sequence-e815fb7170d0f7532b49408e",
+    "source_row_ids": [
+      "3a91b88d5e1c4b79fc9fb91c9fabb0221c16e36ba624eb712f21758622b2bdf1",
+      "100a32857a9d1662d25e6d5d3cc435cd3b2b52b534a7423ae94b621301c4017a"
+    ],
+    "target_s": 1598000100.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "CACZU005205CZULIGHTNING",
+    "from_index": 9,
+    "group_id": "group-31d0e36a32a3b5e85bd0",
+    "horizon_s": 84660.0,
+    "issue_s": 1598683800.0,
+    "pair_id": "534ae853b72e96a3b3c3f639",
+    "region": "unknown",
+    "sequence_id": "sequence-e815fb7170d0f7532b49408e",
+    "source_row_ids": [
+      "41962ea16b22770b2217cb136223729fefc15ae4604797e5ef07f767e8fa0cc7",
+      "6d1964889449b248e0786011016db0204240080062d0132c340fe6064313e4ac"
+    ],
+    "target_s": 1598768460.0,
+    "to_index": 10,
+    "year": 2020
+  },
+  {
+    "component_id": "CACZU005205CZULIGHTNING",
+    "from_index": 18,
+    "group_id": "group-31d0e36a32a3b5e85bd0",
+    "horizon_s": 72180.0,
+    "issue_s": 1599454800.0,
+    "pair_id": "4bb3f65aa90502c8ea4b24fe",
+    "region": "unknown",
+    "sequence_id": "sequence-e815fb7170d0f7532b49408e",
+    "source_row_ids": [
+      "e58db002c8e8ab14a1b3040eef29427679f79b0d3e79aa87ca4be0194cce733f",
+      "d42bb100bdb5fc66f45a0aa8ec0bc9eaca93683b495bc4cf80385a09af5c3406"
+    ],
+    "target_s": 1599526980.0,
+    "to_index": 19,
+    "year": 2020
+  },
+  {
+    "component_id": "NMN4S000034COOKSPEAK",
+    "from_index": 0,
+    "group_id": "group-36a4abf083c39ad351fb",
+    "horizon_s": 79200.0,
+    "issue_s": 1650337200.0,
+    "pair_id": "c80dcb6a3c4673e9e262cbcc",
+    "region": "unknown",
+    "sequence_id": "sequence-21a66316ad0f8b23ae961ff6",
+    "source_row_ids": [
+      "df11ed99a1284b2541184d8362732717ddc4a373496360ccf101ed7599044b42",
+      "b36b1e425b3e38fe9cd2b9c70bcaf6460c413c6abcee5f6dda524a332e9716ab"
+    ],
+    "target_s": 1650416400.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "NMN4S000034COOKSPEAK",
+    "from_index": 11,
+    "group_id": "group-36a4abf083c39ad351fb",
+    "horizon_s": 88200.0,
+    "issue_s": 1651306500.0,
+    "pair_id": "51eb67e82731761146ebb7b5",
+    "region": "unknown",
+    "sequence_id": "sequence-21a66316ad0f8b23ae961ff6",
+    "source_row_ids": [
+      "9ba2bd8ece6d6bf242f10a9d2d28cf2d1f7842c43496b938eba05595b5279ed0",
+      "cbd8afce24cda467360f918fb02bf10492a109b2614b2349478f7a64345654d6"
+    ],
+    "target_s": 1651394700.0,
+    "to_index": 12,
+    "year": 2022
+  },
+  {
+    "component_id": "NMN4S000034COOKSPEAK",
+    "from_index": 4,
+    "group_id": "group-36a4abf083c39ad351fb",
+    "horizon_s": 87120.0,
+    "issue_s": 1652421000.0,
+    "pair_id": "369229a27b5ee0eefd1be3eb",
+    "region": "unknown",
+    "sequence_id": "sequence-cba445b0357457187bb3da9e",
+    "source_row_ids": [
+      "c64018a705d79c08d73a555d61a80eb7c8bb25ebd0c7c5b298f1bcb2b2b5f0ba",
+      "ddcad76d717ea9c60bb3a217bf0770ac9f37d348a3b71c0fa2e3668c045ecf0c"
+    ],
+    "target_s": 1652508120.0,
+    "to_index": 5,
+    "year": 2022
+  },
+  {
+    "component_id": "ORMHF000681WHITERIVER",
+    "from_index": 0,
+    "group_id": "group-385b216e2560f4b8cae1",
+    "horizon_s": 86400.0,
+    "issue_s": 1598158800.0,
+    "pair_id": "6b0db470ef33fb0544147f0f",
+    "region": "unknown",
+    "sequence_id": "sequence-a5b62ed554a358f8a16b672d",
+    "source_row_ids": [
+      "964ad9b8aa1d9fff6a5eec28eb6c99d5df46f11a2071cf921a1d4efb8a5844fd",
+      "a8dc166107f25b2224830a9fc088474be33f36eb312a66583a135fa63d07c7cc"
+    ],
+    "target_s": 1598245200.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "ORMHF000681WHITERIVER",
+    "from_index": 7,
+    "group_id": "group-385b216e2560f4b8cae1",
+    "horizon_s": 149100.0,
+    "issue_s": 1598766600.0,
+    "pair_id": "98a13b87e0d7dc520f7eac3d",
+    "region": "unknown",
+    "sequence_id": "sequence-a5b62ed554a358f8a16b672d",
+    "source_row_ids": [
+      "131141db7da3e4d67d0e42ec92b9d91ad0ef688c1561f4167110268322eb8e69",
+      "364612a5c6019ae5022dd9d64dd62789038ca5a7f1e1a6cc9ed2e89d14ae713b"
+    ],
+    "target_s": 1598915700.0,
+    "to_index": 8,
+    "year": 2020
+  },
+  {
+    "component_id": "ORMHF000681WHITERIVER",
+    "from_index": 6,
+    "group_id": "group-385b216e2560f4b8cae1",
+    "horizon_s": 83700.0,
+    "issue_s": 1599453900.0,
+    "pair_id": "025d74ab93ad924e243b17df",
+    "region": "unknown",
+    "sequence_id": "sequence-e0d2edad722728fa899475b9",
+    "source_row_ids": [
+      "b5a5a1e10157d2e6daca2ff8df2da6b0890103253a0ac0c2db8af4011312d7ab",
+      "461d231751b76ef81dade1d86b2fd71ee392f2f4c1b7965399f3247dd3bcfc73"
+    ],
+    "target_s": 1599537600.0,
+    "to_index": 7,
+    "year": 2020
+  },
+  {
+    "component_id": "IDNCF000552BEAVER",
+    "from_index": 0,
+    "group_id": "group-3bf03111eb0be7d0c247",
+    "horizon_s": 98520.0,
+    "issue_s": 1599020820.0,
+    "pair_id": "fda245fb0629f45d52ed86c8",
+    "region": "unknown",
+    "sequence_id": "sequence-106004a75365a7569d45e269",
+    "source_row_ids": [
+      "669c88183da458d852b8e107dc17a5f2d25ea94eaa26a090741e6978f28a6bcd",
+      "eb53dcda65e461d1fa3ce5ef764d60a179bf410f430a243a6306199845abbbe3"
+    ],
+    "target_s": 1599119340.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "IDNCF000552BEAVER",
+    "from_index": 2,
+    "group_id": "group-3bf03111eb0be7d0c247",
+    "horizon_s": 83460.0,
+    "issue_s": 1599190920.0,
+    "pair_id": "3e20d94073d88d5fd999dc47",
+    "region": "unknown",
+    "sequence_id": "sequence-106004a75365a7569d45e269",
+    "source_row_ids": [
+      "d61009eeadff6fe9e683c02ea67d299b5c06fe904f65dae9c776e31df3dc9c60",
+      "e9f5ada3bdb9e87cda7802da94a5b275fce6a1f118935962d7209254a16c856f"
+    ],
+    "target_s": 1599274380.0,
+    "to_index": 3,
+    "year": 2020
+  },
+  {
+    "component_id": "IDNCF000552BEAVER",
+    "from_index": 4,
+    "group_id": "group-3bf03111eb0be7d0c247",
+    "horizon_s": 88380.0,
+    "issue_s": 1599360780.0,
+    "pair_id": "e6692e4fc1fd7bbc79ee07aa",
+    "region": "unknown",
+    "sequence_id": "sequence-106004a75365a7569d45e269",
+    "source_row_ids": [
+      "71e1a309f5e501c10dff7416ef1be70573295f6c09af965b46f0371c16d243f3",
+      "56db2b3b42889e566f16a749187efb9f6776bae41c8b91b0cc590878f1742151"
+    ],
+    "target_s": 1599449160.0,
+    "to_index": 5,
+    "year": 2020
+  },
+  {
+    "component_id": "UTDIF000133LEFTFORK",
+    "from_index": 0,
+    "group_id": "group-44a0da6d0dd4f30d7a52",
+    "horizon_s": 90000.0,
+    "issue_s": 1655694000.0,
+    "pair_id": "e5d34d5d1db0e0d8e1026d08",
+    "region": "unknown",
+    "sequence_id": "sequence-d6c9262b8ee847ee8c3b38ad",
+    "source_row_ids": [
+      "c61b6fd4f88212ecf922d8d6c335875e6293f3835bd343054ef801b7d9ba76c6",
+      "96e475cf27952caacd85586933bf20297b3f08cbe1a924931df0c0dac1e99d63"
+    ],
+    "target_s": 1655784000.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "UTDIF000133LEFTFORK",
+    "from_index": 7,
+    "group_id": "group-44a0da6d0dd4f30d7a52",
+    "horizon_s": 77400.0,
+    "issue_s": 1656473400.0,
+    "pair_id": "4c0ac201482a3936b8240c62",
+    "region": "unknown",
+    "sequence_id": "sequence-d6c9262b8ee847ee8c3b38ad",
+    "source_row_ids": [
+      "acff51762690ec7569c761ff4a5464248bfd1433ba648a1af6d6b00bbc6fa1ab",
+      "2f2f492e43a93d3904b1e24acecba8515de46304ed5946e6249a8e51142e702b"
+    ],
+    "target_s": 1656550800.0,
+    "to_index": 8,
+    "year": 2022
+  },
+  {
+    "component_id": "UTDIF000133LEFTFORK",
+    "from_index": 13,
+    "group_id": "group-44a0da6d0dd4f30d7a52",
+    "horizon_s": 172860.0,
+    "issue_s": 1657167840.0,
+    "pair_id": "42423e5ffe66a4bbd331a755",
+    "region": "unknown",
+    "sequence_id": "sequence-d6c9262b8ee847ee8c3b38ad",
+    "source_row_ids": [
+      "d82bc3b01f439bc6bd337761e43f6d1da033d7d958a027aa1215031b822aac8d",
+      "9a7f2c63498f446322f20e4514100f22b4437fb17619535320f2450b97ddc2c4"
+    ],
+    "target_s": 1657340700.0,
+    "to_index": 14,
+    "year": 2022
+  },
+  {
+    "component_id": "AZSCA002639ALDER",
+    "from_index": 0,
+    "group_id": "group-44e34ccbdbf4feed1c30",
+    "horizon_s": 88620.0,
+    "issue_s": 1598839980.0,
+    "pair_id": "70bd2858d4b4fdea398092d2",
+    "region": "unknown",
+    "sequence_id": "sequence-fb2cb189435c640a834b0f78",
+    "source_row_ids": [
+      "86be06a29b0da6c295eb3c8f6f14589faeb62aaaed8feea0ab5dafc79b9c23bb",
+      "3544df9cbf98ea8d9d972b8c0e46bf54702d63d8e4c9cc9279a246ffc3180db7"
+    ],
+    "target_s": 1598928600.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "AZSCA002639ALDER",
+    "from_index": 1,
+    "group_id": "group-44e34ccbdbf4feed1c30",
+    "horizon_s": 185520.0,
+    "issue_s": 1598928600.0,
+    "pair_id": "7e2e961a4bf96c394056bbca",
+    "region": "unknown",
+    "sequence_id": "sequence-fb2cb189435c640a834b0f78",
+    "source_row_ids": [
+      "3544df9cbf98ea8d9d972b8c0e46bf54702d63d8e4c9cc9279a246ffc3180db7",
+      "0742b58bc40d1e4bdc4696099d5d5ec803cb11061a41f6eb73eba5e06198829b"
+    ],
+    "target_s": 1599114120.0,
+    "to_index": 2,
+    "year": 2020
+  },
+  {
+    "component_id": "MTSOS210281WESTERNROAD",
+    "from_index": 0,
+    "group_id": "group-471740fb800b5dd02808",
+    "horizon_s": 77160.0,
+    "issue_s": 1625986080.0,
+    "pair_id": "37b674acd1a34c71aaf364b1",
+    "region": "unknown",
+    "sequence_id": "sequence-8aaf13aa6564b0da41abeb59",
+    "source_row_ids": [
+      "19dd7184d9f3ba173935013c2c024c504d30b228a1a814ba1c9865b46368f5df",
+      "0ed58bf5c8b7cdc86d8938308bf2574f60cfacbb067043e91118f3e0cd3df2fd"
+    ],
+    "target_s": 1626063240.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "MTSOS210281WESTERNROAD",
+    "from_index": 2,
+    "group_id": "group-471740fb800b5dd02808",
+    "horizon_s": 88500.0,
+    "issue_s": 1626157140.0,
+    "pair_id": "42b30ca018a4350b44b8a695",
+    "region": "unknown",
+    "sequence_id": "sequence-8aaf13aa6564b0da41abeb59",
+    "source_row_ids": [
+      "a5b6a185f774c1ded0332d766b031706acfe575186b948c32bc3250f897c8911",
+      "af0740019d12de8e6eee5bdf366050690932307fe4648e1af3b17b91f9c278b0"
+    ],
+    "target_s": 1626245640.0,
+    "to_index": 3,
+    "year": 2021
+  },
+  {
+    "component_id": "MTSOS210281WESTERNROAD",
+    "from_index": 3,
+    "group_id": "group-471740fb800b5dd02808",
+    "horizon_s": 80460.0,
+    "issue_s": 1626245640.0,
+    "pair_id": "b78b95cd154004e3f1db6973",
+    "region": "unknown",
+    "sequence_id": "sequence-8aaf13aa6564b0da41abeb59",
+    "source_row_ids": [
+      "af0740019d12de8e6eee5bdf366050690932307fe4648e1af3b17b91f9c278b0",
+      "8aa4bad2ec5c47d264e0cbd41698681367a82275dddd3fa70b05cb23f9b1c365"
+    ],
+    "target_s": 1626326100.0,
+    "to_index": 4,
+    "year": 2021
+  },
+  {
+    "component_id": "OR953S024122COURTROCK",
+    "from_index": 0,
+    "group_id": "group-47f3134468ba406a1dda",
+    "horizon_s": 90720.0,
+    "issue_s": 1721794800.0,
+    "pair_id": "064f6e93d153e79ce333ae37",
+    "region": "unknown",
+    "sequence_id": "sequence-e9cc198de5f4711be6642217",
+    "source_row_ids": [
+      "b51f14cc296ba1e2a092ad5aafe93b7c88b099e25ffdf1fad29725d962c4c481",
+      "eb5bb239c8242a670ed6332c053dac499a97645ba03dcec06ca2f518899de73e"
+    ],
+    "target_s": 1721885520.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "OR953S024122COURTROCK",
+    "from_index": 3,
+    "group_id": "group-47f3134468ba406a1dda",
+    "horizon_s": 77400.0,
+    "issue_s": 1722664020.0,
+    "pair_id": "23341ef3a2c9081548a42e10",
+    "region": "unknown",
+    "sequence_id": "sequence-28756a6955342d0404e5663e",
+    "source_row_ids": [
+      "bffdb43aea096378aa00dafd4e5e5c19aed6b4dfd431bb5b477c4e8ff9d324ef",
+      "62ddeec288fe1bedc4309965acf8a2474ecf5106c6c805aefdbc36d180b5cc9f"
+    ],
+    "target_s": 1722741420.0,
+    "to_index": 4,
+    "year": 2024
+  },
+  {
+    "component_id": "OR953S024122COURTROCK",
+    "from_index": 9,
+    "group_id": "group-47f3134468ba406a1dda",
+    "horizon_s": 85260.0,
+    "issue_s": 1723261680.0,
+    "pair_id": "30c796f270e973ba03b0018f",
+    "region": "unknown",
+    "sequence_id": "sequence-28756a6955342d0404e5663e",
+    "source_row_ids": [
+      "bfef76ecf16b54542c4cb062efd3774e1bbbe9104a57a9c2950a45cb14aab7fb",
+      "c8bb757892447685b7c83716ba96eeea7fe5a2aaae4b94d646ddfcfd259d8276"
+    ],
+    "target_s": 1723346940.0,
+    "to_index": 10,
+    "year": 2024
+  },
+  {
+    "component_id": "NMMEA000385SALT",
+    "from_index": 0,
+    "group_id": "group-49df4d5ba3631bb7cabf",
+    "horizon_s": 81300.0,
+    "issue_s": 1719215580.0,
+    "pair_id": "4b01488d8310f325854686c4",
+    "region": "unknown",
+    "sequence_id": "sequence-2b8d3a9f1e8c8f20b55098b2",
+    "source_row_ids": [
+      "4782efc41901972bd44b58b354cee0f4df2b1ece1a5251916619b3034180f5b6",
+      "c5b826f63b644cddbcb887e8f8bd4d6ab409dcd682f7ca555d8f2899f3998dd6"
+    ],
+    "target_s": 1719296880.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "NMMEA000385SALT",
+    "from_index": 3,
+    "group_id": "group-49df4d5ba3631bb7cabf",
+    "horizon_s": 87300.0,
+    "issue_s": 1719565200.0,
+    "pair_id": "0f99c44f8247023a60594020",
+    "region": "unknown",
+    "sequence_id": "sequence-2b8d3a9f1e8c8f20b55098b2",
+    "source_row_ids": [
+      "6d38a43f65555c58e1827feb45b3302d102ff567830961b8440341ffee4ff46a",
+      "75359dd085cb6a09b938977d1dd513c798efe03e64974aacd97f5163cfc1bb16"
+    ],
+    "target_s": 1719652500.0,
+    "to_index": 4,
+    "year": 2024
+  },
+  {
+    "component_id": "NMMEA000385SALT",
+    "from_index": 5,
+    "group_id": "group-49df4d5ba3631bb7cabf",
+    "horizon_s": 83700.0,
+    "issue_s": 1719735300.0,
+    "pair_id": "07e097c7cdc2debb58f6cf68",
+    "region": "unknown",
+    "sequence_id": "sequence-2b8d3a9f1e8c8f20b55098b2",
+    "source_row_ids": [
+      "d94287827b8c62f9db08cdf629bee0e2f413730a797e42ad79fddff94ed2f11d",
+      "9c920ff7c6a10da14967f2478537f67d0a99374a8aad060843dd16f6fecfd3fd"
+    ],
+    "target_s": 1719819000.0,
+    "to_index": 6,
+    "year": 2024
+  },
+  {
+    "component_id": "WASPA002124SHERWOOD",
+    "from_index": 0,
+    "group_id": "group-4aabc26dc74a356752ff",
+    "horizon_s": 86400.0,
+    "issue_s": 1627187400.0,
+    "pair_id": "749868d513e6c6dbbbc6b593",
+    "region": "unknown",
+    "sequence_id": "sequence-54e9aa14feb92ef01d9bc97b",
+    "source_row_ids": [
+      "c7b440fdc6daba1e03f62d0d0a538b8fc517f570f2679debca96134eff14eff3",
+      "091aef04708dc1a50802233103eab4316be8042e8769faca17eb1bd355f590d3"
+    ],
+    "target_s": 1627273800.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "WASPA002124SHERWOOD",
+    "from_index": 3,
+    "group_id": "group-4aabc26dc74a356752ff",
+    "horizon_s": 183600.0,
+    "issue_s": 1627448400.0,
+    "pair_id": "3f4fc215f745b775b20ebe0f",
+    "region": "unknown",
+    "sequence_id": "sequence-54e9aa14feb92ef01d9bc97b",
+    "source_row_ids": [
+      "85246974840d460d00c12ae69d44ff3c1c21b459a8f347195a74cedc0b20995a",
+      "3a6038142b41b14419f75639db8f8f9b1dc100608ebf48fefda4ba7706ca66a6"
+    ],
+    "target_s": 1627632000.0,
+    "to_index": 4,
+    "year": 2021
+  },
+  {
+    "component_id": "WASPA002124SHERWOOD",
+    "from_index": 6,
+    "group_id": "group-4aabc26dc74a356752ff",
+    "horizon_s": 158400.0,
+    "issue_s": 1627876800.0,
+    "pair_id": "1788074e8f87ebe5913807ec",
+    "region": "unknown",
+    "sequence_id": "sequence-54e9aa14feb92ef01d9bc97b",
+    "source_row_ids": [
+      "0c5774c843f99bd1fd5dd314eb672669662d0b5ec41c61abc9dcb14eb77f33c7",
+      "9586411ac4d88f52404adad2f26621a4d6703d10e8245602ba4b3b1c1a3e6b2f"
+    ],
+    "target_s": 1628035200.0,
+    "to_index": 7,
+    "year": 2021
+  },
+  {
+    "component_id": "MTBDF006388PLACER",
+    "from_index": 0,
+    "group_id": "group-4ad8933dd8ff40e315ee",
+    "horizon_s": 173100.0,
+    "issue_s": 1632284640.0,
+    "pair_id": "c13c20a41b09d28a7f443e08",
+    "region": "unknown",
+    "sequence_id": "sequence-013958533654bb6cf8793787",
+    "source_row_ids": [
+      "43b75ddc5da204105156b34c37a31d40a1ee1eae2042c951c22131dbe9e2b10f",
+      "c8f65a01e4913be38859b60a06eb56dd28dadd3c8727efab64895812ca77c7ec"
+    ],
+    "target_s": 1632457740.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "MTBDF006388PLACER",
+    "from_index": 4,
+    "group_id": "group-4ad8933dd8ff40e315ee",
+    "horizon_s": 74580.0,
+    "issue_s": 1632896820.0,
+    "pair_id": "ab7ca1d0b75cd72dfed1b235",
+    "region": "unknown",
+    "sequence_id": "sequence-013958533654bb6cf8793787",
+    "source_row_ids": [
+      "8bfe70ea2d07932e13a3f30cc012c6cbbf4adc33e33b2033405c469cc6d53bfc",
+      "920211c9a5d7e2b2503de7582fb6aca961f7a075ba4f69dc9e30e61c5668db1b"
+    ],
+    "target_s": 1632971400.0,
+    "to_index": 5,
+    "year": 2021
+  },
+  {
+    "component_id": "MTBDF006388PLACER",
+    "from_index": 8,
+    "group_id": "group-4ad8933dd8ff40e315ee",
+    "horizon_s": 79500.0,
+    "issue_s": 1633317060.0,
+    "pair_id": "b4067e2eb706f97dd2572fce",
+    "region": "unknown",
+    "sequence_id": "sequence-013958533654bb6cf8793787",
+    "source_row_ids": [
+      "09ec16514846cd088b0fe15ec959ccedc830916f2a672f1c5eb4934446d7624b",
+      "3d84ec1aeeb59747892a96e89fbf17da12966bca93639c981847274c7491cdfd"
+    ],
+    "target_s": 1633396560.0,
+    "to_index": 9,
+    "year": 2021
+  },
+  {
+    "component_id": "ORWIF240374374MR",
+    "from_index": 0,
+    "group_id": "group-4cd077ef20d3fd811d7e",
+    "horizon_s": 88680.0,
+    "issue_s": 1725944580.0,
+    "pair_id": "3224782c8cc3b5ea6631b4c2",
+    "region": "unknown",
+    "sequence_id": "sequence-a9b16e031340fd8cae5cf8e7",
+    "source_row_ids": [
+      "bc4b20e51060e8b075ad140de1f0d9d9417966737677d6b7e295cef5b8016ee9",
+      "77f2a1aaca5138d5d6775590926c2a80bf332aa05250b3d6f6bd214dd75c7907"
+    ],
+    "target_s": 1726033260.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "ORWIF240374374MR",
+    "from_index": 5,
+    "group_id": "group-4cd077ef20d3fd811d7e",
+    "horizon_s": 254220.0,
+    "issue_s": 1727235720.0,
+    "pair_id": "a9396809ab7ad9197c2a9c76",
+    "region": "unknown",
+    "sequence_id": "sequence-73fc3256934b9a3c2e2c286f",
+    "source_row_ids": [
+      "02aa2d5d843c9051632ebc282e30de8fd12d7bb6b2fabd03b4120bd088eaa74d",
+      "d8172383bbc7c962196196d1800b6fd6ac2dfef6bfe29c2130e1fc272359b9a4"
+    ],
+    "target_s": 1727489940.0,
+    "to_index": 6,
+    "year": 2024
+  },
+  {
+    "component_id": "ORWIF240374374MR",
+    "from_index": 6,
+    "group_id": "group-4cd077ef20d3fd811d7e",
+    "horizon_s": 87000.0,
+    "issue_s": 1728876240.0,
+    "pair_id": "00e5220afb63a8e3eb455b47",
+    "region": "unknown",
+    "sequence_id": "sequence-120f4d744f64e62c995d866a",
+    "source_row_ids": [
+      "349bfe5d2e0ab322eb0fd93f86598698b64e67bedcaa10fef254ea5eb3b47e95",
+      "74cc6e904999208d3eca8bb55dddc0fba32122aecdf89c9a3b7f1235e7381156"
+    ],
+    "target_s": 1728963240.0,
+    "to_index": 7,
+    "year": 2024
+  },
+  {
+    "component_id": "IDCMS000280BILLYCREEK",
+    "from_index": 0,
+    "group_id": "group-4d3c4c8f669510b549bb",
+    "horizon_s": 77160.0,
+    "issue_s": 1720252320.0,
+    "pair_id": "2bb35130a83da4df16473b1e",
+    "region": "unknown",
+    "sequence_id": "sequence-1bf7ad6427d291abf6e2c76d",
+    "source_row_ids": [
+      "374e9e469e0437592ab72612b36749f8fa1b2609a60bf0266cb4796da6dc7bfe",
+      "1301a258aa35b5feb8a18f572511fdc1b355560d8978df9a4958da199f8886c3"
+    ],
+    "target_s": 1720329480.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "IDCMS000280BILLYCREEK",
+    "from_index": 1,
+    "group_id": "group-4d3c4c8f669510b549bb",
+    "horizon_s": 171060.0,
+    "issue_s": 1720329480.0,
+    "pair_id": "13d5c44493979b9803ee4b74",
+    "region": "unknown",
+    "sequence_id": "sequence-1bf7ad6427d291abf6e2c76d",
+    "source_row_ids": [
+      "1301a258aa35b5feb8a18f572511fdc1b355560d8978df9a4958da199f8886c3",
+      "f6ac050a448ebb4f20a1e65778d62cb57f75791c3c2b9f2215e54f3d9da2faf3"
+    ],
+    "target_s": 1720500540.0,
+    "to_index": 2,
+    "year": 2024
+  },
+  {
+    "component_id": "CAMVU013233BORDER13",
+    "from_index": 0,
+    "group_id": "group-513c716a1c1408a194b1",
+    "horizon_s": 81360.0,
+    "issue_s": 1655180880.0,
+    "pair_id": "fe76155ec0d532aacddf3ccf",
+    "region": "unknown",
+    "sequence_id": "sequence-8d556ec98993f6b13e834374",
+    "source_row_ids": [
+      "242dd6be4905243f4fdbff798d130cc96b03f508557356d013dee5750664e738",
+      "8c57eb3ec8b26f5324dad90967d95cff4a277fecee5c81d2115dfa09935240b1"
+    ],
+    "target_s": 1655262240.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "CAMVU013233BORDER13",
+    "from_index": 1,
+    "group_id": "group-513c716a1c1408a194b1",
+    "horizon_s": 78780.0,
+    "issue_s": 1655262240.0,
+    "pair_id": "34803fe9ec5bd9e829cd24ed",
+    "region": "unknown",
+    "sequence_id": "sequence-8d556ec98993f6b13e834374",
+    "source_row_ids": [
+      "8c57eb3ec8b26f5324dad90967d95cff4a277fecee5c81d2115dfa09935240b1",
+      "f111b08a10a142225450291bcf262edbbccdd99222b01f786313ec29405de660"
+    ],
+    "target_s": 1655341020.0,
+    "to_index": 2,
+    "year": 2022
+  },
+  {
+    "component_id": "CABTU009205DIXIE",
+    "from_index": 0,
+    "group_id": "group-530a9efeb00376e9a061",
+    "horizon_s": 90000.0,
+    "issue_s": 1626318000.0,
+    "pair_id": "e17971e6a71c260a188d54dc",
+    "region": "unknown",
+    "sequence_id": "sequence-fd8df192e2b1d39a0cc328a9",
+    "source_row_ids": [
+      "d461bc4d3fb103f8f1062b2d697a1f34ce29d77fb5eb8edead6b3ee04e4480f2",
+      "7a29a6117e41ed5cac1df60ae51dbb9e90a31a6cd7b928153fa5a5300b4aa14a"
+    ],
+    "target_s": 1626408000.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "CABTU009205DIXIE",
+    "from_index": 35,
+    "group_id": "group-530a9efeb00376e9a061",
+    "horizon_s": 86100.0,
+    "issue_s": 1629344100.0,
+    "pair_id": "b91ef832379e607f3f698694",
+    "region": "unknown",
+    "sequence_id": "sequence-fd8df192e2b1d39a0cc328a9",
+    "source_row_ids": [
+      "5c2472105d87b2451cefa2c137e678b45b21268304b1b78e92f7dd401627b9df",
+      "1cf385d30eb20383d4aee42027fada5a205ce83aa30360503f149de10c6c6285"
+    ],
+    "target_s": 1629430200.0,
+    "to_index": 36,
+    "year": 2021
+  },
+  {
+    "component_id": "CABTU009205DIXIE",
+    "from_index": 5,
+    "group_id": "group-530a9efeb00376e9a061",
+    "horizon_s": 171360.0,
+    "issue_s": 1633917420.0,
+    "pair_id": "a532f1d6dd972f8bd568171c",
+    "region": "unknown",
+    "sequence_id": "sequence-b47a292ef6b92923a72b1ce5",
+    "source_row_ids": [
+      "4f1d6088ede5a1bc25e6455e64b30943eb8231e63803adee29153afa03b0ad4d",
+      "1660224e52c79d0aba2cd244462e9ba49ab14c78945f799eb4af59b94b6f61c6"
+    ],
+    "target_s": 1634088780.0,
+    "to_index": 6,
+    "year": 2021
+  },
+  {
+    "component_id": "WAOWF000374AIRPLANELAKE",
+    "from_index": 0,
+    "group_id": "group-5324b113a5900820040c",
+    "horizon_s": 91560.0,
+    "issue_s": 1693019580.0,
+    "pair_id": "28920a018e9fc105e428b495",
+    "region": "unknown",
+    "sequence_id": "sequence-be1076568178183e34db923a",
+    "source_row_ids": [
+      "6c3af018a69fae7dbed73bdb820adbcfaedfc54e936ec1e81af50cfa81a29b76",
+      "0ccf724817438805e83cdce936a5dcf10949c27f922e3f1db955caa83e5e33d8"
+    ],
+    "target_s": 1693111140.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "WAOWF000374AIRPLANELAKE",
+    "from_index": 1,
+    "group_id": "group-5324b113a5900820040c",
+    "horizon_s": 88080.0,
+    "issue_s": 1693111140.0,
+    "pair_id": "0508b5da45c9fb75486cf68c",
+    "region": "unknown",
+    "sequence_id": "sequence-be1076568178183e34db923a",
+    "source_row_ids": [
+      "0ccf724817438805e83cdce936a5dcf10949c27f922e3f1db955caa83e5e33d8",
+      "895a3dba1787026bb26996c54136544e044b31dcb9c9dd687cd160aa41cfdaef"
+    ],
+    "target_s": 1693199220.0,
+    "to_index": 2,
+    "year": 2023
+  },
+  {
+    "component_id": "WAOWF000374AIRPLANELAKE",
+    "from_index": 2,
+    "group_id": "group-5324b113a5900820040c",
+    "horizon_s": 91020.0,
+    "issue_s": 1693199220.0,
+    "pair_id": "999ab07bca9e51155dce62cd",
+    "region": "unknown",
+    "sequence_id": "sequence-be1076568178183e34db923a",
+    "source_row_ids": [
+      "895a3dba1787026bb26996c54136544e044b31dcb9c9dd687cd160aa41cfdaef",
+      "52a7dea48df28dbc9be922129f9c9320080ff984508422db71815dd84074160e"
+    ],
+    "target_s": 1693290240.0,
+    "to_index": 3,
+    "year": 2023
+  },
+  {
+    "component_id": "AZTNF001830POLLES",
+    "from_index": 0,
+    "group_id": "group-5545547a6c1b760f7bbf",
+    "horizon_s": 42600.0,
+    "issue_s": 1593975600.0,
+    "pair_id": "59b99f4128b5b523448e399d",
+    "region": "unknown",
+    "sequence_id": "sequence-ed912e2cd96e45c90b067738",
+    "source_row_ids": [
+      "78a6970c647983b3dd50dcbbc11195a750818c1ef30acc98a7c684b4be326f2b",
+      "8c4f69e2390b95e54d15f548d64c6c120e2b591b839d4f0f1c173706e01dfaf0"
+    ],
+    "target_s": 1594018200.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "AZTNF001830POLLES",
+    "from_index": 4,
+    "group_id": "group-5545547a6c1b760f7bbf",
+    "horizon_s": 134760.0,
+    "issue_s": 1594440000.0,
+    "pair_id": "3489935c55fc2220c0c3bfe9",
+    "region": "unknown",
+    "sequence_id": "sequence-ed912e2cd96e45c90b067738",
+    "source_row_ids": [
+      "3a23cc3b6816cac3802300af14fb551cfe9204c87f11685e6c15b7728d1eb44a",
+      "593ad37597e8c080f751167f5d48c649ed980853fb5949009fcf3f7bc9c031a7"
+    ],
+    "target_s": 1594574760.0,
+    "to_index": 5,
+    "year": 2020
+  },
+  {
+    "component_id": "AZTNF001830POLLES",
+    "from_index": 7,
+    "group_id": "group-5545547a6c1b760f7bbf",
+    "horizon_s": 84900.0,
+    "issue_s": 1594705080.0,
+    "pair_id": "7fa4468d434dee2da601a2b4",
+    "region": "unknown",
+    "sequence_id": "sequence-ed912e2cd96e45c90b067738",
+    "source_row_ids": [
+      "c710d4586c47884a13f6d7aeada682331f8b09f5bab933c083c637614d850f9b",
+      "932e32d7ca7944ef79bb93fed7b8cf06b48840e4e41d489b74d54519463edbd3"
+    ],
+    "target_s": 1594789980.0,
+    "to_index": 8,
+    "year": 2020
+  },
+  {
+    "component_id": "ORMHF001199CAMPCREEK",
+    "from_index": 0,
+    "group_id": "group-55ee23bbd02e253b0fe7",
+    "horizon_s": 83580.0,
+    "issue_s": 1693113540.0,
+    "pair_id": "40f132ea8ed00f96f3d1fa5f",
+    "region": "unknown",
+    "sequence_id": "sequence-c79fcba79e0369552d4d3670",
+    "source_row_ids": [
+      "db488b0d1d361f838ff3ca0578fb5d680dbf0dc1fcf8850e7c03d1b34e9e67cf",
+      "2bf0a14cdb62df81ea027fba3e4f1c05b4a89178a070a548012d1e7bcaae5943"
+    ],
+    "target_s": 1693197120.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "ORMHF001199CAMPCREEK",
+    "from_index": 5,
+    "group_id": "group-55ee23bbd02e253b0fe7",
+    "horizon_s": 102000.0,
+    "issue_s": 1693969800.0,
+    "pair_id": "2cc5598937dea93669d088da",
+    "region": "unknown",
+    "sequence_id": "sequence-c79fcba79e0369552d4d3670",
+    "source_row_ids": [
+      "d49dba06c4e50c7cac0d3cb77b6db4bc848f406c275d954734a74ac89ba44ddf",
+      "e7b6c2bc9c7610a4be75254f73aced26257d3823598815362c2dd03164fa52ff"
+    ],
+    "target_s": 1694071800.0,
+    "to_index": 6,
+    "year": 2023
+  },
+  {
+    "component_id": "ORMHF001199CAMPCREEK",
+    "from_index": 10,
+    "group_id": "group-55ee23bbd02e253b0fe7",
+    "horizon_s": 83400.0,
+    "issue_s": 1694753400.0,
+    "pair_id": "64ae2e30ea7c883121093217",
+    "region": "unknown",
+    "sequence_id": "sequence-c79fcba79e0369552d4d3670",
+    "source_row_ids": [
+      "d30a19f2c49fa5a8844e1e4b341ff47457494253907d76f62ff33121172838c9",
+      "cc5908b881214fb97f34747611dabd8e98ee7e71e74f1f100ba3e97b078e5668"
+    ],
+    "target_s": 1694836800.0,
+    "to_index": 11,
+    "year": 2023
+  },
+  {
+    "component_id": "NVHTF500736MAHOGANY",
+    "from_index": 0,
+    "group_id": "group-58b2d3057b8d9cd38c1f",
+    "horizon_s": 80700.0,
+    "issue_s": 1593485700.0,
+    "pair_id": "f4b2718e509203889b4c035c",
+    "region": "unknown",
+    "sequence_id": "sequence-6c62df6d8783bc40a84f9c98",
+    "source_row_ids": [
+      "10caae61b40fb16829fc75f2cba3b882e121282d4528d105aa9f128706c0fce3",
+      "85f2bd14b4624041b3fca1e755bcfd51f6a38b9bb3a1b372fbcf8378b5f71000"
+    ],
+    "target_s": 1593566400.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "NVHTF500736MAHOGANY",
+    "from_index": 3,
+    "group_id": "group-58b2d3057b8d9cd38c1f",
+    "horizon_s": 90000.0,
+    "issue_s": 1593754200.0,
+    "pair_id": "3fc5709f3504ccdf35c55526",
+    "region": "unknown",
+    "sequence_id": "sequence-6c62df6d8783bc40a84f9c98",
+    "source_row_ids": [
+      "fb2301fa8261b2301068bfe41da9c7a142380045db30da604c35c0d652bd4583",
+      "8a463a4eab51ae5806ea86c1887d4cc6b29733da3fe9a0635d1a95b40b6009df"
+    ],
+    "target_s": 1593844200.0,
+    "to_index": 4,
+    "year": 2020
+  },
+  {
+    "component_id": "NVHTF500736MAHOGANY",
+    "from_index": 5,
+    "group_id": "group-58b2d3057b8d9cd38c1f",
+    "horizon_s": 167400.0,
+    "issue_s": 1593930600.0,
+    "pair_id": "32961e639850bf006ec412fd",
+    "region": "unknown",
+    "sequence_id": "sequence-6c62df6d8783bc40a84f9c98",
+    "source_row_ids": [
+      "cd83c939ffbcb0c4937eac342ca71b1caab80f43e900dc09596246b66f0a2ade",
+      "1b638dd9393d7d52137e03e1c6a24ae8acd67c8d9f9a4ec9bb9ab1f29640dfd1"
+    ],
+    "target_s": 1594098000.0,
+    "to_index": 6,
+    "year": 2020
+  },
+  {
+    "component_id": "ORWIF220180CEDARCREEK",
+    "from_index": 0,
+    "group_id": "group-59cbbb70eab0990b3092",
+    "horizon_s": 88020.0,
+    "issue_s": 1659674640.0,
+    "pair_id": "c1560c8d0f858f122199e9f9",
+    "region": "unknown",
+    "sequence_id": "sequence-82bb06671e1935360e6a9dd4",
+    "source_row_ids": [
+      "f9c02167d6cb90f14b11aca9be2f9dfc764e276d756c9108ce3a79af9e93c7d1",
+      "1de67536ca8f84a6ff4eeda4d91e3d279754ad46ecc0b5acc28622cde20d31e7"
+    ],
+    "target_s": 1659762660.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "ORWIF220180CEDARCREEK",
+    "from_index": 19,
+    "group_id": "group-59cbbb70eab0990b3092",
+    "horizon_s": 92040.0,
+    "issue_s": 1662783060.0,
+    "pair_id": "1b5c9aba467762410529604e",
+    "region": "unknown",
+    "sequence_id": "sequence-0907889c79da91c20f68ff95",
+    "source_row_ids": [
+      "615b8295579def5008295d9694e467598c76337328d2e8dcc40a196959a4b8a0",
+      "b41bfa2f332c4735259c51cc2b8e2be97865d246a62581f6b8b5766841cdee5d"
+    ],
+    "target_s": 1662875100.0,
+    "to_index": 20,
+    "year": 2022
+  },
+  {
+    "component_id": "ORWIF220180CEDARCREEK",
+    "from_index": 17,
+    "group_id": "group-59cbbb70eab0990b3092",
+    "horizon_s": 91980.0,
+    "issue_s": 1666142100.0,
+    "pair_id": "ece0a346f20107887d1d6239",
+    "region": "unknown",
+    "sequence_id": "sequence-64001c09ccb2aa0b5c662032",
+    "source_row_ids": [
+      "fe68d2c5ea77cce65c341671cbecd4647c2b5dd4d14b087a55d0c31fd71a1f1b",
+      "6b674d5cba7cc1d9a68ad1566f16f426b578b8990e5700471ce84d5cc2f0d477"
+    ],
+    "target_s": 1666234080.0,
+    "to_index": 18,
+    "year": 2022
+  },
+  {
+    "component_id": "IDSTF000351BADGER",
+    "from_index": 0,
+    "group_id": "group-61f1cbaf1cbe01fe2258",
+    "horizon_s": 172800.0,
+    "issue_s": 1600050600.0,
+    "pair_id": "d2a3b0dcea70038780259db3",
+    "region": "unknown",
+    "sequence_id": "sequence-36857cd1c4386f6be8afeaa3",
+    "source_row_ids": [
+      "7c4013c9770937ed63ccc083d41715bd68f57548fa6ac95fc152b6e0952044d4",
+      "7f3f0a657e9410c1eecdb525528de0f4222b2c697bae1c719f117356217cac31"
+    ],
+    "target_s": 1600223400.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "IDSTF000351BADGER",
+    "from_index": 4,
+    "group_id": "group-61f1cbaf1cbe01fe2258",
+    "horizon_s": 67500.0,
+    "issue_s": 1601277300.0,
+    "pair_id": "93a73526996059502e680900",
+    "region": "unknown",
+    "sequence_id": "sequence-3da4c2a1d5891e4e9a76bd03",
+    "source_row_ids": [
+      "c37022c773574e5a211a9baf4fe7165296e6bb33cf9e6de1b5679ca473bddf66",
+      "24d4c5e12deaf9e696db64a3fd2886d4888e04a043c25e5c5c3b8c12b3067290"
+    ],
+    "target_s": 1601344800.0,
+    "to_index": 5,
+    "year": 2020
+  },
+  {
+    "component_id": "IDSTF000351BADGER",
+    "from_index": 10,
+    "group_id": "group-61f1cbaf1cbe01fe2258",
+    "horizon_s": 256500.0,
+    "issue_s": 1601962200.0,
+    "pair_id": "48c7f1b5139c21b42a34fcc4",
+    "region": "unknown",
+    "sequence_id": "sequence-3da4c2a1d5891e4e9a76bd03",
+    "source_row_ids": [
+      "754edcb5da547fd2781f0006928f96fbccfee13dd23ad94283b07104a79ec62a",
+      "d37faabc9025ff17fb5df7d3f21a106f6fec76e2e4c87f7367901b7754723e56"
+    ],
+    "target_s": 1602218700.0,
+    "to_index": 11,
+    "year": 2020
+  },
+  {
+    "component_id": "CAORC136890BOND",
+    "from_index": 0,
+    "group_id": "group-6494a2cf0b4d8b4383b1",
+    "horizon_s": 95400.0,
+    "issue_s": 1607054400.0,
+    "pair_id": "dafe806101f34a04ba260641",
+    "region": "unknown",
+    "sequence_id": "sequence-beb19305aa9bf335662e0a08",
+    "source_row_ids": [
+      "b44ad28a03cf0cfccf0ffcfd2d4000bdbfdcdc960ae1578ddfe71840b6e187a6",
+      "4e91a214122635978ea0f5a6dc22e5f2de6866968efe37ee8625c10a178daf36"
+    ],
+    "target_s": 1607149800.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "CAORC136890BOND",
+    "from_index": 1,
+    "group_id": "group-6494a2cf0b4d8b4383b1",
+    "horizon_s": 81900.0,
+    "issue_s": 1607149800.0,
+    "pair_id": "dffb201d3d02ca372e1a7786",
+    "region": "unknown",
+    "sequence_id": "sequence-beb19305aa9bf335662e0a08",
+    "source_row_ids": [
+      "4e91a214122635978ea0f5a6dc22e5f2de6866968efe37ee8625c10a178daf36",
+      "78502869c16a2fba1dd6822f856d131c779c87d47f4adfb1389ecec5afcd8c6f"
+    ],
+    "target_s": 1607231700.0,
+    "to_index": 2,
+    "year": 2020
+  },
+  {
+    "component_id": "CAORC136890BOND",
+    "from_index": 2,
+    "group_id": "group-6494a2cf0b4d8b4383b1",
+    "horizon_s": 74640.0,
+    "issue_s": 1607231700.0,
+    "pair_id": "0e71da65153d958065bfb7c6",
+    "region": "unknown",
+    "sequence_id": "sequence-beb19305aa9bf335662e0a08",
+    "source_row_ids": [
+      "78502869c16a2fba1dd6822f856d131c779c87d47f4adfb1389ecec5afcd8c6f",
+      "7825a9cad9bdae75c78cb74cc2916b04f4ecfe18ec30d61c8bcd50e14f20fa50"
+    ],
+    "target_s": 1607306340.0,
+    "to_index": 3,
+    "year": 2020
+  },
+  {
+    "component_id": "COGRD000307PINEGULCH",
+    "from_index": 0,
+    "group_id": "group-6a4ac51e261f2d857904",
+    "horizon_s": 99900.0,
+    "issue_s": 1596684600.0,
+    "pair_id": "0d719b43383eec9b9cb5d339",
+    "region": "unknown",
+    "sequence_id": "sequence-92f296e0586208c2f4cafb17",
+    "source_row_ids": [
+      "be1bfcf5cfd8e543985b1a81d4af51d6d204f88c6a3b1428121b2215d75a4064",
+      "c924cde2c07ce79fd017ed7ea62c9b07f1504a930b5de68275d5e1daceb5a1ce"
+    ],
+    "target_s": 1596784500.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "COGRD000307PINEGULCH",
+    "from_index": 11,
+    "group_id": "group-6a4ac51e261f2d857904",
+    "horizon_s": 80040.0,
+    "issue_s": 1597647960.0,
+    "pair_id": "a6f6609861281d3ae9b1a78f",
+    "region": "unknown",
+    "sequence_id": "sequence-92f296e0586208c2f4cafb17",
+    "source_row_ids": [
+      "972589a34244223513af1e3a83a807f224e5949d85f40a8e6c3efc1699990793",
+      "04b5b21e23e7ddc006e332363b9a0766c43117bda0ec1186b11adbadd7f5a739"
+    ],
+    "target_s": 1597728000.0,
+    "to_index": 12,
+    "year": 2020
+  },
+  {
+    "component_id": "COGRD000307PINEGULCH",
+    "from_index": 22,
+    "group_id": "group-6a4ac51e261f2d857904",
+    "horizon_s": 85140.0,
+    "issue_s": 1598685240.0,
+    "pair_id": "3c933b631bf11464731fd8be",
+    "region": "unknown",
+    "sequence_id": "sequence-92f296e0586208c2f4cafb17",
+    "source_row_ids": [
+      "382425bb9cd917b80811f90bcfba122e2fc76926bdbf27efd3136fced7de8661",
+      "8b841298514482645e7417284225689a25ff3963091572fca3a640c049197f51"
+    ],
+    "target_s": 1598770380.0,
+    "to_index": 23,
+    "year": 2020
+  },
+  {
+    "component_id": "AZCNF000427PINNACLE",
+    "from_index": 0,
+    "group_id": "group-6d4fe4ae8f896baa114a",
+    "horizon_s": 87660.0,
+    "issue_s": 1623470640.0,
+    "pair_id": "bf0e48069fb44e554ef8febe",
+    "region": "unknown",
+    "sequence_id": "sequence-171a1014483f7a5d4b3e7448",
+    "source_row_ids": [
+      "e5f1b4c5eb24b2f0a71febb936dc2dd1ff636e1e8b1e0cb5aeae754f6d5a9bc8",
+      "18ae288c34933345da2db8b034ae787d168b6f4f2a40227c23458ed5bcd8b8da"
+    ],
+    "target_s": 1623558300.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "AZCNF000427PINNACLE",
+    "from_index": 7,
+    "group_id": "group-6d4fe4ae8f896baa114a",
+    "horizon_s": 78720.0,
+    "issue_s": 1624078920.0,
+    "pair_id": "52346b069db6588d6bc700b0",
+    "region": "unknown",
+    "sequence_id": "sequence-171a1014483f7a5d4b3e7448",
+    "source_row_ids": [
+      "449a9be70d7db54805b813f34932a14fd2bbd85ffef2c0104b32f5404dfea8e5",
+      "ac7490961d18ad429d96ba3807da0eb8819507b9b88c6558cd7b5da366db949e"
+    ],
+    "target_s": 1624157640.0,
+    "to_index": 8,
+    "year": 2021
+  },
+  {
+    "component_id": "AZCNF000427PINNACLE",
+    "from_index": 14,
+    "group_id": "group-6d4fe4ae8f896baa114a",
+    "horizon_s": 86880.0,
+    "issue_s": 1624676880.0,
+    "pair_id": "68286b7e0a2b4c64e3773609",
+    "region": "unknown",
+    "sequence_id": "sequence-171a1014483f7a5d4b3e7448",
+    "source_row_ids": [
+      "3f0c2411427ebc2fddb328b4e035ada3ecdcf47cc932e1cb83e6372bec6ffaea",
+      "3cd84d8a5cc65e8ebfabf73e51e1040ce1e0a9ecff062fba04cdc62bb95ddaee"
+    ],
+    "target_s": 1624763760.0,
+    "to_index": 15,
+    "year": 2021
+  },
+  {
+    "component_id": "NMCIF000138BEARTRAP",
+    "from_index": 0,
+    "group_id": "group-759712123d46cc98bd4b",
+    "horizon_s": 86400.0,
+    "issue_s": 1651632540.0,
+    "pair_id": "591cd5d0b55c5dedbc21228b",
+    "region": "unknown",
+    "sequence_id": "sequence-b8f02b4d27b0bd51a8b62090",
+    "source_row_ids": [
+      "bf11415caefc5cc073e1afa572ae2b8728ed3c1f4aabdaf02253a0b1046ebe03",
+      "88ce07b738a5b53fd25911ec08bd64fa41dd6104a7938f1dd3002b225029bec4"
+    ],
+    "target_s": 1651718940.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "NMCIF000138BEARTRAP",
+    "from_index": 13,
+    "group_id": "group-759712123d46cc98bd4b",
+    "horizon_s": 86940.0,
+    "issue_s": 1652758440.0,
+    "pair_id": "a0d0f95e18971415aebddc36",
+    "region": "unknown",
+    "sequence_id": "sequence-b8f02b4d27b0bd51a8b62090",
+    "source_row_ids": [
+      "4ac5a72fb0af1ca8704a4e8e975960ce7826f03dff442cafdf4986ee3b8ac41b",
+      "0170751501c0dc04539b5fabbed0f1344e8fe33b24ca3f3595f52f535563e730"
+    ],
+    "target_s": 1652845380.0,
+    "to_index": 14,
+    "year": 2022
+  },
+  {
+    "component_id": "NMCIF000138BEARTRAP",
+    "from_index": 26,
+    "group_id": "group-759712123d46cc98bd4b",
+    "horizon_s": 85500.0,
+    "issue_s": 1653970800.0,
+    "pair_id": "58d35ed9623a9e34cbd984c4",
+    "region": "unknown",
+    "sequence_id": "sequence-b8f02b4d27b0bd51a8b62090",
+    "source_row_ids": [
+      "2f07c8e99fc7f4ac706219c18644ca6c13bf5d202b4558b6d430e65b277c37c4",
+      "de00c58c07c220961013a5fded61ad2fd635440cefc90c403af948d264120d41"
+    ],
+    "target_s": 1654056300.0,
+    "to_index": 27,
+    "year": 2022
+  },
+  {
+    "component_id": "ORMAF002502FALLS",
+    "from_index": 0,
+    "group_id": "group-7660112979b27796a538",
+    "horizon_s": 71220.0,
+    "issue_s": 1720949520.0,
+    "pair_id": "eaf40a5217773a7423167dad",
+    "region": "unknown",
+    "sequence_id": "sequence-e879cb1b24d3d9b88c9d37ba",
+    "source_row_ids": [
+      "4c5ec0f8612d75e186b0e4c925e66f410fce8f89e20b235370c4c2b8bb8d8163",
+      "6d4566c23210e24e21b4d2712885cccb8923a5075ba19eb5bf1a248c20f8c9ff"
+    ],
+    "target_s": 1721020740.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "ORMAF002502FALLS",
+    "from_index": 1,
+    "group_id": "group-7660112979b27796a538",
+    "horizon_s": 87360.0,
+    "issue_s": 1722483840.0,
+    "pair_id": "790aa935e62ac6b16923ef86",
+    "region": "unknown",
+    "sequence_id": "sequence-2b12fcffe984b6a5bafa53b8",
+    "source_row_ids": [
+      "6143099f5266fe563bc9cc5bb34c7cef89374f8ae772b4dfffee92e1be0ea347",
+      "dd23b7af6524c60aa177d669421b75d566097cbdc5cdaddb460da4b5be9fafcf"
+    ],
+    "target_s": 1722571200.0,
+    "to_index": 2,
+    "year": 2024
+  },
+  {
+    "component_id": "ORMAF002502FALLS",
+    "from_index": 14,
+    "group_id": "group-7660112979b27796a538",
+    "horizon_s": 79260.0,
+    "issue_s": 1723700100.0,
+    "pair_id": "c186179a1627dece03288534",
+    "region": "unknown",
+    "sequence_id": "sequence-2b12fcffe984b6a5bafa53b8",
+    "source_row_ids": [
+      "70a78a538b35db12e4786065398764572b21330d80f4dbc8457e1b3791b2778b",
+      "4b95a2d8fdc5e8c83e8157b44797f3287b58d70cad4dbee278181b9971577bf8"
+    ],
+    "target_s": 1723779360.0,
+    "to_index": 15,
+    "year": 2024
+  },
+  {
+    "component_id": "AZCNF000413BIGHORN",
+    "from_index": 0,
+    "group_id": "group-7df308fa855febd965ca",
+    "horizon_s": 84960.0,
+    "issue_s": 1591680720.0,
+    "pair_id": "ffac079ac5726be9ada5402a",
+    "region": "unknown",
+    "sequence_id": "sequence-9b2652058fb02eeaea6f62d4",
+    "source_row_ids": [
+      "17dd605570aebd0ddc24736c7f274441e90e69976512d18b02f988398fc8831d",
+      "f12fefe262dd63a2a0b364c489ac908853ac4d8452441dcd373021ba797d8b39"
+    ],
+    "target_s": 1591765680.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "AZCNF000413BIGHORN",
+    "from_index": 14,
+    "group_id": "group-7df308fa855febd965ca",
+    "horizon_s": 87360.0,
+    "issue_s": 1592883360.0,
+    "pair_id": "ce5d04d24a4cfee6f07075a6",
+    "region": "unknown",
+    "sequence_id": "sequence-9b2652058fb02eeaea6f62d4",
+    "source_row_ids": [
+      "d96500f74002f6adbcc15acfbb5bc6a3cfd0820c40f73d186b5cfb889ef050ab",
+      "857e9ca6d453d870d1925bba5007726bbe2101eee939da7934191c23d8e14f15"
+    ],
+    "target_s": 1592970720.0,
+    "to_index": 15,
+    "year": 2020
+  },
+  {
+    "component_id": "AZCNF000413BIGHORN",
+    "from_index": 27,
+    "group_id": "group-7df308fa855febd965ca",
+    "horizon_s": 168540.0,
+    "issue_s": 1594449300.0,
+    "pair_id": "11229eaceae16bf4ec38ab1a",
+    "region": "unknown",
+    "sequence_id": "sequence-9b2652058fb02eeaea6f62d4",
+    "source_row_ids": [
+      "dc4081d7e1f1e6accaf42b1bbad7abc03c6556da7a083d867e646351adc248b5",
+      "e0943b18ebc584a93788f0c8e9702ef37cdc83485e198741157b49c18fff07a0"
+    ],
+    "target_s": 1594617840.0,
+    "to_index": 28,
+    "year": 2020
+  },
+  {
+    "component_id": "NMCIF000223VICSPEAK",
+    "from_index": 0,
+    "group_id": "group-7f11ad259b1d51f6cecb",
+    "horizon_s": 83160.0,
+    "issue_s": 1592623320.0,
+    "pair_id": "bccda00b4d3e75c3d35d3a68",
+    "region": "unknown",
+    "sequence_id": "sequence-3a70aabd64e4b63c364b11b1",
+    "source_row_ids": [
+      "1d5725fc44c7ccda511edefab4dda541f59d186cb876aa352d922a7f00e035f6",
+      "aa2d091a2d86f813908f61db2b334789aee31773c9f261fdf0e80e703cc75e36"
+    ],
+    "target_s": 1592706480.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "NMCIF000223VICSPEAK",
+    "from_index": 10,
+    "group_id": "group-7f11ad259b1d51f6cecb",
+    "horizon_s": 88740.0,
+    "issue_s": 1593659580.0,
+    "pair_id": "fbcae5b0ed2e10fe5fc29106",
+    "region": "unknown",
+    "sequence_id": "sequence-3a70aabd64e4b63c364b11b1",
+    "source_row_ids": [
+      "8c7f1d19098cd21e699c5708a7805cf5fd0575fd18236c4a87d12458ee6faa37",
+      "e8c2b63362c0a413b09a7bb5adb2cd475e705872433ba2f1bdb7b2cc3ce6dcaa"
+    ],
+    "target_s": 1593748320.0,
+    "to_index": 11,
+    "year": 2020
+  },
+  {
+    "component_id": "NMCIF000223VICSPEAK",
+    "from_index": 20,
+    "group_id": "group-7f11ad259b1d51f6cecb",
+    "horizon_s": 166860.0,
+    "issue_s": 1594614240.0,
+    "pair_id": "5fba8561d5713aafebdb29bd",
+    "region": "unknown",
+    "sequence_id": "sequence-3a70aabd64e4b63c364b11b1",
+    "source_row_ids": [
+      "b222268b6ee0e712124641c245eb80676742ec9eb0855eaba30605c4a611f772",
+      "43c129312e6c860bc5ed51b16ea8fdadaa1dc9a51c093386ec6e10f8274675a0"
+    ],
+    "target_s": 1594781100.0,
+    "to_index": 21,
+    "year": 2020
+  },
+  {
+    "component_id": "NMGNF000191PASS",
+    "from_index": 0,
+    "group_id": "group-8015a2263676790d0133",
+    "horizon_s": 183600.0,
+    "issue_s": 1685340900.0,
+    "pair_id": "dddecf3fbc6e2457887ad253",
+    "region": "unknown",
+    "sequence_id": "sequence-4e103d9040cb54422d74e999",
+    "source_row_ids": [
+      "37f1d55625e6f095c1370653ec1a93bebdfe17b1cd02c139c1e91b782219b30f",
+      "9eb92fe65bd57fa73a13a84224fab51440cc6ec07bfbf443590ecae12f228cc9"
+    ],
+    "target_s": 1685524500.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "NMGNF000191PASS",
+    "from_index": 2,
+    "group_id": "group-8015a2263676790d0133",
+    "horizon_s": 84300.0,
+    "issue_s": 1687232700.0,
+    "pair_id": "72e5e1b4043d14bbf2cbc052",
+    "region": "unknown",
+    "sequence_id": "sequence-206b36bf0cff6b0469ce3f95",
+    "source_row_ids": [
+      "08de523d03dcf44fc572ece7df6dbc4e9dfb93e74d9a4a5524d08c6cf51bc08d",
+      "0a4abb82c2189ad44975fa01300cae9868e160172de0bf4fd4853500a5bd686b"
+    ],
+    "target_s": 1687317000.0,
+    "to_index": 3,
+    "year": 2023
+  },
+  {
+    "component_id": "NMGNF000191PASS",
+    "from_index": 18,
+    "group_id": "group-8015a2263676790d0133",
+    "horizon_s": 81240.0,
+    "issue_s": 1688801520.0,
+    "pair_id": "d2c51cc59bd28fddcabc3ecb",
+    "region": "unknown",
+    "sequence_id": "sequence-206b36bf0cff6b0469ce3f95",
+    "source_row_ids": [
+      "69b6593048e162ebf22a193d4b131f0446e979d53e7d8810a33ff919c5e7693a",
+      "ad3d146af698cde8463306c17930e0c069db17ccac6f8987481d68939fbb1367"
+    ],
+    "target_s": 1688882760.0,
+    "to_index": 19,
+    "year": 2023
+  },
+  {
+    "component_id": "WACOF002348BULLDOGMTN",
+    "from_index": 0,
+    "group_id": "group-80a68908ae9bbdce5226",
+    "horizon_s": 87540.0,
+    "issue_s": 1629514200.0,
+    "pair_id": "f6d989ab8aada188f2f954a7",
+    "region": "unknown",
+    "sequence_id": "sequence-c6f8b27e975471b7deda72cb",
+    "source_row_ids": [
+      "6c7352200821dbead39791700c71f833418ad23122a690f5e4a6e2f15405e55d",
+      "2605d2216dba2375f1bb78f5c62c70be5094f6bf2066bad292804ea8c2fc42c6"
+    ],
+    "target_s": 1629601740.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "WACOF002348MACKMTN",
+    "from_index": 7,
+    "group_id": "group-80a68908ae9bbdce5226",
+    "horizon_s": 77640.0,
+    "issue_s": 1630217160.0,
+    "pair_id": "26ff84c6c0da8eab68f89638",
+    "region": "unknown",
+    "sequence_id": "sequence-1515a90b1e9d944704e334ea",
+    "source_row_ids": [
+      "a8048efa4a95d610c997b6090d45ea76f3d1362b9ad5130bb10f20b372717f34",
+      "98e8384e8641b0086a01e25c143f8fe2c3f40d38e38906ee5975ad369b6f3689"
+    ],
+    "target_s": 1630294800.0,
+    "to_index": 8,
+    "year": 2021
+  },
+  {
+    "component_id": "WACOF002348BULLDOGMTN",
+    "from_index": 14,
+    "group_id": "group-80a68908ae9bbdce5226",
+    "horizon_s": 176760.0,
+    "issue_s": 1630988040.0,
+    "pair_id": "49db1fd76a28e9bedcc610c4",
+    "region": "unknown",
+    "sequence_id": "sequence-c6f8b27e975471b7deda72cb",
+    "source_row_ids": [
+      "f84f6234371eea2d185e97e9beac05ad914770f051f5cf46404b62c449d31114",
+      "f004fc5f68291ca91d6d251b6d3046e0c9ab100ff298bc37ef5ba95a66ab8548"
+    ],
+    "target_s": 1631164800.0,
+    "to_index": 15,
+    "year": 2021
+  },
+  {
+    "component_id": "ORWIF220170POTTER",
+    "from_index": 0,
+    "group_id": "group-80ee1cf3c27cbae613d1",
+    "horizon_s": 36720.0,
+    "issue_s": 1659549600.0,
+    "pair_id": "8694459deccaa136ebd633de",
+    "region": "unknown",
+    "sequence_id": "sequence-9b167fb57a0bb04d0daf38b6",
+    "source_row_ids": [
+      "a2a2e94aec127662ef96342fca97dc12a5b920886766856ac8c6834cfec00af2",
+      "d793f043d874a35ee87b33ccdc00bea906fe9ad7b3bc74b9d40bc7b32ac9b006"
+    ],
+    "target_s": 1659586320.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "ORWIF220170POTTER",
+    "from_index": 17,
+    "group_id": "group-80ee1cf3c27cbae613d1",
+    "horizon_s": 87180.0,
+    "issue_s": 1660967880.0,
+    "pair_id": "409458f62cfd7df12ecc8e9f",
+    "region": "unknown",
+    "sequence_id": "sequence-9b167fb57a0bb04d0daf38b6",
+    "source_row_ids": [
+      "18956ab0ca1090d2551e6a2626081e9120a05dc321705455974f045785c52b51",
+      "c4d248030eef4d71b5277314942c9179f1544488fcdec450cded48300d45a5d6"
+    ],
+    "target_s": 1661055060.0,
+    "to_index": 18,
+    "year": 2022
+  },
+  {
+    "component_id": "ORWIF220170POTTER",
+    "from_index": 34,
+    "group_id": "group-80ee1cf3c27cbae613d1",
+    "horizon_s": 91080.0,
+    "issue_s": 1662781980.0,
+    "pair_id": "bb1567ff8c72a8393a73061d",
+    "region": "unknown",
+    "sequence_id": "sequence-9b167fb57a0bb04d0daf38b6",
+    "source_row_ids": [
+      "04d6a69a46b452006ee6b2b578a370eb962bcc8cd446e2c9c890086e846592e3",
+      "9e9abac76554192381b47142ec03b2d7051fbbdcc74f97c55c5a659dfc062653"
+    ],
+    "target_s": 1662873060.0,
+    "to_index": 35,
+    "year": 2022
+  },
+  {
+    "component_id": "ORRSF000413ANVIL",
+    "from_index": 0,
+    "group_id": "group-81d8849f4f5a0af28b6c",
+    "horizon_s": 161760.0,
+    "issue_s": 1693205940.0,
+    "pair_id": "9d90c5690ab7c4becc03da53",
+    "region": "unknown",
+    "sequence_id": "sequence-191819135fc7727ca0a55399",
+    "source_row_ids": [
+      "9245b5fec71a1a40b43e7e55cd31f76943373a8b315a6345e2348488219bdcc4",
+      "d3b79705ad8dbfdcf243221c269226da74f905d6f126513ccc6fb23962422a95"
+    ],
+    "target_s": 1693367700.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "ORRSF000413ANVIL",
+    "from_index": 10,
+    "group_id": "group-81d8849f4f5a0af28b6c",
+    "horizon_s": 79200.0,
+    "issue_s": 1694665800.0,
+    "pair_id": "f4c06b095ee07baf21ecb223",
+    "region": "unknown",
+    "sequence_id": "sequence-9f3132063f1bdc510af6bf6a",
+    "source_row_ids": [
+      "4539773c41538303b1d7a262cfee1fa025a11adcaa6b1118e50b7e2289342888",
+      "0580f446d14baec22a5d9148d6f794462de196813668e0fde5b9d46213487e18"
+    ],
+    "target_s": 1694745000.0,
+    "to_index": 11,
+    "year": 2023
+  },
+  {
+    "component_id": "ORRSF000413ANVIL",
+    "from_index": 5,
+    "group_id": "group-81d8849f4f5a0af28b6c",
+    "horizon_s": 93600.0,
+    "issue_s": 1696646400.0,
+    "pair_id": "94f1ecb45a8ee894b0670cdf",
+    "region": "unknown",
+    "sequence_id": "sequence-d86de8537772b6e8f6df44ad",
+    "source_row_ids": [
+      "fa1e007f8f57307e24b8db0b60fbec71e04c525fb9112042d2c9cb47b9d88d89",
+      "85db74f1b2bb77437168c7a9f7d2178ba8c38b288cc6694047a61096fe930c38"
+    ],
+    "target_s": 1696740000.0,
+    "to_index": 6,
+    "year": 2023
+  },
+  {
+    "component_id": "CAKNF006385RIVERCOMPLEXCRONAN",
+    "from_index": 0,
+    "group_id": "group-83b2567420b13103ac61",
+    "horizon_s": 80700.0,
+    "issue_s": 1627972500.0,
+    "pair_id": "dc746ca410b835021877b696",
+    "region": "unknown",
+    "sequence_id": "sequence-a41b2c874235887264784183",
+    "source_row_ids": [
+      "aa67c56e649d31d166f8f93f5f2126d03c8fe4c6e9200419f73068f0c072ea16",
+      "7b5d4ca48fd8bcb86f4bb49df642dc8babfa870423f91a44362e30964c649e62"
+    ],
+    "target_s": 1628053200.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "CAKNF006385RIVERCOMPLEXCRONAN",
+    "from_index": 36,
+    "group_id": "group-83b2567420b13103ac61",
+    "horizon_s": 87300.0,
+    "issue_s": 1631062800.0,
+    "pair_id": "0965cf6fdc032d081c4c4f17",
+    "region": "unknown",
+    "sequence_id": "sequence-a41b2c874235887264784183",
+    "source_row_ids": [
+      "7e4e100d81ae32ef5e7ffecf7b799ef3cb48245d5bc3d209d4c85d50e19815e7",
+      "a032cc971359b172a1cd77f1b3decfaff6209929f238aad4c04559d02f330711"
+    ],
+    "target_s": 1631150100.0,
+    "to_index": 37,
+    "year": 2021
+  },
+  {
+    "component_id": "CAKNF006385RIVERCOMPLEXRIVERCOMPLEX",
+    "from_index": 71,
+    "group_id": "group-83b2567420b13103ac61",
+    "horizon_s": 174000.0,
+    "issue_s": 1634434800.0,
+    "pair_id": "67d48ea54ead2b3b827e67eb",
+    "region": "unknown",
+    "sequence_id": "sequence-3e15d6a87c2abb5c76245c7c",
+    "source_row_ids": [
+      "8ccda9a1ef00148a764d7878a24639f49e4ee340f3ba466d67b13dddbd8e9bad",
+      "f237de6e1c5abdc3483224a32e547aee8608c055ae0eda7a771e72548c73646e"
+    ],
+    "target_s": 1634608800.0,
+    "to_index": 72,
+    "year": 2021
+  },
+  {
+    "component_id": "IDBOF000683WAPITIWAPITI",
+    "from_index": 0,
+    "group_id": "group-84cf5e2db922bb8ae0a6",
+    "horizon_s": 95100.0,
+    "issue_s": 1722839820.0,
+    "pair_id": "0932176ee7ab44e087b6274c",
+    "region": "unknown",
+    "sequence_id": "sequence-b9f96c99770398b120f26c3a",
+    "source_row_ids": [
+      "e89f1f2a9ed509d806eba22b8a4307151f502fbd80e8ffd67bd731f09e070785",
+      "8b4496e98003415e48cf1c4f963fac0fd48e5f00638fcaa40a13c24e0bc6fc21"
+    ],
+    "target_s": 1722934920.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "IDBOF000683WAPITIWAPITI",
+    "from_index": 31,
+    "group_id": "group-84cf5e2db922bb8ae0a6",
+    "horizon_s": 82380.0,
+    "issue_s": 1725597540.0,
+    "pair_id": "1fa6593e75927d2b91ad777a",
+    "region": "unknown",
+    "sequence_id": "sequence-b9f96c99770398b120f26c3a",
+    "source_row_ids": [
+      "38d6436877eb0cb5697858a0408f9c816e965799678350a98a3d425172b02db2",
+      "f1faadb9594ccd1620011144d1cdbe15f25ccb936eaf6399d9ede7e57e7f61b7"
+    ],
+    "target_s": 1725679920.0,
+    "to_index": 32,
+    "year": 2024
+  },
+  {
+    "component_id": "IDBOF000683WAPITIWAPITI",
+    "from_index": 19,
+    "group_id": "group-84cf5e2db922bb8ae0a6",
+    "horizon_s": 258300.0,
+    "issue_s": 1729043160.0,
+    "pair_id": "0a592abfe6927a06315a8a95",
+    "region": "unknown",
+    "sequence_id": "sequence-08e3ceaa9292c8045d8aad91",
+    "source_row_ids": [
+      "2f931d47f3873a05b80d4e018637cc8395a0ebe27bcadb2d92e291c691d71ebe",
+      "6ad7c18d74ebca78734a2969fcc2a762e0c7fd65fa54e48ee5e2b92ee8e417e7"
+    ],
+    "target_s": 1729301460.0,
+    "to_index": 20,
+    "year": 2024
+  },
+  {
+    "component_id": "AZFTA000555COTTONWOODRIDGE",
+    "from_index": 0,
+    "group_id": "group-8773c6666f94dce58bbc",
+    "horizon_s": 177600.0,
+    "issue_s": 1690431060.0,
+    "pair_id": "c0582010870c1242d443968f",
+    "region": "unknown",
+    "sequence_id": "sequence-3383f8fb2318168fe49cb081",
+    "source_row_ids": [
+      "8c56926328c2e367c25aaaf9800f93a29881c1ec9afd984f5d0bc5483904607a",
+      "85d245b7038d1193a2f95ff8ff1d40c6421e55d73c898101249c5045b738fe68"
+    ],
+    "target_s": 1690608660.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "AZFTA000555COTTONWOODRIDGE",
+    "from_index": 4,
+    "group_id": "group-8773c6666f94dce58bbc",
+    "horizon_s": 86580.0,
+    "issue_s": 1691036760.0,
+    "pair_id": "2ca18f3b70ba163a99822470",
+    "region": "unknown",
+    "sequence_id": "sequence-3383f8fb2318168fe49cb081",
+    "source_row_ids": [
+      "15ca07b2d793f05518b27d47c057469eb2504d91aae21c2e67deab5199d8ecea",
+      "b05e02dd51bb1e4bee2e686a4d53c21b4624629e0b3d8bc144a40873c6d29f16"
+    ],
+    "target_s": 1691123340.0,
+    "to_index": 5,
+    "year": 2023
+  },
+  {
+    "component_id": "AZFTA000555COTTONWOODRIDGE",
+    "from_index": 7,
+    "group_id": "group-8773c6666f94dce58bbc",
+    "horizon_s": 83100.0,
+    "issue_s": 1691296560.0,
+    "pair_id": "52ef3ba11543c557fe5b8077",
+    "region": "unknown",
+    "sequence_id": "sequence-3383f8fb2318168fe49cb081",
+    "source_row_ids": [
+      "33baeee017ed081df34674eb13549bfbf216b6f4ba43839dfbb998d03596a097",
+      "41413792e60fda68bb6a59d4a663f144b962b409539c7e98c88757e5eb6ca324"
+    ],
+    "target_s": 1691379660.0,
+    "to_index": 8,
+    "year": 2023
+  },
+  {
+    "component_id": "IDBOF000900SNAG",
+    "from_index": 0,
+    "group_id": "group-9430b953317299db21e8",
+    "horizon_s": 72120.0,
+    "issue_s": 1723103520.0,
+    "pair_id": "21e3f4e77330f53cae2d94d3",
+    "region": "unknown",
+    "sequence_id": "sequence-6f2255983084b098ea4c08b9",
+    "source_row_ids": [
+      "e52697a0fe19639143b60873d4572196fe8cf69504f0ca963eacfc20e1d24e6e",
+      "9135517c93337fa43ab52a5b5016f2dede76e2b7d69f44cebb7a84b9c284d023"
+    ],
+    "target_s": 1723175640.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "IDBOF000900SNAG",
+    "from_index": 26,
+    "group_id": "group-9430b953317299db21e8",
+    "horizon_s": 89220.0,
+    "issue_s": 1725596040.0,
+    "pair_id": "29df9c393f4d3b7ca2e6c062",
+    "region": "unknown",
+    "sequence_id": "sequence-6f2255983084b098ea4c08b9",
+    "source_row_ids": [
+      "0cb5ce3678198cef4caaa9c42146068888d9dab53fc0ebe928270f61b8c93925",
+      "ad8508aab71e113f842ffd2fcc42229938c453dba81ca4c58d4781593086ceb3"
+    ],
+    "target_s": 1725685260.0,
+    "to_index": 27,
+    "year": 2024
+  },
+  {
+    "component_id": "IDBOF000900SNAG",
+    "from_index": 2,
+    "group_id": "group-9430b953317299db21e8",
+    "horizon_s": 245220.0,
+    "issue_s": 1729058160.0,
+    "pair_id": "f58742b92d9fe5a69c61146f",
+    "region": "unknown",
+    "sequence_id": "sequence-025a11854405a0718f6fd999",
+    "source_row_ids": [
+      "2994deca5bf80cc4ad3e9c4c82792e1c757256f675770bf0eb294be221cecbca",
+      "4664e2eb2ceebcd776822d704497422abe883ef17d7543521251bef5694bc41a"
+    ],
+    "target_s": 1729303380.0,
+    "to_index": 3,
+    "year": 2024
+  },
+  {
+    "component_id": "NVHTF030419TAMARACK",
+    "from_index": 0,
+    "group_id": "group-9490ea80a1f63739f8a0",
+    "horizon_s": 180000.0,
+    "issue_s": 1626571800.0,
+    "pair_id": "f1a1746b90b83a32ee904222",
+    "region": "unknown",
+    "sequence_id": "sequence-991d7b22a077c4a40fad9019",
+    "source_row_ids": [
+      "dc7b885ba4b0ad1680ee10a25d3c52f7d27ac58f59294c28bc7eb39873a0c330",
+      "2fbb0a77140e6286d689076c2854fccee991045316a2cea6eb130f2019b13df6"
+    ],
+    "target_s": 1626751800.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "NVHTF030419TAMARACK",
+    "from_index": 8,
+    "group_id": "group-9490ea80a1f63739f8a0",
+    "horizon_s": 88200.0,
+    "issue_s": 1627348200.0,
+    "pair_id": "c457388c84449b23fbbbf265",
+    "region": "unknown",
+    "sequence_id": "sequence-991d7b22a077c4a40fad9019",
+    "source_row_ids": [
+      "4ff8e17deca3569017e7add0d14eb4c669f784ee4bae3b4cb9cc9f6650e6e99b",
+      "8bc6d0bc6fa13df899a0bf118f951e9e7742f8341f8ad17e32f21525d2d41dd6"
+    ],
+    "target_s": 1627436400.0,
+    "to_index": 9,
+    "year": 2021
+  },
+  {
+    "component_id": "NVHTF030419TAMARACK",
+    "from_index": 15,
+    "group_id": "group-9490ea80a1f63739f8a0",
+    "horizon_s": 177000.0,
+    "issue_s": 1627953300.0,
+    "pair_id": "d93bbb55e39a137c428ff5d4",
+    "region": "unknown",
+    "sequence_id": "sequence-991d7b22a077c4a40fad9019",
+    "source_row_ids": [
+      "17d6340aa27322c3c3de418096e1af913a18d6805c5fb92fdfb370be0903e82c",
+      "2cb7d0bd299ee6a03efd53758c85cdb593fae7f47cd3b6621ea192e537ad9f9a"
+    ],
+    "target_s": 1628130300.0,
+    "to_index": 16,
+    "year": 2021
+  },
+  {
+    "component_id": "AZA4S000950CENTRAL",
+    "from_index": 0,
+    "group_id": "group-94f8ea1caae39fa6f313",
+    "horizon_s": 95160.0,
+    "issue_s": 1592710920.0,
+    "pair_id": "ade262d51d6a618a388375bb",
+    "region": "unknown",
+    "sequence_id": "sequence-057253b40177eafe43e10b67",
+    "source_row_ids": [
+      "61e25c7a25f418442e921299558b637d8a077536f7989f241df53290e160a8f0",
+      "6d52c07640e115a6ee9a4d7269ceb11f1bfb14a90e699dac8648588de9c19521"
+    ],
+    "target_s": 1592806080.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "AZA4S000950CENTRAL",
+    "from_index": 3,
+    "group_id": "group-94f8ea1caae39fa6f313",
+    "horizon_s": 166320.0,
+    "issue_s": 1592975580.0,
+    "pair_id": "cc12dd9aae06cba32e84d972",
+    "region": "unknown",
+    "sequence_id": "sequence-057253b40177eafe43e10b67",
+    "source_row_ids": [
+      "818681b9c9a2c0e2cf99fa11c37d6fc3ce3f5b7a09809581bb04f7ec5f180896",
+      "b57d00ca8c9c7c02015d766d71da2310b45cd66c557989a10909ffcbb48714ec"
+    ],
+    "target_s": 1593141900.0,
+    "to_index": 4,
+    "year": 2020
+  },
+  {
+    "component_id": "AZA4S000950CENTRAL",
+    "from_index": 6,
+    "group_id": "group-94f8ea1caae39fa6f313",
+    "horizon_s": 159360.0,
+    "issue_s": 1593314100.0,
+    "pair_id": "569014f93ce3d4aa2e04ab8b",
+    "region": "unknown",
+    "sequence_id": "sequence-057253b40177eafe43e10b67",
+    "source_row_ids": [
+      "98e928b6486f2c62609435c536fd3412d2ad8ab85b59521e170ef3337e5b9f51",
+      "06e33027c233f0fb44eda534ce630a48e3508e342cc5b22975504fd66369c4f2"
+    ],
+    "target_s": 1593473460.0,
+    "to_index": 7,
+    "year": 2020
+  },
+  {
+    "component_id": "IDBOF000699BULLTROUT",
+    "from_index": 0,
+    "group_id": "group-982415cd60e418fecbec",
+    "horizon_s": 255720.0,
+    "issue_s": 1722570660.0,
+    "pair_id": "2f959e63677eb74b455b3ae4",
+    "region": "unknown",
+    "sequence_id": "sequence-31024d578280f9cd8dc09ec8",
+    "source_row_ids": [
+      "5520a7c60e7f26cdc99f9ec8f419f3e6dea781faa9618ec5ffb120ec11e0bcca",
+      "db2568b375e4841dad14ad3c04a9c815b01324b80a94745f821678655515e606"
+    ],
+    "target_s": 1722826380.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "IDBOF000699BULLTROUT",
+    "from_index": 4,
+    "group_id": "group-982415cd60e418fecbec",
+    "horizon_s": 69900.0,
+    "issue_s": 1723103940.0,
+    "pair_id": "a713b36ae8b66eefd8f47f24",
+    "region": "unknown",
+    "sequence_id": "sequence-31024d578280f9cd8dc09ec8",
+    "source_row_ids": [
+      "b57eb5dc3af9a97be0d79cde12569bf12d83997e935fd1b4a6546af51c9a2205",
+      "66aa7ebf5caf36a19de93f63aa511cc952c008a1e9acb6b6666762fd005c4e54"
+    ],
+    "target_s": 1723173840.0,
+    "to_index": 5,
+    "year": 2024
+  },
+  {
+    "component_id": "IDBOF000699BULLTROUT",
+    "from_index": 8,
+    "group_id": "group-982415cd60e418fecbec",
+    "horizon_s": 73740.0,
+    "issue_s": 1723448640.0,
+    "pair_id": "57039221f8e32f297a916e67",
+    "region": "unknown",
+    "sequence_id": "sequence-31024d578280f9cd8dc09ec8",
+    "source_row_ids": [
+      "c99e6812982f564e6f2ac41023bde4b6eeac44e85490cade494c6a3bdd948cd4",
+      "3272d4f18c0638d02c6d70978800731a8d0341a667b94f9d01e32f3f6886601c"
+    ],
+    "target_s": 1723522380.0,
+    "to_index": 9,
+    "year": 2024
+  },
+  {
+    "component_id": "NVHTF500917COTTONWOOD",
+    "from_index": 0,
+    "group_id": "group-98bef1dc9b1fc7263ae6",
+    "horizon_s": 86400.0,
+    "issue_s": 1595385000.0,
+    "pair_id": "8f7c74488d993b49659b485b",
+    "region": "unknown",
+    "sequence_id": "sequence-f6a428bf8fb8226578b9d2be",
+    "source_row_ids": [
+      "d51c980d8921a3113c7ca3e3e8164d83b103d01323dcd33b25387681fcf1d425",
+      "dcdb7ca9a56f9b666196891a9e3b1de66ddf281f42282a8471cfa874cbafb16f"
+    ],
+    "target_s": 1595471400.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "NVHTF500917COTTONWOOD",
+    "from_index": 1,
+    "group_id": "group-98bef1dc9b1fc7263ae6",
+    "horizon_s": 97200.0,
+    "issue_s": 1595471400.0,
+    "pair_id": "929f4d0cc36f7ef5d32f4388",
+    "region": "unknown",
+    "sequence_id": "sequence-f6a428bf8fb8226578b9d2be",
+    "source_row_ids": [
+      "dcdb7ca9a56f9b666196891a9e3b1de66ddf281f42282a8471cfa874cbafb16f",
+      "dc5d71b3a5a4d8b9d802908c301fa70ace90655651cb118a6e5fa90b1831a26d"
+    ],
+    "target_s": 1595568600.0,
+    "to_index": 2,
+    "year": 2020
+  },
+  {
+    "component_id": "MTHLF000182MOORSMOUNTAIN",
+    "from_index": 0,
+    "group_id": "group-9938991990b7035a565f",
+    "horizon_s": 84420.0,
+    "issue_s": 1658548380.0,
+    "pair_id": "c72c5a57c51b0ad519f0a8d1",
+    "region": "unknown",
+    "sequence_id": "sequence-f0da648f7b37432ea8aa2f7f",
+    "source_row_ids": [
+      "98e5756ddbf3c38ef972df942e3ab8ebcb2beacc53473a3fd4a0d1dedcca5a7a",
+      "b98ff4f476c5ec9f066a9c31287e3130695a2a860d82ddfa04e45cc76352ae6f"
+    ],
+    "target_s": 1658632800.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "MTHLF000182MOORSMOUNTAIN",
+    "from_index": 1,
+    "group_id": "group-9938991990b7035a565f",
+    "horizon_s": 87180.0,
+    "issue_s": 1658632800.0,
+    "pair_id": "78859899eb606d0a09fa3a28",
+    "region": "unknown",
+    "sequence_id": "sequence-f0da648f7b37432ea8aa2f7f",
+    "source_row_ids": [
+      "b98ff4f476c5ec9f066a9c31287e3130695a2a860d82ddfa04e45cc76352ae6f",
+      "a9481830af2d9f77a04519e1c01bb47877e883b8b6eb0ff058319bd3b9f5fb45"
+    ],
+    "target_s": 1658719980.0,
+    "to_index": 2,
+    "year": 2022
+  },
+  {
+    "component_id": "WANES002246FORDCORKSCREW",
+    "from_index": 0,
+    "group_id": "group-9aaae96175b4e3b1424f",
+    "horizon_s": 175200.0,
+    "issue_s": 1629170400.0,
+    "pair_id": "85cd6fe4265eadcd3accbe07",
+    "region": "unknown",
+    "sequence_id": "sequence-1de0026a3249000266698691",
+    "source_row_ids": [
+      "216f5c28897af6736da5fd97d1a6faeede57a8efffea2c176da3f19fd4747388",
+      "ef7917e346efd497b28a08af625cee14becb4747649c3aa608d1b2f07f4648c7"
+    ],
+    "target_s": 1629345600.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "WANES002246FORDCORKSCREW",
+    "from_index": 5,
+    "group_id": "group-9aaae96175b4e3b1424f",
+    "horizon_s": 84600.0,
+    "issue_s": 1629779400.0,
+    "pair_id": "70df38790778c93cd4d3a510",
+    "region": "unknown",
+    "sequence_id": "sequence-1de0026a3249000266698691",
+    "source_row_ids": [
+      "58c9e188078098a563c82596f22945288197790cc4d24031e65031bad97fddb8",
+      "ef99d7170669c7d39239d48c77ae68794a5a857b7477ac7d5d2ae0cba44369d4"
+    ],
+    "target_s": 1629864000.0,
+    "to_index": 6,
+    "year": 2021
+  },
+  {
+    "component_id": "WANES002246FORDCORKSCREW",
+    "from_index": 10,
+    "group_id": "group-9aaae96175b4e3b1424f",
+    "horizon_s": 78300.0,
+    "issue_s": 1630220400.0,
+    "pair_id": "b9eb2681f3db5bbde7df9b1a",
+    "region": "unknown",
+    "sequence_id": "sequence-1de0026a3249000266698691",
+    "source_row_ids": [
+      "37455ef9a5e8fb4e6ef6d7042c4a4b182b6ac09922c48d18e0f273d53d2942f1",
+      "30b890634b33bff6d1260f9b7ffea7b2e56390abb445ef4c339e63eb69cad4bc"
+    ],
+    "target_s": 1630298700.0,
+    "to_index": 11,
+    "year": 2021
+  },
+  {
+    "component_id": "ORWIF230266BEDROCK",
+    "from_index": 0,
+    "group_id": "group-9cc4f04b6aa44116b68d",
+    "horizon_s": 86580.0,
+    "issue_s": 1690252980.0,
+    "pair_id": "3231b307d9508f2ce5a0f4ac",
+    "region": "unknown",
+    "sequence_id": "sequence-13115e1fbc178c8b506bb49c",
+    "source_row_ids": [
+      "18ff38880605d9ce086c11ed975710f6c47bd0a1f80559e09b3778020af0594b",
+      "970cd008ebadde488fc6bcd38f69b85f1c12737084cf517a5804cf2a38c8892c"
+    ],
+    "target_s": 1690339560.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "ORWIF230266BEDROCK",
+    "from_index": 1,
+    "group_id": "group-9cc4f04b6aa44116b68d",
+    "horizon_s": 82860.0,
+    "issue_s": 1692949080.0,
+    "pair_id": "16d5b9ec321084c80b59d304",
+    "region": "unknown",
+    "sequence_id": "sequence-f245f61bc3671a52f3309f79",
+    "source_row_ids": [
+      "75a83f78fb647920170de66424992b286385e0d530460657bf3a032a1d5a5e30",
+      "4e158da94c6ca911a38608c72fbf5fff957942fe8b941cdc33f8e818d7104f14"
+    ],
+    "target_s": 1693031940.0,
+    "to_index": 2,
+    "year": 2023
+  },
+  {
+    "component_id": "ORWIF230266BEDROCK",
+    "from_index": 1,
+    "group_id": "group-9cc4f04b6aa44116b68d",
+    "horizon_s": 85500.0,
+    "issue_s": 1694746800.0,
+    "pair_id": "e45e765cd6a404c9d559f1fa",
+    "region": "unknown",
+    "sequence_id": "sequence-ab32b0723cfb93daa67f9206",
+    "source_row_ids": [
+      "00162ed2089f669624646b11585f765a80195ba939d514e2359490c8ec48ec74",
+      "4bf953ada2eb89c2d96159deb8b26997d2cd00a552e6bc862bbcb17d3baab6c5"
+    ],
+    "target_s": 1694832300.0,
+    "to_index": 2,
+    "year": 2023
+  },
+  {
+    "component_id": "WASES000263VANTAGEHIGHWAY",
+    "from_index": 0,
+    "group_id": "group-a2cced7df61b38a93093",
+    "horizon_s": 77640.0,
+    "issue_s": 1659421320.0,
+    "pair_id": "960ceb12268f8567b1293478",
+    "region": "unknown",
+    "sequence_id": "sequence-2ea6e5fc9085cdbede632771",
+    "source_row_ids": [
+      "c24f32d55ed7ab73a059eeaf8c2b8a3ca54b650287a53c974cdcb015a01aa141",
+      "ab4d0e27530d4721f2692e5b841d7cfea90beaef538a82f89c34f195737472f5"
+    ],
+    "target_s": 1659498960.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "WASES000263VANTAGEHIGHWAY",
+    "from_index": 3,
+    "group_id": "group-a2cced7df61b38a93093",
+    "horizon_s": 96360.0,
+    "issue_s": 1659670440.0,
+    "pair_id": "c67de31dfa19721c985af4b7",
+    "region": "unknown",
+    "sequence_id": "sequence-2ea6e5fc9085cdbede632771",
+    "source_row_ids": [
+      "dd6a86f621428dfff22cf4418e737caa7acf356e3cb59c84514017e3bd71d3c5",
+      "9129ad8cd4e7b87bfd1d95153f82966f53032114068d08c3b77a4f2fd487bebe"
+    ],
+    "target_s": 1659766800.0,
+    "to_index": 4,
+    "year": 2022
+  },
+  {
+    "component_id": "WASES000263VANTAGEHIGHWAY",
+    "from_index": 5,
+    "group_id": "group-a2cced7df61b38a93093",
+    "horizon_s": 89700.0,
+    "issue_s": 1659851100.0,
+    "pair_id": "a052cfc3a7611461bf3bc2e5",
+    "region": "unknown",
+    "sequence_id": "sequence-2ea6e5fc9085cdbede632771",
+    "source_row_ids": [
+      "26d94db35806c78e2e961dd68c43e98f686834aebb4a5a34edcd3b4f1b74858f",
+      "4acfc2e350f6a8309114a3a803307005e4da2de8cb4bd7578cd713ffe37a334b"
+    ],
+    "target_s": 1659940800.0,
+    "to_index": 6,
+    "year": 2022
+  },
+  {
+    "component_id": "NMGNF000227TURKEY",
+    "from_index": 0,
+    "group_id": "group-a3e3f534c62c8cdeb1b7",
+    "horizon_s": 86340.0,
+    "issue_s": 1591762200.0,
+    "pair_id": "50cc9de6d4d9a9fdeac4f26f",
+    "region": "unknown",
+    "sequence_id": "sequence-e5993b8430cc6ae9d1fd10b2",
+    "source_row_ids": [
+      "a1cf53a94bc05de72b2b9a3a1cb02ea03bdbe82c310dd0a106d38860e7843677",
+      "e4d60c934d7189af57fbf7734e05b62a2b0bfb8d7e83184ae8d90119ca4a1cea"
+    ],
+    "target_s": 1591848540.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "NMGNF000227TURKEY",
+    "from_index": 1,
+    "group_id": "group-a3e3f534c62c8cdeb1b7",
+    "horizon_s": 87240.0,
+    "issue_s": 1591848540.0,
+    "pair_id": "e00a0f9bcf47f3f8dfd79dc8",
+    "region": "unknown",
+    "sequence_id": "sequence-e5993b8430cc6ae9d1fd10b2",
+    "source_row_ids": [
+      "e4d60c934d7189af57fbf7734e05b62a2b0bfb8d7e83184ae8d90119ca4a1cea",
+      "908eaaa883687a470178991090bbbe77961c2330b8f1de4b2b5975036e28c26a"
+    ],
+    "target_s": 1591935780.0,
+    "to_index": 2,
+    "year": 2020
+  },
+  {
+    "component_id": "NMGNF000227TURKEY",
+    "from_index": 2,
+    "group_id": "group-a3e3f534c62c8cdeb1b7",
+    "horizon_s": 88080.0,
+    "issue_s": 1591935780.0,
+    "pair_id": "88fc0bd27d88642f46ec6419",
+    "region": "unknown",
+    "sequence_id": "sequence-e5993b8430cc6ae9d1fd10b2",
+    "source_row_ids": [
+      "908eaaa883687a470178991090bbbe77961c2330b8f1de4b2b5975036e28c26a",
+      "f3126f18f9efcadbcaf7ea14d6c402e889e4ea7fceb9c43fac4b13405eac3d53"
+    ],
+    "target_s": 1592023860.0,
+    "to_index": 3,
+    "year": 2020
+  },
+  {
+    "component_id": "WAGPF000813WILLIAMSMINE",
+    "from_index": 0,
+    "group_id": "group-a5b9518665c6dc621fb7",
+    "horizon_s": 92520.0,
+    "issue_s": 1723020120.0,
+    "pair_id": "4d024f9ce9e6d8b5982e6450",
+    "region": "unknown",
+    "sequence_id": "sequence-556af5289e7621da016a7557",
+    "source_row_ids": [
+      "439f8b7dd25efc83442efd902748c0ab58e01128d47cde8d217e2b6661d948b7",
+      "10d94b4e6b0fc13ffb604fd40f8a01605d365e98f40b865ac2986d198378e195"
+    ],
+    "target_s": 1723112640.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "WAGPF000813WILLIAMSMINE",
+    "from_index": 4,
+    "group_id": "group-a5b9518665c6dc621fb7",
+    "horizon_s": 172920.0,
+    "issue_s": 1724479860.0,
+    "pair_id": "64301ef83b37b70960f9703f",
+    "region": "unknown",
+    "sequence_id": "sequence-091e831f8fe1fab0b66b1b70",
+    "source_row_ids": [
+      "1ecbd58e150241e6fce00488b36c0045b296a75dbae9473fb47ade2fdb21fc99",
+      "7ab053d307b1e5ba8a4b316b47b872f0cc67513136aef1cfb21033adb119f3a9"
+    ],
+    "target_s": 1724652780.0,
+    "to_index": 5,
+    "year": 2024
+  },
+  {
+    "component_id": "WAGPF000813WILLIAMSMINE",
+    "from_index": 17,
+    "group_id": "group-a5b9518665c6dc621fb7",
+    "horizon_s": 62700.0,
+    "issue_s": 1725872640.0,
+    "pair_id": "6548689759957992088d3b5a",
+    "region": "unknown",
+    "sequence_id": "sequence-091e831f8fe1fab0b66b1b70",
+    "source_row_ids": [
+      "18f0bdf4fcf7e10f2096688a46c246c4ebe6792c77c17a82c95850cd48a0ef1e",
+      "7c49d0ecddd902ef877fac18e4c57f7ebbd115d1879ab5a871f4dcfb086e6469"
+    ],
+    "target_s": 1725935340.0,
+    "to_index": 18,
+    "year": 2024
+  },
+  {
+    "component_id": "NVTMFX031010DAVIS",
+    "from_index": 0,
+    "group_id": "group-a7e6415e94224ad9279d",
+    "horizon_s": 87300.0,
+    "issue_s": 1725854400.0,
+    "pair_id": "3b8904af8d380b58866527e1",
+    "region": "unknown",
+    "sequence_id": "sequence-dd2d2997f65c304c7299d0df",
+    "source_row_ids": [
+      "39f015d1fbb32949babc9e55015f29489b3cbb43dc4206c16a021c7388c2da60",
+      "25d098135b28198b272b455e4f937c3bbca26a56c17cedc63e2c48aa5a2bb078"
+    ],
+    "target_s": 1725941700.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "NVTMFX031010DAVIS",
+    "from_index": 2,
+    "group_id": "group-a7e6415e94224ad9279d",
+    "horizon_s": 74700.0,
+    "issue_s": 1726043400.0,
+    "pair_id": "a26d21265cadf496feeb11fe",
+    "region": "unknown",
+    "sequence_id": "sequence-dd2d2997f65c304c7299d0df",
+    "source_row_ids": [
+      "a3ce86a6d4ec30486061fd29a8df6a90a131891fb627bda6e68352a930367495",
+      "b9339227e3551cab9d0a69cf8e2a4dc3ab28efd9c06dd3f5bc321bc2a3118a94"
+    ],
+    "target_s": 1726118100.0,
+    "to_index": 3,
+    "year": 2024
+  },
+  {
+    "component_id": "NVTMFX031010DAVIS",
+    "from_index": 4,
+    "group_id": "group-a7e6415e94224ad9279d",
+    "horizon_s": 108900.0,
+    "issue_s": 1726197300.0,
+    "pair_id": "d83f4f69112b602cdf148d7b",
+    "region": "unknown",
+    "sequence_id": "sequence-dd2d2997f65c304c7299d0df",
+    "source_row_ids": [
+      "c926ffb599c8c07e873810176b2fb53b6e5a02054854698dbd4568d2b2d1386b",
+      "3e22da05a820477d5dd3e557110ebc07de88e7b7dd5580d86bd6d1712e4f8447"
+    ],
+    "target_s": 1726306200.0,
+    "to_index": 5,
+    "year": 2024
+  },
+  {
+    "component_id": "AZSCA002574ROCKHOUSE",
+    "from_index": 0,
+    "group_id": "group-a957cb7bcb399a19ed99",
+    "horizon_s": 177780.0,
+    "issue_s": 1598680080.0,
+    "pair_id": "124b020e215cbe55736345e2",
+    "region": "unknown",
+    "sequence_id": "sequence-f4cc403ae3ec96a65006b074",
+    "source_row_ids": [
+      "39b48e665e7ed027fe48650ee14e328c099f5a52a8b3630e3d45168c31d7d43a",
+      "430dfc4356b0dfb8de42b2ef761f4f1cc517e6948c7bd497d53bca47f3bf5f4e"
+    ],
+    "target_s": 1598857860.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "AZSCA002574ROCKHOUSE",
+    "from_index": 1,
+    "group_id": "group-a957cb7bcb399a19ed99",
+    "horizon_s": 70740.0,
+    "issue_s": 1598857860.0,
+    "pair_id": "bed3de74d791a68ca4103fe0",
+    "region": "unknown",
+    "sequence_id": "sequence-f4cc403ae3ec96a65006b074",
+    "source_row_ids": [
+      "430dfc4356b0dfb8de42b2ef761f4f1cc517e6948c7bd497d53bca47f3bf5f4e",
+      "b26d670cfa0ab7e1bb73683ee0f80985d7c17d1449bc3352061eacad8533c005"
+    ],
+    "target_s": 1598928600.0,
+    "to_index": 2,
+    "year": 2020
+  },
+  {
+    "component_id": "AZSCA002574ROCKHOUSE",
+    "from_index": 2,
+    "group_id": "group-a957cb7bcb399a19ed99",
+    "horizon_s": 182520.0,
+    "issue_s": 1598928600.0,
+    "pair_id": "02c65f76ef054fa42ff81ad9",
+    "region": "unknown",
+    "sequence_id": "sequence-f4cc403ae3ec96a65006b074",
+    "source_row_ids": [
+      "b26d670cfa0ab7e1bb73683ee0f80985d7c17d1449bc3352061eacad8533c005",
+      "0018e1430279ed1d37ce2125952480b2e26c5930df84543f94cbcd0a8b630227"
+    ],
+    "target_s": 1599111120.0,
+    "to_index": 3,
+    "year": 2020
+  },
+  {
+    "component_id": "ORPRD000289DARLENE",
+    "from_index": 0,
+    "group_id": "group-aaa5b569160ae1e393bc",
+    "horizon_s": 97680.0,
+    "issue_s": 1719462900.0,
+    "pair_id": "ccb32c0eb92979d282e8b60b",
+    "region": "unknown",
+    "sequence_id": "sequence-b8f62825dbbdca9ea2401afd",
+    "source_row_ids": [
+      "cd00300e401e8837b7a70a7b64cf58dbc334aad96288bc607d307936e2d41624",
+      "08ad186ede747d1f0abb2f1708cbbe0c51d6db2b3fa4368a2a678bd21737bd71"
+    ],
+    "target_s": 1719560580.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "ORPRD000289DARLENE",
+    "from_index": 1,
+    "group_id": "group-aaa5b569160ae1e393bc",
+    "horizon_s": 82020.0,
+    "issue_s": 1719560580.0,
+    "pair_id": "890d93490daf3f72014ed881",
+    "region": "unknown",
+    "sequence_id": "sequence-b8f62825dbbdca9ea2401afd",
+    "source_row_ids": [
+      "08ad186ede747d1f0abb2f1708cbbe0c51d6db2b3fa4368a2a678bd21737bd71",
+      "be3cdaace6ea7aff2a67532ead21ee211bb06f249fdde3d20c88971843a1af90"
+    ],
+    "target_s": 1719642600.0,
+    "to_index": 2,
+    "year": 2024
+  },
+  {
+    "component_id": "ORPRD000289DARLENE",
+    "from_index": 2,
+    "group_id": "group-aaa5b569160ae1e393bc",
+    "horizon_s": 82080.0,
+    "issue_s": 1719642600.0,
+    "pair_id": "e6019312b899ac5a348d26c2",
+    "region": "unknown",
+    "sequence_id": "sequence-b8f62825dbbdca9ea2401afd",
+    "source_row_ids": [
+      "be3cdaace6ea7aff2a67532ead21ee211bb06f249fdde3d20c88971843a1af90",
+      "9a1d9b66eede402aff2e1038e4cdda458fdef855622db708d29ca90d7ad812c8"
+    ],
+    "target_s": 1719724680.0,
+    "to_index": 3,
+    "year": 2024
+  },
+  {
+    "component_id": "AZPNF000863RAFAEL",
+    "from_index": 0,
+    "group_id": "group-abc3baa042acf64858cf",
+    "horizon_s": 90960.0,
+    "issue_s": 1624351080.0,
+    "pair_id": "94e1b151233f3f89d4188c66",
+    "region": "unknown",
+    "sequence_id": "sequence-ba8f05531fd07d37757ea05d",
+    "source_row_ids": [
+      "5d09f8f7269f4e979676848ba014ac42f484a5d44b070ae03300c1d1175e5704",
+      "eba790c4018e2e23595df953713e4c87202448ea5bee523d8be967161ebbd563"
+    ],
+    "target_s": 1624442040.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "AZPNF000863RAFAEL",
+    "from_index": 4,
+    "group_id": "group-abc3baa042acf64858cf",
+    "horizon_s": 29880.0,
+    "issue_s": 1624739400.0,
+    "pair_id": "21ddb6d00089c5c428ff20a6",
+    "region": "unknown",
+    "sequence_id": "sequence-ba8f05531fd07d37757ea05d",
+    "source_row_ids": [
+      "97b5162aec6111092c564ac60514976ee9cb4d446831c5ac0b15d5f84cd1c882",
+      "76eabfdbd57d163eee9ab5f51635b911bfcf8ffd3cc1ed8af636c5c55633cd69"
+    ],
+    "target_s": 1624769280.0,
+    "to_index": 5,
+    "year": 2021
+  },
+  {
+    "component_id": "AZPNF000863RAFAEL",
+    "from_index": 8,
+    "group_id": "group-abc3baa042acf64858cf",
+    "horizon_s": 84900.0,
+    "issue_s": 1625026500.0,
+    "pair_id": "b961334a6886ac3e80b3c331",
+    "region": "unknown",
+    "sequence_id": "sequence-ba8f05531fd07d37757ea05d",
+    "source_row_ids": [
+      "67c0666da5ada0ef04978d92e9260b7efefcb45608d64e4d3ddfdbe85f32857a",
+      "4e69ff197edbdd0190adb7193cfa966bf65bd9a9e498bd782c08f0cd0cc3fd25"
+    ],
+    "target_s": 1625111400.0,
+    "to_index": 9,
+    "year": 2021
+  },
+  {
+    "component_id": "IDBOF000488GOLDEN",
+    "from_index": 0,
+    "group_id": "group-abd13cbfe90077f5310e",
+    "horizon_s": 86400.0,
+    "issue_s": 1596081600.0,
+    "pair_id": "c40bdc42b249bda68d063baa",
+    "region": "unknown",
+    "sequence_id": "sequence-e87186861c4187e6f10b4c2e",
+    "source_row_ids": [
+      "2be69679cdc07d12b9f210c72abc877dcba9800faac38ec696769ce3ffbf7848",
+      "941a2f9c0db506ab228c7a7f09599772628f54520ebb0229800e4e5c93cea1d6"
+    ],
+    "target_s": 1596168000.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "IDBOF000488GOLDEN",
+    "from_index": 1,
+    "group_id": "group-abd13cbfe90077f5310e",
+    "horizon_s": 86400.0,
+    "issue_s": 1596168000.0,
+    "pair_id": "eb61838705a69149f1bcbfab",
+    "region": "unknown",
+    "sequence_id": "sequence-e87186861c4187e6f10b4c2e",
+    "source_row_ids": [
+      "941a2f9c0db506ab228c7a7f09599772628f54520ebb0229800e4e5c93cea1d6",
+      "5c2cb29a4545ecb8cbf063b0dfcad63bf4a275f73dea54e5f0b0c0acb1e616de"
+    ],
+    "target_s": 1596254400.0,
+    "to_index": 2,
+    "year": 2020
+  },
+  {
+    "component_id": "IDBOF000488GOLDEN",
+    "from_index": 2,
+    "group_id": "group-abd13cbfe90077f5310e",
+    "horizon_s": 88200.0,
+    "issue_s": 1596254400.0,
+    "pair_id": "850b9fb0adc0397ecb1f2dc0",
+    "region": "unknown",
+    "sequence_id": "sequence-e87186861c4187e6f10b4c2e",
+    "source_row_ids": [
+      "5c2cb29a4545ecb8cbf063b0dfcad63bf4a275f73dea54e5f0b0c0acb1e616de",
+      "915fd27dcb12c7c340ea215d5593fca0572adc8de8533a556474132c721c0df9"
+    ],
+    "target_s": 1596342600.0,
+    "to_index": 3,
+    "year": 2020
+  },
+  {
+    "component_id": "CALPF003161COLEMAN",
+    "from_index": 0,
+    "group_id": "group-ae7d9e4a626750e027a0",
+    "horizon_s": 66600.0,
+    "issue_s": 1603179000.0,
+    "pair_id": "21f2baf68d2c73d18b33775f",
+    "region": "unknown",
+    "sequence_id": "sequence-6bfb6c37c9021d79149cceeb",
+    "source_row_ids": [
+      "d1def6b8ec403c58daed1be7ede48322a79eb5fadef57d9e53a87ce07311e2b1",
+      "223b0967f15a66849c073dda271f51f09df0ab04740d6bf0eedfd1e8391b6c4a"
+    ],
+    "target_s": 1603245600.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "CALPF003161COLEMAN",
+    "from_index": 3,
+    "group_id": "group-ae7d9e4a626750e027a0",
+    "horizon_s": 104340.0,
+    "issue_s": 1603418400.0,
+    "pair_id": "3fbc228ddf40039e5c4e65b1",
+    "region": "unknown",
+    "sequence_id": "sequence-6bfb6c37c9021d79149cceeb",
+    "source_row_ids": [
+      "fc060e24967ce07eafca419ab7f68278a8fb8c1d3989291de177d14579e0f426",
+      "09c3ca009ba9fdcaf3dd750fae86482bab94bab731b9242e710c378f05178a97"
+    ],
+    "target_s": 1603522740.0,
+    "to_index": 4,
+    "year": 2020
+  },
+  {
+    "component_id": "CALPF003161COLEMAN",
+    "from_index": 5,
+    "group_id": "group-ae7d9e4a626750e027a0",
+    "horizon_s": 79200.0,
+    "issue_s": 1603605600.0,
+    "pair_id": "ef52cae3b9c2aad2b28bb248",
+    "region": "unknown",
+    "sequence_id": "sequence-6bfb6c37c9021d79149cceeb",
+    "source_row_ids": [
+      "f46796d9c24b5b60d33a9fe0eb687a6139298121088159a65ef75e8c58254735",
+      "5c24174ad52137f8975a6548e0560b27cf615e410a55ea81746dc422cac56a10"
+    ],
+    "target_s": 1603684800.0,
+    "to_index": 6,
+    "year": 2020
+  },
+  {
+    "component_id": "MTBDF6306BLACKMOUNTAIN",
+    "from_index": 0,
+    "group_id": "group-b869aa7fdb3ea3fbc1b1",
+    "horizon_s": 187080.0,
+    "issue_s": 1626666900.0,
+    "pair_id": "8bf9e5d211cefe040afa144b",
+    "region": "unknown",
+    "sequence_id": "sequence-a9a0be5d6ee2d5dd2e92aebc",
+    "source_row_ids": [
+      "6c8b24f86c9f9a74615c983a2e713fa197b8bf660edbe8c2bf3bbb60e364e5a4",
+      "ab9f3dc3fe4002c1a2dcc833689e88406ea40a4cf4a220f475e207f7b54c8378"
+    ],
+    "target_s": 1626853980.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "MTBDF6306BLACKMOUNTAIN",
+    "from_index": 8,
+    "group_id": "group-b869aa7fdb3ea3fbc1b1",
+    "horizon_s": 72900.0,
+    "issue_s": 1627713900.0,
+    "pair_id": "753788c2b6b6aaa0fbc257e3",
+    "region": "unknown",
+    "sequence_id": "sequence-a9a0be5d6ee2d5dd2e92aebc",
+    "source_row_ids": [
+      "cbbb725999b56dba01bd7730310c08039c3b5161baf0fa146d057d15d018a7a5",
+      "c90a7d4cf0f19f5fbd899f530db67386b4d78aecb3c043931f6af3e21646c8f6"
+    ],
+    "target_s": 1627786800.0,
+    "to_index": 9,
+    "year": 2021
+  },
+  {
+    "component_id": "MTBDF6306BLACKMOUNTAIN",
+    "from_index": 16,
+    "group_id": "group-b869aa7fdb3ea3fbc1b1",
+    "horizon_s": 101400.0,
+    "issue_s": 1628393580.0,
+    "pair_id": "0fd0b99502d3b331d693cba9",
+    "region": "unknown",
+    "sequence_id": "sequence-a9a0be5d6ee2d5dd2e92aebc",
+    "source_row_ids": [
+      "5f4fbaa89182926eb31cc27e3d0e248bdba353c2642be812c82c5115301a85b3",
+      "f37aecbade778b6638b7d57e0107055a8085e064cdc9c1dcb86f5625b8c2589e"
+    ],
+    "target_s": 1628494980.0,
+    "to_index": 17,
+    "year": 2021
+  },
+  {
+    "component_id": "ORPRD000404RVLONEROCK",
+    "from_index": 0,
+    "group_id": "group-bc7d8d9b0e31f51653af",
+    "horizon_s": 82380.0,
+    "issue_s": 1721024040.0,
+    "pair_id": "40f8096d60d935f3672cdfd2",
+    "region": "unknown",
+    "sequence_id": "sequence-27e121df4f3aaedb47a07b3d",
+    "source_row_ids": [
+      "afe58a861458589027677d10172dee3fe343fee014dbe06b7acb15dcd9e8c04e",
+      "963cba7eb1956815d8bdd3894a7c67ef41bcc048cb9cac91d59c06ca6f387f87"
+    ],
+    "target_s": 1721106420.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "ORPRD000404RVLONEROCK",
+    "from_index": 9,
+    "group_id": "group-bc7d8d9b0e31f51653af",
+    "horizon_s": 88080.0,
+    "issue_s": 1721883780.0,
+    "pair_id": "a4cef2bf1c5231877a357931",
+    "region": "unknown",
+    "sequence_id": "sequence-27e121df4f3aaedb47a07b3d",
+    "source_row_ids": [
+      "81e83de1e1066111f8c63f361845d7f4c701e137528e3d43725a6b16bab1c38f",
+      "95cd1e35f72923d1c5b7cab72cf0f8ec3730b1d34a2bfddb9937f5c3ade1854b"
+    ],
+    "target_s": 1721971860.0,
+    "to_index": 10,
+    "year": 2024
+  },
+  {
+    "component_id": "ORPRD000404RVLONEROCK",
+    "from_index": 18,
+    "group_id": "group-bc7d8d9b0e31f51653af",
+    "horizon_s": 175740.0,
+    "issue_s": 1722741420.0,
+    "pair_id": "17376f5400736774a4fd858c",
+    "region": "unknown",
+    "sequence_id": "sequence-27e121df4f3aaedb47a07b3d",
+    "source_row_ids": [
+      "7e5f0d70c6d0a849c484d5af19635494437a688655e54f1d3507dc7d7a4343f5",
+      "5bc6586eda4621b11d8a6c7b9b5b163629d7bfc3dc97a3a335c51375e88762fb"
+    ],
+    "target_s": 1722917160.0,
+    "to_index": 19,
+    "year": 2024
+  },
+  {
+    "component_id": "NMCAF000200MIDNIGHT",
+    "from_index": 0,
+    "group_id": "group-bdc3015b28db63c7428b",
+    "horizon_s": 88320.0,
+    "issue_s": 1655012700.0,
+    "pair_id": "20117f60071de112f8dac2be",
+    "region": "unknown",
+    "sequence_id": "sequence-6e5f5e98d82f509b7a1bbd7a",
+    "source_row_ids": [
+      "b0619bb7a654493e29b2b493eaa68cf8bd4dcd4100eb68ad817611283b6ef5d9",
+      "8aaa0fd830ef929536d294f8bf59829b56e76b96bc116c3c0ce0dc9764be22eb"
+    ],
+    "target_s": 1655101020.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "NMCAF000200MIDNIGHT",
+    "from_index": 3,
+    "group_id": "group-bdc3015b28db63c7428b",
+    "horizon_s": 76440.0,
+    "issue_s": 1655272140.0,
+    "pair_id": "8edd09310673bf023117f56e",
+    "region": "unknown",
+    "sequence_id": "sequence-6e5f5e98d82f509b7a1bbd7a",
+    "source_row_ids": [
+      "13d289be8c121a837b1559e4c26bb3d33f3ca45dd5e6281ee8150a52da767517",
+      "1f67c92539d5179ea139e3b760f8f84763bad51641e2f5f01d4bd8a705a3375f"
+    ],
+    "target_s": 1655348580.0,
+    "to_index": 4,
+    "year": 2022
+  },
+  {
+    "component_id": "NMCAF000200MIDNIGHT",
+    "from_index": 5,
+    "group_id": "group-bdc3015b28db63c7428b",
+    "horizon_s": 86460.0,
+    "issue_s": 1655437980.0,
+    "pair_id": "c6a04e710fe4d734f282e66a",
+    "region": "unknown",
+    "sequence_id": "sequence-6e5f5e98d82f509b7a1bbd7a",
+    "source_row_ids": [
+      "00f29da9bfb1fc47fc6ea4650890934d0bef764bc03b27be5c25bced2d0aebcc",
+      "482ec89eeac77869001987a5f96e345aac03664eac620e0a040a1ec1911f889a"
+    ],
+    "target_s": 1655524440.0,
+    "to_index": 6,
+    "year": 2022
+  },
+  {
+    "component_id": "ORVAD240129COWVALLEY",
+    "from_index": 0,
+    "group_id": "group-bed67462e240c45c85b4",
+    "horizon_s": 105720.0,
+    "issue_s": 1721014380.0,
+    "pair_id": "6b61ffefc86221508ebc7f78",
+    "region": "unknown",
+    "sequence_id": "sequence-10916cb65b12f2198254bb59",
+    "source_row_ids": [
+      "104321db06459c34e5a5199b4e1604a0036eaba89f5d4e5bb15f60c5df1ffe6e",
+      "27642d31913f67e6d460db4b6236fe28493bc98e85b9697e001a4cd9b33faa76"
+    ],
+    "target_s": 1721120100.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "ORVAD240129COWVALLEY",
+    "from_index": 1,
+    "group_id": "group-bed67462e240c45c85b4",
+    "horizon_s": 67860.0,
+    "issue_s": 1721120100.0,
+    "pair_id": "bc138060ff3eb510283e40d8",
+    "region": "unknown",
+    "sequence_id": "sequence-10916cb65b12f2198254bb59",
+    "source_row_ids": [
+      "27642d31913f67e6d460db4b6236fe28493bc98e85b9697e001a4cd9b33faa76",
+      "bb6e3931ca2eaf01e7613e58a3c37b3872766e71dda364ffddbeba4d95becb4b"
+    ],
+    "target_s": 1721187960.0,
+    "to_index": 2,
+    "year": 2024
+  },
+  {
+    "component_id": "CAANF001704SHEEP",
+    "from_index": 0,
+    "group_id": "group-c1196d34bf7d3203aeb8",
+    "horizon_s": 86880.0,
+    "issue_s": 1655270520.0,
+    "pair_id": "085feabf57dc9bc59d6dfe58",
+    "region": "unknown",
+    "sequence_id": "sequence-f1548b4d89f54158e5ea22c5",
+    "source_row_ids": [
+      "452b2f9ce74faed2a08525ac5bcece23506ea32142b10a89bacf3895fc846034",
+      "3d56f75874e9d42ef7e4c4f5809799a3323165568d92c6fc6b8e1713724ee68e"
+    ],
+    "target_s": 1655357400.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "CAANF001704SHEEP",
+    "from_index": 1,
+    "group_id": "group-c1196d34bf7d3203aeb8",
+    "horizon_s": 90180.0,
+    "issue_s": 1655357400.0,
+    "pair_id": "446f7fdf6bd7c46010d940da",
+    "region": "unknown",
+    "sequence_id": "sequence-f1548b4d89f54158e5ea22c5",
+    "source_row_ids": [
+      "3d56f75874e9d42ef7e4c4f5809799a3323165568d92c6fc6b8e1713724ee68e",
+      "55ed2aae9a2e5c6484383e164444a53dc61c7571dc4c6bae980b14c284d432c0"
+    ],
+    "target_s": 1655447580.0,
+    "to_index": 2,
+    "year": 2022
+  },
+  {
+    "component_id": "ORWIF240362YOUNGGRASSHOPPER",
+    "from_index": 0,
+    "group_id": "group-c2228417994e28254dd1",
+    "horizon_s": 89400.0,
+    "issue_s": 1725944760.0,
+    "pair_id": "405207cee09609e112356f1b",
+    "region": "unknown",
+    "sequence_id": "sequence-4395961af60c6ee791937c03",
+    "source_row_ids": [
+      "8c0b02dabcb3ff4098935c9152d1b395a3398e0771d13e8672c365b845843009",
+      "e1083e8fc4b24e1188faf1aa51c5b1afcf90543a8b43d9161fb5ab2c67168899"
+    ],
+    "target_s": 1726034160.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "ORWIF240362YOUNGGRASSHOPPER",
+    "from_index": 1,
+    "group_id": "group-c2228417994e28254dd1",
+    "horizon_s": 85800.0,
+    "issue_s": 1727849760.0,
+    "pair_id": "6cc08849ca576c1ddfd49a78",
+    "region": "unknown",
+    "sequence_id": "sequence-dac6a867f5289d05f59372bd",
+    "source_row_ids": [
+      "860beb7f2b5729919da3d5b3cfa3b731cca698bc93bcb331e80ab73a9c70fa9a",
+      "3ecdc197513674e4609790c67e216aeca6995d7c02e071db3045333d7269d4c2"
+    ],
+    "target_s": 1727935560.0,
+    "to_index": 2,
+    "year": 2024
+  },
+  {
+    "component_id": "ORWIF240362YOUNGGRASSHOPPER",
+    "from_index": 11,
+    "group_id": "group-c2228417994e28254dd1",
+    "horizon_s": 87120.0,
+    "issue_s": 1728874620.0,
+    "pair_id": "d156ee6a1bf74b88b7fb56bf",
+    "region": "unknown",
+    "sequence_id": "sequence-dac6a867f5289d05f59372bd",
+    "source_row_ids": [
+      "bacf71cff4eb7193dd819f05b93e477dd78285d6f943d14a8b11f88d2b0cdff5",
+      "c9ecbdcb13111be95d6f9349aa73c7075bdae52e8e2da5705e758d680c2a4783"
+    ],
+    "target_s": 1728961740.0,
+    "to_index": 12,
+    "year": 2024
+  },
+  {
+    "component_id": "IDIPF000212DIAMONDWATCH",
+    "from_index": 0,
+    "group_id": "group-c2bbc9d9dfa26b5c2d1d",
+    "horizon_s": 175620.0,
+    "issue_s": 1659589440.0,
+    "pair_id": "c7fe9db99ad2eab1ee8615e0",
+    "region": "unknown",
+    "sequence_id": "sequence-30a8b6137b45e078875ee5af",
+    "source_row_ids": [
+      "9f0520371d9040d8280efd4cb9785485cc46536e58243b5570dbe0ff75a9cf16",
+      "ab2f02fa9a5db2e85c9ca1278cdfc3439fdad7929f8c125a5587fab80a59375a"
+    ],
+    "target_s": 1659765060.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "IDIPF000212DIAMONDWATCH",
+    "from_index": 17,
+    "group_id": "group-c2bbc9d9dfa26b5c2d1d",
+    "horizon_s": 87720.0,
+    "issue_s": 1661141100.0,
+    "pair_id": "9d8c1e48f427da5921db7f9b",
+    "region": "unknown",
+    "sequence_id": "sequence-30a8b6137b45e078875ee5af",
+    "source_row_ids": [
+      "e740732435f7c2a89ea2a96258ebb61744d45fbd34574afba6e3735d6a0333a3",
+      "79f4ba8591b5a451e408d1e5becbbd04706bc9a5f2816117ea4c871da3818062"
+    ],
+    "target_s": 1661228820.0,
+    "to_index": 18,
+    "year": 2022
+  },
+  {
+    "component_id": "IDIPF000212DIAMONDWATCH",
+    "from_index": 2,
+    "group_id": "group-c2bbc9d9dfa26b5c2d1d",
+    "horizon_s": 258960.0,
+    "issue_s": 1663902300.0,
+    "pair_id": "72e71ac518471cac8c6c1346",
+    "region": "unknown",
+    "sequence_id": "sequence-0b05b58f857371897e375aea",
+    "source_row_ids": [
+      "168e1ec2e11f0f15f8059cb29e7cbf93e0e0b94465e696461e25ffea19628e22",
+      "182be5010c46ec92a547f52d432effed63891ff9f6f87b4e873f1aaeb1a44147"
+    ],
+    "target_s": 1664161260.0,
+    "to_index": 3,
+    "year": 2022
+  },
+  {
+    "component_id": "CALMU003874HOG",
+    "from_index": 0,
+    "group_id": "group-c313c0ce7fdce703afd8",
+    "horizon_s": 86040.0,
+    "issue_s": 1595142000.0,
+    "pair_id": "26f9216ecc4296782c950cc5",
+    "region": "unknown",
+    "sequence_id": "sequence-68c2448eebeee20d1b955baf",
+    "source_row_ids": [
+      "c1aa448b30145569eb188aa793c96348d637bd9a32f39fcabe442b43d6b962c8",
+      "3d49b043ce12f529e24c82d2ad192ff0ddd22c1e5bcc536e8e77a287b89d3e00"
+    ],
+    "target_s": 1595228040.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "CALMU003874HOG",
+    "from_index": 6,
+    "group_id": "group-c313c0ce7fdce703afd8",
+    "horizon_s": 84540.0,
+    "issue_s": 1595653800.0,
+    "pair_id": "a5ce671c84efd956ce9f1811",
+    "region": "unknown",
+    "sequence_id": "sequence-68c2448eebeee20d1b955baf",
+    "source_row_ids": [
+      "8dab7cc28b668a581053ffe4bad254fc44a42ab5c9f771e6232b3314be763e88",
+      "d643961e981dec6aad11424cf0890b701992e1b3213e3cf73b47c6b6b4c55da7"
+    ],
+    "target_s": 1595738340.0,
+    "to_index": 7,
+    "year": 2020
+  },
+  {
+    "component_id": "CALMU003874HOG",
+    "from_index": 11,
+    "group_id": "group-c313c0ce7fdce703afd8",
+    "horizon_s": 87180.0,
+    "issue_s": 1596085500.0,
+    "pair_id": "b69b5f35bfc42489ef7ae433",
+    "region": "unknown",
+    "sequence_id": "sequence-68c2448eebeee20d1b955baf",
+    "source_row_ids": [
+      "983ef88e13e059d08673630ccdaacbe63e8ec87544dc67bc1f2921fad8702ce6",
+      "58489da61388d1e031a2c0abe9715940804f38be599de48ff82b1305adeb324b"
+    ],
+    "target_s": 1596172680.0,
+    "to_index": 12,
+    "year": 2020
+  },
+  {
+    "component_id": "IDPAF000673FRENCH",
+    "from_index": 0,
+    "group_id": "group-c4af84a00c42cb9dbbfe",
+    "horizon_s": 85920.0,
+    "issue_s": 1628997480.0,
+    "pair_id": "ed6d151e58f911900a08788f",
+    "region": "unknown",
+    "sequence_id": "sequence-d5158dcd45424bbe24828758",
+    "source_row_ids": [
+      "594a503b0a8c76869246e72f7842777a31fdab8df870ba934bcadd577c4c99f0",
+      "3f06cb8aad098282abf9144995b8b4408afa3b2df31cbc1c5e36b9eb64160c3d"
+    ],
+    "target_s": 1629083400.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "IDPAF000673FRENCH",
+    "from_index": 1,
+    "group_id": "group-c4af84a00c42cb9dbbfe",
+    "horizon_s": 84180.0,
+    "issue_s": 1629083400.0,
+    "pair_id": "af3d6804da2940b7917ea100",
+    "region": "unknown",
+    "sequence_id": "sequence-d5158dcd45424bbe24828758",
+    "source_row_ids": [
+      "3f06cb8aad098282abf9144995b8b4408afa3b2df31cbc1c5e36b9eb64160c3d",
+      "a74c37044ddbff13a2aa1b631fe01a724bc4deb266b5587245671c7db9f825a4"
+    ],
+    "target_s": 1629167580.0,
+    "to_index": 2,
+    "year": 2021
+  },
+  {
+    "component_id": "MTKNF000176SUTTON",
+    "from_index": 0,
+    "group_id": "group-ccb4616b9c64ce512b7e",
+    "horizon_s": 88200.0,
+    "issue_s": 1660621920.0,
+    "pair_id": "33c0f0f775deae466a686f14",
+    "region": "unknown",
+    "sequence_id": "sequence-0ffce16c24a298e722747840",
+    "source_row_ids": [
+      "1b8d4bf3fb574ec53645c03a669dac9c6c78a8e708bba49dfd690fe707129e39",
+      "858fca9b7f55fa0026c01a03108bb6d5579b4a058a44b80a9d985ce3462f669a"
+    ],
+    "target_s": 1660710120.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "MTKNF000176SUTTON",
+    "from_index": 2,
+    "group_id": "group-ccb4616b9c64ce512b7e",
+    "horizon_s": 86460.0,
+    "issue_s": 1660795620.0,
+    "pair_id": "bef45bf90e880f7407721051",
+    "region": "unknown",
+    "sequence_id": "sequence-0ffce16c24a298e722747840",
+    "source_row_ids": [
+      "4bb028b9a3a2f7b283977899fc5a653848554cd86bd153c5beb673c140e06483",
+      "a9dab269b1e8b29a0e049500a05e494a180a3de75e9bb3cf0e8aedd8dbefb2c1"
+    ],
+    "target_s": 1660882080.0,
+    "to_index": 3,
+    "year": 2022
+  },
+  {
+    "component_id": "MTKNF000176SUTTON",
+    "from_index": 4,
+    "group_id": "group-ccb4616b9c64ce512b7e",
+    "horizon_s": 90240.0,
+    "issue_s": 1660966740.0,
+    "pair_id": "772190b45b4cc12232dd3496",
+    "region": "unknown",
+    "sequence_id": "sequence-0ffce16c24a298e722747840",
+    "source_row_ids": [
+      "5158afa00549e7d864f5bbf93bd9d679548edb63772be6de782103b7b546c2a2",
+      "8d83037c1e0af522b04823f777e5fce4ef51d5533a3b7cae37b5037b04dc6931"
+    ],
+    "target_s": 1661056980.0,
+    "to_index": 5,
+    "year": 2022
+  },
+  {
+    "component_id": "CARRU096640APPLE",
+    "from_index": 0,
+    "group_id": "group-ce56f639c494def932c5",
+    "horizon_s": 86400.0,
+    "issue_s": 1596427200.0,
+    "pair_id": "b67303f5f2131dba86139905",
+    "region": "unknown",
+    "sequence_id": "sequence-b7a762ad4f95515cdaedca25",
+    "source_row_ids": [
+      "473599bf1e7b6eb43dca049675bac6c0678b99e05397fa139549f4d72362ceb8",
+      "f4d0a60b61bc5c1a8e95b78d2cc433bb313d1aabf555cef8ad20617a956098dd"
+    ],
+    "target_s": 1596513600.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "CARRU096640APPLE",
+    "from_index": 5,
+    "group_id": "group-ce56f639c494def932c5",
+    "horizon_s": 86340.0,
+    "issue_s": 1596862980.0,
+    "pair_id": "a1baca996a195dc04b168310",
+    "region": "unknown",
+    "sequence_id": "sequence-b7a762ad4f95515cdaedca25",
+    "source_row_ids": [
+      "47787fb277a1a2078201270ad950214429fff7826c42ff8139ec5d1db229f064",
+      "b85f61879bf417d148f6f84edd247d9d8a17160632d555ad9b082abacb1b3146"
+    ],
+    "target_s": 1596949320.0,
+    "to_index": 6,
+    "year": 2020
+  },
+  {
+    "component_id": "CARRU096640APPLE",
+    "from_index": 9,
+    "group_id": "group-ce56f639c494def932c5",
+    "horizon_s": 173580.0,
+    "issue_s": 1597204020.0,
+    "pair_id": "04a437e19e1d96d983717978",
+    "region": "unknown",
+    "sequence_id": "sequence-b7a762ad4f95515cdaedca25",
+    "source_row_ids": [
+      "243da065e090b1a2ad1ef6e1d763e7cf71e9140412b57d5fa4816b4024132608",
+      "caaff071452f187dd9d4949e006ec88e44bd213f612ed27d1c2881c870c7ccea"
+    ],
+    "target_s": 1597377600.0,
+    "to_index": 10,
+    "year": 2020
+  },
+  {
+    "component_id": "IDNCF000581SNOWCREEK",
+    "from_index": 0,
+    "group_id": "group-d1e8c24b611046567020",
+    "horizon_s": 89400.0,
+    "issue_s": 1625976300.0,
+    "pair_id": "a8154b7638458f26106aeb53",
+    "region": "unknown",
+    "sequence_id": "sequence-9632b2bdb2757c8d3aeb7eca",
+    "source_row_ids": [
+      "bb106dbcca325bf7a4f6fe338021a0658d46e39d92c1028a26ba1a3f68cc8521",
+      "86afbbb57d4c6287ba1b6c8161fad16ae10e5e4570e26b89a83ebf6297faa7d1"
+    ],
+    "target_s": 1626065700.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "IDNCF000581SNOWCREEK",
+    "from_index": 4,
+    "group_id": "group-d1e8c24b611046567020",
+    "horizon_s": 158400.0,
+    "issue_s": 1626426000.0,
+    "pair_id": "1bc828f50ae163b6b0ea1ac0",
+    "region": "unknown",
+    "sequence_id": "sequence-9632b2bdb2757c8d3aeb7eca",
+    "source_row_ids": [
+      "be3692b64e02be28e401c8cce02418e8f67e468a6799839d805ced22cbcc6898",
+      "2f1fbf028894148ad928be8c385ceea5ad62a32d37b5c718abe71ef6c16ac483"
+    ],
+    "target_s": 1626584400.0,
+    "to_index": 5,
+    "year": 2021
+  },
+  {
+    "component_id": "IDNCF000581SNOWCREEK",
+    "from_index": 8,
+    "group_id": "group-d1e8c24b611046567020",
+    "horizon_s": 152400.0,
+    "issue_s": 1627029000.0,
+    "pair_id": "c0f02fa5e18cb851a3caeec6",
+    "region": "unknown",
+    "sequence_id": "sequence-9632b2bdb2757c8d3aeb7eca",
+    "source_row_ids": [
+      "22af9319574dcc8b600489782df096ee419ea5355178d2a827fa3ad405d93227",
+      "253a661973a2e8a9569ae757f79149708b929258140924e42e9a557886d455ad"
+    ],
+    "target_s": 1627181400.0,
+    "to_index": 9,
+    "year": 2021
+  },
+  {
+    "component_id": "AZSCA002339CASSADORESPRINGS",
+    "from_index": 0,
+    "group_id": "group-d26c31a440bc182de8d8",
+    "horizon_s": 79680.0,
+    "issue_s": 1596603180.0,
+    "pair_id": "58dc570b22872a9ab551549f",
+    "region": "unknown",
+    "sequence_id": "sequence-6d611c3920e82b9f7ddbf94d",
+    "source_row_ids": [
+      "105164bf3c900529c381bed9c760d48fdb7e2c7d08c37e26045498e9959df992",
+      "e79906cee237b1575e7f55a59582074a59c92918bc3163a3553f020f9fa721c0"
+    ],
+    "target_s": 1596682860.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "AZSCA002339CASSADORESPRINGS",
+    "from_index": 3,
+    "group_id": "group-d26c31a440bc182de8d8",
+    "horizon_s": 86400.0,
+    "issue_s": 1596952500.0,
+    "pair_id": "328ea1d6af760495216c4849",
+    "region": "unknown",
+    "sequence_id": "sequence-6d611c3920e82b9f7ddbf94d",
+    "source_row_ids": [
+      "722a914569b28533fe8f7bfeeecc3d60cab0d2ee3f23ace80d1016eb886acee5",
+      "d9c4665b00a1bc33183427fd93516ef6a3cbda3c6539b2e173a7676382fa7f33"
+    ],
+    "target_s": 1597038900.0,
+    "to_index": 4,
+    "year": 2020
+  },
+  {
+    "component_id": "AZSCA002339CASSADORESPRINGS",
+    "from_index": 6,
+    "group_id": "group-d26c31a440bc182de8d8",
+    "horizon_s": 86400.0,
+    "issue_s": 1597211640.0,
+    "pair_id": "9717c38273440ff5037e4cc3",
+    "region": "unknown",
+    "sequence_id": "sequence-6d611c3920e82b9f7ddbf94d",
+    "source_row_ids": [
+      "34ce0a1019e4e8642434b42c2b9e1af3968c25cd5e4987a5b6f7e7baaa571466",
+      "4fef46de1a3938ca5e7458eb9c0176c07df113cff183112f6764d043ff493fbe"
+    ],
+    "target_s": 1597298040.0,
+    "to_index": 7,
+    "year": 2020
+  },
+  {
+    "component_id": "IDNCF000628SPONGE",
+    "from_index": 0,
+    "group_id": "group-d326d59b9d2a3a70a8f7",
+    "horizon_s": 99240.0,
+    "issue_s": 1599016920.0,
+    "pair_id": "8640a6dee9b4d8a50eb3206e",
+    "region": "unknown",
+    "sequence_id": "sequence-ef061860df355e935034a4c2",
+    "source_row_ids": [
+      "b9ce54ab922aca9bc2f967c910cee49f0a30bb9a7161ea34becd09228fe6cb83",
+      "68781a772f2f8db2d93c830bc5081d8cad9851dac17e48f890306734324061d3"
+    ],
+    "target_s": 1599116160.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "IDNCF000628SPONGE",
+    "from_index": 2,
+    "group_id": "group-d326d59b9d2a3a70a8f7",
+    "horizon_s": 86460.0,
+    "issue_s": 1599273480.0,
+    "pair_id": "2421600944d20ffc1e12cafc",
+    "region": "unknown",
+    "sequence_id": "sequence-ef061860df355e935034a4c2",
+    "source_row_ids": [
+      "d773f5cd61f3b1b0a1000900daa36de18d66ab2cab6d4b2a53284d2b8bca3f76",
+      "c5fd7212a5672296b6c0568ce4174e5e3ff74f90a0ca3c739dce1ba4df319638"
+    ],
+    "target_s": 1599359940.0,
+    "to_index": 3,
+    "year": 2020
+  },
+  {
+    "component_id": "IDNCF000628SPONGE",
+    "from_index": 3,
+    "group_id": "group-d326d59b9d2a3a70a8f7",
+    "horizon_s": 88800.0,
+    "issue_s": 1599359940.0,
+    "pair_id": "537e37dddecd9e0eae1549c2",
+    "region": "unknown",
+    "sequence_id": "sequence-ef061860df355e935034a4c2",
+    "source_row_ids": [
+      "c5fd7212a5672296b6c0568ce4174e5e3ff74f90a0ca3c739dce1ba4df319638",
+      "370ee895d522aaac44500a480108b24c380462300c9dcb086dae7c57498bd071"
+    ],
+    "target_s": 1599448740.0,
+    "to_index": 4,
+    "year": 2020
+  },
+  {
+    "component_id": "IDIPF000458CHARACTERCOMPLEX",
+    "from_index": 0,
+    "group_id": "group-e03aac6665d381f84b95",
+    "horizon_s": 163500.0,
+    "issue_s": 1626081600.0,
+    "pair_id": "5673095838edb477d7b10c41",
+    "region": "unknown",
+    "sequence_id": "sequence-a1b9fe2067afee1f453d6795",
+    "source_row_ids": [
+      "b6911bf6ba4061c403519d776fb0a90aa646d46afee1e763f27b0ed33f881a68",
+      "8a442fb7fbb790141d9ab2f1b1425df9950bdd306726fc0907970a73647123c6"
+    ],
+    "target_s": 1626245100.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "IDIPF000458CHARACTERCOMPLEX",
+    "from_index": 8,
+    "group_id": "group-e03aac6665d381f84b95",
+    "horizon_s": 92580.0,
+    "issue_s": 1627625820.0,
+    "pair_id": "8af7e1848a3980a4264ce2fe",
+    "region": "unknown",
+    "sequence_id": "sequence-a9e8a1828661b5d143f4355a",
+    "source_row_ids": [
+      "80f4dfef7d70cf1e76743c68b938dcd5e889d0051f4e70e4d1173b67108453a9",
+      "c763ba7276503b53fe5eae41f5847a84ad8a461ef32c39dc04e116c632be794d"
+    ],
+    "target_s": 1627718400.0,
+    "to_index": 9,
+    "year": 2021
+  },
+  {
+    "component_id": "IDIPF000458CHARACTERCOMPLEX",
+    "from_index": 2,
+    "group_id": "group-e03aac6665d381f84b95",
+    "horizon_s": 177600.0,
+    "issue_s": 1631073000.0,
+    "pair_id": "9aa7abb1a02164bb20912049",
+    "region": "unknown",
+    "sequence_id": "sequence-aad00285e0981f6e403441bc",
+    "source_row_ids": [
+      "66d7a35a238332d0c8bea47c15c23f2e91679f6b1a413440a67a6cb53a1fd137",
+      "75d896abc1c3d36e06f2ba117799b43b3f10e4e70ca92ca7dbe4b7d61ab96438"
+    ],
+    "target_s": 1631250600.0,
+    "to_index": 3,
+    "year": 2021
+  },
+  {
+    "component_id": "AZA4S231468BRADY",
+    "from_index": 0,
+    "group_id": "group-e1aaec28f60fe5171e84",
+    "horizon_s": 81900.0,
+    "issue_s": 1691653500.0,
+    "pair_id": "62875c7e774fb31ed40bfb52",
+    "region": "unknown",
+    "sequence_id": "sequence-d21a6f7b2d333d51f7227278",
+    "source_row_ids": [
+      "46319f41af2135275513da6b114476d27490660af1b89b7e8459ad85d62f6114",
+      "f5fd1f1862ae2a20654dccda97f6149ea2098dcc91e2620b4dcd6280208bdad1"
+    ],
+    "target_s": 1691735400.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "AZA4S231468BRADY",
+    "from_index": 1,
+    "group_id": "group-e1aaec28f60fe5171e84",
+    "horizon_s": 88200.0,
+    "issue_s": 1691735400.0,
+    "pair_id": "5a47975c1a9154cfed803773",
+    "region": "unknown",
+    "sequence_id": "sequence-d21a6f7b2d333d51f7227278",
+    "source_row_ids": [
+      "f5fd1f1862ae2a20654dccda97f6149ea2098dcc91e2620b4dcd6280208bdad1",
+      "1f340dfd8a57e70f543175ca70391ab177437a830986a83920a904730c66b81c"
+    ],
+    "target_s": 1691823600.0,
+    "to_index": 2,
+    "year": 2023
+  },
+  {
+    "component_id": "UTUWF200810YELLOWLAKE",
+    "from_index": 0,
+    "group_id": "group-e23fc0dcef85ede095ed",
+    "horizon_s": 61140.0,
+    "issue_s": 1727772720.0,
+    "pair_id": "bbcc3e6350d4d8f410bc7d63",
+    "region": "unknown",
+    "sequence_id": "sequence-b36913ea858ab8ffe2be5f0f",
+    "source_row_ids": [
+      "542ae9bf007eddf6b0afc7016f5b5f3c46289907088304994f3b5898f8558106",
+      "310909b78765fa6545a629a38f396fd28e2da13263876d0bb0f0032c9ef51bde"
+    ],
+    "target_s": 1727833860.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "UTUWF200810YELLOWLAKE",
+    "from_index": 8,
+    "group_id": "group-e23fc0dcef85ede095ed",
+    "horizon_s": 180660.0,
+    "issue_s": 1728529200.0,
+    "pair_id": "78d1afa613227076c6e22e88",
+    "region": "unknown",
+    "sequence_id": "sequence-b36913ea858ab8ffe2be5f0f",
+    "source_row_ids": [
+      "adfa951f50ea4fd5e38fbe390b4f6c8c3437ed12f043ff480166fcdbe9395d25",
+      "cab8b27dd1c05d531be9c9453cca3c70176329391cea9d50aa4f9a415e384fcc"
+    ],
+    "target_s": 1728709860.0,
+    "to_index": 9,
+    "year": 2024
+  },
+  {
+    "component_id": "UTUWF200810YELLOWLAKE",
+    "from_index": 4,
+    "group_id": "group-e23fc0dcef85ede095ed",
+    "horizon_s": 169560.0,
+    "issue_s": 1729737060.0,
+    "pair_id": "6b11570cb54b4f245502052b",
+    "region": "unknown",
+    "sequence_id": "sequence-5d3ce00f07398222f08197c1",
+    "source_row_ids": [
+      "49952563a423bca49f05c7040caeed9e69254e467f4e0cf9805764fa068b3ea9",
+      "dcf5d9683367ba485847d55de46fac5858f0d09c694832266b942836d734d67d"
+    ],
+    "target_s": 1729906620.0,
+    "to_index": 5,
+    "year": 2024
+  },
+  {
+    "component_id": "CABTU013761PARK",
+    "from_index": 0,
+    "group_id": "group-e2b514de55d5c4f03e4f",
+    "horizon_s": 76860.0,
+    "issue_s": 1721975940.0,
+    "pair_id": "f210b01a05e09a56de4ff354",
+    "region": "unknown",
+    "sequence_id": "sequence-aed212f9ebd43ea741e5c896",
+    "source_row_ids": [
+      "dfe6ec27e3e44a79ed9d901ebbaa5e7e3b06c75ecde86f4182e3d0e4c97a6879",
+      "b9a70e30587dc881080adb791340d76026cecdd0f31b4b050b5d07102242737d"
+    ],
+    "target_s": 1722052800.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "CABTU013761PARK",
+    "from_index": 30,
+    "group_id": "group-e2b514de55d5c4f03e4f",
+    "horizon_s": 87060.0,
+    "issue_s": 1724551740.0,
+    "pair_id": "9f1a01ac7805d5c1d4490945",
+    "region": "unknown",
+    "sequence_id": "sequence-aed212f9ebd43ea741e5c896",
+    "source_row_ids": [
+      "7dcb5e848f844dedd16d3e45873cd1be22a643c3d10a8814392f2591640dd98b",
+      "749dd8f7aea9b1ea74c1d82e20f1c71193017c39b156585ca4e9abef467e3231"
+    ],
+    "target_s": 1724638800.0,
+    "to_index": 31,
+    "year": 2024
+  },
+  {
+    "component_id": "CABTU013761PARK",
+    "from_index": 12,
+    "group_id": "group-e2b514de55d5c4f03e4f",
+    "horizon_s": 90000.0,
+    "issue_s": 1727567520.0,
+    "pair_id": "8847cfde7758f09271cae7eb",
+    "region": "unknown",
+    "sequence_id": "sequence-6e7022747c038ee57629a51f",
+    "source_row_ids": [
+      "1f6876f902bd5e1e0fb76c49471c2c292a3b03cc2d346652999d85eaa4b80b97",
+      "f5f11a3e9c81df296aae6cee31eb6a8cf6cfa1bc8a9c0f7fca87ced7ec8bac6f"
+    ],
+    "target_s": 1727657520.0,
+    "to_index": 13,
+    "year": 2024
+  },
+  {
+    "component_id": "NVELD040152DODGESPRINGS",
+    "from_index": 0,
+    "group_id": "group-e2cc6c782ae7ff093c14",
+    "horizon_s": 83160.0,
+    "issue_s": 1658552700.0,
+    "pair_id": "d7a26f55a35733d1f4a1aa44",
+    "region": "unknown",
+    "sequence_id": "sequence-ff12642dbcfa925040e1b7d1",
+    "source_row_ids": [
+      "63e855ff31d4ec68aad6b44f66647c2d782c6a80be23131884800cae6253040b",
+      "f7e06fb1ee9155d8e4c06d611ddc606d8194938517036090902c37241fb6b5e6"
+    ],
+    "target_s": 1658635860.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "NVELD040152DODGESPRINGS",
+    "from_index": 1,
+    "group_id": "group-e2cc6c782ae7ff093c14",
+    "horizon_s": 88200.0,
+    "issue_s": 1658635860.0,
+    "pair_id": "373365fa01f3b5e4dafb77dc",
+    "region": "unknown",
+    "sequence_id": "sequence-ff12642dbcfa925040e1b7d1",
+    "source_row_ids": [
+      "f7e06fb1ee9155d8e4c06d611ddc606d8194938517036090902c37241fb6b5e6",
+      "ccef6703925d2d797a4eaf4a2e53b437ea0c0f1cf86a8de8c2c7027cd57d9538"
+    ],
+    "target_s": 1658724060.0,
+    "to_index": 2,
+    "year": 2022
+  },
+  {
+    "component_id": "CAINF001695DEXTER",
+    "from_index": 0,
+    "group_id": "group-e3d4317fe0ee80f3068e",
+    "horizon_s": 83400.0,
+    "issue_s": 1626411600.0,
+    "pair_id": "a941d06a3c377484d82c9a3c",
+    "region": "unknown",
+    "sequence_id": "sequence-5c3ad0a4f40d0a4b534b0984",
+    "source_row_ids": [
+      "a0b85a453f9193dac8535baa69d199a4f95e99f5f6551400057d379ceebdd3cb",
+      "7fa10d6dee383b8d74421cba0869dc567f92111c7375370b5f7d68e2d5124d89"
+    ],
+    "target_s": 1626495000.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "CAINF001695DEXTER",
+    "from_index": 2,
+    "group_id": "group-e3d4317fe0ee80f3068e",
+    "horizon_s": 176400.0,
+    "issue_s": 1626571800.0,
+    "pair_id": "f87bd02c47e10a089659a12e",
+    "region": "unknown",
+    "sequence_id": "sequence-5c3ad0a4f40d0a4b534b0984",
+    "source_row_ids": [
+      "2b57d972b1db4d7b9d1cca57b063e33ac597935c55fa9cc8835dda417225010f",
+      "af32a2c167a090891574646eae51cb8f9b7a92a8461c13db13b29744baef1c36"
+    ],
+    "target_s": 1626748200.0,
+    "to_index": 3,
+    "year": 2021
+  },
+  {
+    "component_id": "CAINF001695DEXTER",
+    "from_index": 3,
+    "group_id": "group-e3d4317fe0ee80f3068e",
+    "horizon_s": 91800.0,
+    "issue_s": 1626748200.0,
+    "pair_id": "0f9ea92eb573074b1e60702d",
+    "region": "unknown",
+    "sequence_id": "sequence-5c3ad0a4f40d0a4b534b0984",
+    "source_row_ids": [
+      "af32a2c167a090891574646eae51cb8f9b7a92a8461c13db13b29744baef1c36",
+      "d3cdf2c07b38c53bcf23529dc6f9e6c1d7e5495590eb501edf128f4f065268ca"
+    ],
+    "target_s": 1626840000.0,
+    "to_index": 4,
+    "year": 2021
+  },
+  {
+    "component_id": "WYMRF200752MULLEN",
+    "from_index": 0,
+    "group_id": "group-e7a0ca4d774c0df2899b",
+    "horizon_s": 94620.0,
+    "issue_s": 1600912260.0,
+    "pair_id": "eccfc323997dabeb27419fae",
+    "region": "unknown",
+    "sequence_id": "sequence-0c2e4c09fd1177ec8cea5a03",
+    "source_row_ids": [
+      "46364c857b9f49eb6a50629fb5fa0723b2b01bbe44da0469d2fba3614f394bf5",
+      "b150e44f1c2704ce4b7e783fd15f01263443931ba548661baf7640f68fe7937e"
+    ],
+    "target_s": 1601006880.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "WYMRF200752MULLEN",
+    "from_index": 11,
+    "group_id": "group-e7a0ca4d774c0df2899b",
+    "horizon_s": 99660.0,
+    "issue_s": 1602037800.0,
+    "pair_id": "f79d370e2147e5398dc62ffc",
+    "region": "unknown",
+    "sequence_id": "sequence-0c2e4c09fd1177ec8cea5a03",
+    "source_row_ids": [
+      "28cb06b2a6b4127996c92ed05bff318cf536ba9031004d0321c22bcdf3304d8d",
+      "3a9094eba525a20c426c3898db9d8e66fce4c5a854e658441d55b012da8e1307"
+    ],
+    "target_s": 1602137460.0,
+    "to_index": 12,
+    "year": 2020
+  },
+  {
+    "component_id": "WYMRF200752MULLEN",
+    "from_index": 7,
+    "group_id": "group-e7a0ca4d774c0df2899b",
+    "horizon_s": 174000.0,
+    "issue_s": 1603332300.0,
+    "pair_id": "fd9bf896536053678724983a",
+    "region": "unknown",
+    "sequence_id": "sequence-327204146f7b01afb8a328b8",
+    "source_row_ids": [
+      "7365bb96449c8f323cbf3275c7d1a708ea0387d15b271d835155b98b3b648bab",
+      "1ffb04447337f1f326c2e4721610233347e3fb7890bbb10b09ec08636b3a54e1"
+    ],
+    "target_s": 1603506300.0,
+    "to_index": 8,
+    "year": 2020
+  },
+  {
+    "component_id": "AZPNF002178HORSE",
+    "from_index": 0,
+    "group_id": "group-e7a28c58de1a689c06cf",
+    "horizon_s": 84300.0,
+    "issue_s": 1602809100.0,
+    "pair_id": "adc3631fdab5fa822ab1401e",
+    "region": "unknown",
+    "sequence_id": "sequence-7c112c3c9779551acffd24fc",
+    "source_row_ids": [
+      "0b7561e80c383cf5ffda61fd5bcbb3b7cc067a25d948099ef7d4d4487c0d97b2",
+      "137e420269a904b8a16cc27dbb8c7d2f94d42cd1b04a8e490ddecef53a20c6a3"
+    ],
+    "target_s": 1602893400.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "AZPNF002178HORSE",
+    "from_index": 4,
+    "group_id": "group-e7a28c58de1a689c06cf",
+    "horizon_s": 82860.0,
+    "issue_s": 1603176060.0,
+    "pair_id": "cf5a0ff2c372f5b0e55cd99d",
+    "region": "unknown",
+    "sequence_id": "sequence-7c112c3c9779551acffd24fc",
+    "source_row_ids": [
+      "fd55cdb9d7a6a1c919aa98d1da53611c289f020ba48239e9c90d082a64bf557f",
+      "5288419f9857c3a2096cffbaa5ca0ed91542111bff4d037065ae7b22c4165100"
+    ],
+    "target_s": 1603258920.0,
+    "to_index": 5,
+    "year": 2020
+  },
+  {
+    "component_id": "AZPNF002178HORSE",
+    "from_index": 8,
+    "group_id": "group-e7a28c58de1a689c06cf",
+    "horizon_s": 86400.0,
+    "issue_s": 1603512000.0,
+    "pair_id": "fe46df1fed62be526ffd8459",
+    "region": "unknown",
+    "sequence_id": "sequence-7c112c3c9779551acffd24fc",
+    "source_row_ids": [
+      "3a9cf757b51efd535d2f25a21526ed28d5e0e60677ea8f708768388c38d79721",
+      "9a5e07eaa144e2f852ec86233c26165b56acdebdbd4e6465fb74bae8fb350b0c"
+    ],
+    "target_s": 1603598400.0,
+    "to_index": 9,
+    "year": 2020
+  },
+  {
+    "component_id": "MTFHA000130GARCEAU",
+    "from_index": 0,
+    "group_id": "group-efc15d06ae4ee5f53d7f",
+    "horizon_s": 90180.0,
+    "issue_s": 1660708320.0,
+    "pair_id": "f367452db526ee575b60f8d2",
+    "region": "unknown",
+    "sequence_id": "sequence-460ed19ed49d1534bb4978e5",
+    "source_row_ids": [
+      "8c073250bfca3ee1a7634f94ab88c946d9cbca16a4d8513397528c43a5b63da4",
+      "1dfea72391ea7891545bc07d5d193d1ef9789475f74a236bd9037b20a5d04a7b"
+    ],
+    "target_s": 1660798500.0,
+    "to_index": 1,
+    "year": 2022
+  },
+  {
+    "component_id": "MTFHA000130GARCEAU",
+    "from_index": 4,
+    "group_id": "group-efc15d06ae4ee5f53d7f",
+    "horizon_s": 80100.0,
+    "issue_s": 1661144880.0,
+    "pair_id": "37653e06275dc29c1fc28915",
+    "region": "unknown",
+    "sequence_id": "sequence-460ed19ed49d1534bb4978e5",
+    "source_row_ids": [
+      "a57b680a67c765f45959980bbc6ab049ebb12f5736d6885af098158deb4ed175",
+      "91e878438c4eff42365c15a1fdceb5437e3fc79945fbda9005a6731fc70889d3"
+    ],
+    "target_s": 1661224980.0,
+    "to_index": 5,
+    "year": 2022
+  },
+  {
+    "component_id": "MTFHA000130GARCEAU",
+    "from_index": 8,
+    "group_id": "group-efc15d06ae4ee5f53d7f",
+    "horizon_s": 256200.0,
+    "issue_s": 1661663100.0,
+    "pair_id": "a5ce5549e47fcd5a307838bc",
+    "region": "unknown",
+    "sequence_id": "sequence-460ed19ed49d1534bb4978e5",
+    "source_row_ids": [
+      "7ac68221e641451265cb507f11e293ecc56a3bc6646a11745787d80863b23ec9",
+      "d02e4e653a495775d92facefeef103d70536391a2315d06e6ccadcf1bfd8fd36"
+    ],
+    "target_s": 1661919300.0,
+    "to_index": 9,
+    "year": 2022
+  },
+  {
+    "component_id": "MTFNF000518RIDGE",
+    "from_index": 0,
+    "group_id": "group-f08912eade43dd668bae",
+    "horizon_s": 77280.0,
+    "issue_s": 1690957920.0,
+    "pair_id": "fff4e19484c865ab7edb6cd0",
+    "region": "unknown",
+    "sequence_id": "sequence-473ee3aad1de0769094fd32c",
+    "source_row_ids": [
+      "4f060a408389c7a7acac9db7b293dd288c8ffacc00f1d8a2bb92fb603a590c2b",
+      "579a695cbd78a23659a94bfcbb1d015ab2686e7b21627e2f7ee97e105d52e0b2"
+    ],
+    "target_s": 1691035200.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "MTFNF000518RIDGE",
+    "from_index": 13,
+    "group_id": "group-f08912eade43dd668bae",
+    "horizon_s": 84060.0,
+    "issue_s": 1692076680.0,
+    "pair_id": "2bbc7809e0f2530a43e6666a",
+    "region": "unknown",
+    "sequence_id": "sequence-473ee3aad1de0769094fd32c",
+    "source_row_ids": [
+      "148b5f587489eb9033e626885f5f0c19ba8a4f6fb3980bc74c8ce15d30d6b3cd",
+      "2678de4a440b7be3fac98b227ee5121ad0cf6d532203d01783b03e64d77b8a5e"
+    ],
+    "target_s": 1692160740.0,
+    "to_index": 14,
+    "year": 2023
+  },
+  {
+    "component_id": "MTFNF000518RIDGE",
+    "from_index": 6,
+    "group_id": "group-f08912eade43dd668bae",
+    "horizon_s": 90780.0,
+    "issue_s": 1693625220.0,
+    "pair_id": "143cf92b0ed07ae82bf44663",
+    "region": "unknown",
+    "sequence_id": "sequence-7a78455930b09aded22758de",
+    "source_row_ids": [
+      "d205e1862163ed0ca6d2f5ae4cf684a2f70e657f706983de757a7bfe14052faa",
+      "3af32df74f1405e243fab9292597d7ab2f388b167431f30700b2cbd590a0ed7d"
+    ],
+    "target_s": 1693716000.0,
+    "to_index": 7,
+    "year": 2023
+  },
+  {
+    "component_id": "ORMAF002549POISONCREEK",
+    "from_index": 0,
+    "group_id": "group-f3062dc070c76a0af0a0",
+    "horizon_s": 66180.0,
+    "issue_s": 1722417660.0,
+    "pair_id": "45cba7312151fca58e84f8be",
+    "region": "unknown",
+    "sequence_id": "sequence-925f37000263cedbb3aa5ee9",
+    "source_row_ids": [
+      "c788bbfa6e532509187c93a364f29b3571d10c8634860edd3b016ac4edfe2899",
+      "a302e67b7ff7d735ab78cbdeba9c6ac518bae068cd75a9b0617d48a977e10862"
+    ],
+    "target_s": 1722483840.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "ORMAF002549POISONCREEK",
+    "from_index": 2,
+    "group_id": "group-f3062dc070c76a0af0a0",
+    "horizon_s": 66600.0,
+    "issue_s": 1722590940.0,
+    "pair_id": "fc2d20429c3e57e8681c2f15",
+    "region": "unknown",
+    "sequence_id": "sequence-925f37000263cedbb3aa5ee9",
+    "source_row_ids": [
+      "bd9cabf053180072a0c112b1d695f4efe4b72efffcb9635196c8973a95757258",
+      "a5f433adb0dd411d10242c687efe3e64d757202c1931814708e3f2701bdc6948"
+    ],
+    "target_s": 1722657540.0,
+    "to_index": 3,
+    "year": 2024
+  },
+  {
+    "component_id": "ORMAF002549POISONCREEK",
+    "from_index": 3,
+    "group_id": "group-f3062dc070c76a0af0a0",
+    "horizon_s": 252660.0,
+    "issue_s": 1722657540.0,
+    "pair_id": "d511847ae4975f7355e5f805",
+    "region": "unknown",
+    "sequence_id": "sequence-925f37000263cedbb3aa5ee9",
+    "source_row_ids": [
+      "a5f433adb0dd411d10242c687efe3e64d757202c1931814708e3f2701bdc6948",
+      "f0ba79f88eaef57103e18cec9db0016b9d8eb1c03b40608c4f3506d2e929318e"
+    ],
+    "target_s": 1722910200.0,
+    "to_index": 4,
+    "year": 2024
+  },
+  {
+    "component_id": "IDSTF000353JAKESGULCH",
+    "from_index": 0,
+    "group_id": "group-f5216a8f77aed5786284",
+    "horizon_s": 87300.0,
+    "issue_s": 1631002500.0,
+    "pair_id": "6b3e1ef140ce28579b7ba146",
+    "region": "unknown",
+    "sequence_id": "sequence-167507fb29f30a07d1cf4dbc",
+    "source_row_ids": [
+      "24c94b84fa1a267d58c2b0adca10590cfdacbbc4f4a948b8c33b649766cb2c57",
+      "87c422f1d7d182a6edfd9710adf6b5de5b831f415bc980983b4c612ea1442c31"
+    ],
+    "target_s": 1631089800.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "IDSTF000353JAKESGULCH",
+    "from_index": 6,
+    "group_id": "group-f5216a8f77aed5786284",
+    "horizon_s": 93000.0,
+    "issue_s": 1631499600.0,
+    "pair_id": "5979ee7ee51565bf9a789e66",
+    "region": "unknown",
+    "sequence_id": "sequence-167507fb29f30a07d1cf4dbc",
+    "source_row_ids": [
+      "fdbcf26b1ae28c22c1b10805f65d6c6d55c5972c94475ac6b24a6703fe033937",
+      "88241345726e7a52dbd39d11ead4af495fea5326dfd93e92a8420a01eaae3a3e"
+    ],
+    "target_s": 1631592600.0,
+    "to_index": 7,
+    "year": 2021
+  },
+  {
+    "component_id": "IDSTF000353JAKESGULCH",
+    "from_index": 11,
+    "group_id": "group-f5216a8f77aed5786284",
+    "horizon_s": 79500.0,
+    "issue_s": 1632201300.0,
+    "pair_id": "c38b1d92732d4fc21128f653",
+    "region": "unknown",
+    "sequence_id": "sequence-167507fb29f30a07d1cf4dbc",
+    "source_row_ids": [
+      "f32db11639ede52a9c6d42c05be80032d6f60e165249b7775fc9c56f92fee1f8",
+      "caf78e55007abbef725d5ec697c8f2784ca593a673368360d966694a08804c5c"
+    ],
+    "target_s": 1632280800.0,
+    "to_index": 12,
+    "year": 2021
+  },
+  {
+    "component_id": "WAOWF000435EASY",
+    "from_index": 0,
+    "group_id": "group-f97efd597caae39a546d",
+    "horizon_s": 80520.0,
+    "issue_s": 1721285940.0,
+    "pair_id": "44cd605ae8501a9e11a36a57",
+    "region": "unknown",
+    "sequence_id": "sequence-6379a9ccb747feefd906f95e",
+    "source_row_ids": [
+      "33d8b20b57737c6994f6b681786b373871899a0f34140bace5ccd963a34a95b8",
+      "ad331f830a8ea269b147a1dc13fdde0d31c58f812112887403da102aa9df76b5"
+    ],
+    "target_s": 1721366460.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "WAOWF000435EASY",
+    "from_index": 5,
+    "group_id": "group-f97efd597caae39a546d",
+    "horizon_s": 59400.0,
+    "issue_s": 1723203000.0,
+    "pair_id": "377353b3b227672951d862ee",
+    "region": "unknown",
+    "sequence_id": "sequence-ee976e9d10bea6193a6ba5d6",
+    "source_row_ids": [
+      "2ca3337cbc896ffe1ada77c9be304e8a502a5201acd450f8cf2390fac5342902",
+      "14e2b9206ec3ffb81c5276ecbf7fccb229589a1234b2f31829d247b50ab2d6ae"
+    ],
+    "target_s": 1723262400.0,
+    "to_index": 6,
+    "year": 2024
+  },
+  {
+    "component_id": "WAOWF000435EASY",
+    "from_index": 16,
+    "group_id": "group-f97efd597caae39a546d",
+    "horizon_s": 176400.0,
+    "issue_s": 1724472000.0,
+    "pair_id": "0050955e72f0ad1924ea5432",
+    "region": "unknown",
+    "sequence_id": "sequence-ee976e9d10bea6193a6ba5d6",
+    "source_row_ids": [
+      "f1360a16617aa2f34d70923a4d2e68c06b342ba61b85894aa55334ce6bc412e1",
+      "ba5c05614ddbf12051203e649e29f50eea9e6fab1ee10469c2c363a0cd90005d"
+    ],
+    "target_s": 1724648400.0,
+    "to_index": 17,
+    "year": 2024
+  },
+  {
+    "component_id": "ORUPF000436ARCHIECREEK",
+    "from_index": 0,
+    "group_id": "group-f9e45f321cfdc69d8de9",
+    "horizon_s": 42900.0,
+    "issue_s": 1599676200.0,
+    "pair_id": "35443f09b627776c7e580250",
+    "region": "unknown",
+    "sequence_id": "sequence-779ef1d89403287d82f6f1f4",
+    "source_row_ids": [
+      "c2a752041b4ca238f6887d536554b8e1b92e84116fd4b9eddd9c918e460645a1",
+      "36e6209f809ee6d90f973cbf6508fdda5597abfe438a9ac25ab8c911945c44ec"
+    ],
+    "target_s": 1599719100.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "ORUPF000436ARCHIECREEK",
+    "from_index": 11,
+    "group_id": "group-f9e45f321cfdc69d8de9",
+    "horizon_s": 82980.0,
+    "issue_s": 1600660800.0,
+    "pair_id": "cdc7bcc418212d2f9507b17e",
+    "region": "unknown",
+    "sequence_id": "sequence-779ef1d89403287d82f6f1f4",
+    "source_row_ids": [
+      "30aff155424bd4cdaa68d78c210c03baa4661600cbac0ec3cd96f39c9d6840aa",
+      "f12d9b61763c95c3bbcc1f0362119633294a2ceba3235a8019b338ba109906ec"
+    ],
+    "target_s": 1600743780.0,
+    "to_index": 12,
+    "year": 2020
+  },
+  {
+    "component_id": "ORUPF000436ARCHIECREEK",
+    "from_index": 21,
+    "group_id": "group-f9e45f321cfdc69d8de9",
+    "horizon_s": 91800.0,
+    "issue_s": 1601864880.0,
+    "pair_id": "e3dd946920ecc0c8001946fa",
+    "region": "unknown",
+    "sequence_id": "sequence-779ef1d89403287d82f6f1f4",
+    "source_row_ids": [
+      "7954810d3e1232247957d7c13c413f5c839aa4729427583aa112e5f3f0251874",
+      "d8a6359e052ecfff75932821ae1704e05cec4c489bf763d252e77597165e5696"
+    ],
+    "target_s": 1601956680.0,
+    "to_index": 22,
+    "year": 2020
+  },
+  {
+    "component_id": "NMLCD000234UVAS",
+    "from_index": 0,
+    "group_id": "group-fb61ef4b35ab0509e1a1",
+    "horizon_s": 35340.0,
+    "issue_s": 1591559700.0,
+    "pair_id": "34004b6d644d600998227ed7",
+    "region": "unknown",
+    "sequence_id": "sequence-a6ea12280a67374bdf9fbae7",
+    "source_row_ids": [
+      "70afd42da5c8edd345bcdbe072baef05c22e1b2d31971b10a3a95b506bff9650",
+      "0386d7f818145d57d2418df5dff13562a734a59faaf54e72bc672fc67e38112a"
+    ],
+    "target_s": 1591595040.0,
+    "to_index": 1,
+    "year": 2020
+  },
+  {
+    "component_id": "NMLCD000234UVAS",
+    "from_index": 2,
+    "group_id": "group-fb61ef4b35ab0509e1a1",
+    "horizon_s": 81240.0,
+    "issue_s": 1591679460.0,
+    "pair_id": "0c16351395888e83980af5be",
+    "region": "unknown",
+    "sequence_id": "sequence-a6ea12280a67374bdf9fbae7",
+    "source_row_ids": [
+      "bbc0bc809de25ab96837e8a455e49f95cc6723b052986b965c30ed29040fa90d",
+      "47ec68fa367a8f6a241b3cb331500fd0567cc6e2ea2c2606563365628003b639"
+    ],
+    "target_s": 1591760700.0,
+    "to_index": 3,
+    "year": 2020
+  },
+  {
+    "component_id": "NMLCD000234UVAS",
+    "from_index": 3,
+    "group_id": "group-fb61ef4b35ab0509e1a1",
+    "horizon_s": 141120.0,
+    "issue_s": 1591760700.0,
+    "pair_id": "d8edbbac36f97f72087b6e23",
+    "region": "unknown",
+    "sequence_id": "sequence-a6ea12280a67374bdf9fbae7",
+    "source_row_ids": [
+      "47ec68fa367a8f6a241b3cb331500fd0567cc6e2ea2c2606563365628003b639",
+      "d91dc22f6c7bffb5038527c26a4d99ca0dcd7cc4f8aea5efeaa47811050c9d19"
+    ],
+    "target_s": 1591901820.0,
+    "to_index": 4,
+    "year": 2020
+  },
+  {
+    "component_id": "AZCOF000176WOLF",
+    "from_index": 0,
+    "group_id": "group-fd7ad443c735c5471af7",
+    "horizon_s": 84660.0,
+    "issue_s": 1715047140.0,
+    "pair_id": "34cf6bf9530094d5e55d0236",
+    "region": "unknown",
+    "sequence_id": "sequence-0141bf089330d00e9e91a16b",
+    "source_row_ids": [
+      "e129348631640df0679cce2497677b011831f7b2432204995c513d6ae68575b4",
+      "a8dfc63df038340a764c1a2415149b1026bcc42dafc3bca53571225247dc9272"
+    ],
+    "target_s": 1715131800.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "AZCOF000176WOLF",
+    "from_index": 3,
+    "group_id": "group-fd7ad443c735c5471af7",
+    "horizon_s": 88200.0,
+    "issue_s": 1715297400.0,
+    "pair_id": "0d55dc0dac9d4c04d31daa2f",
+    "region": "unknown",
+    "sequence_id": "sequence-0141bf089330d00e9e91a16b",
+    "source_row_ids": [
+      "ec19673094eaf8544cd6243dabbff8891498ae467f467617f59cf04143aa057c",
+      "e31f5261cfd2da27c49ac8162eee5e6faa8edae2f5c436ed4022bb3c9efbd80b"
+    ],
+    "target_s": 1715385600.0,
+    "to_index": 4,
+    "year": 2024
+  },
+  {
+    "component_id": "AZCOF000176WOLF",
+    "from_index": 5,
+    "group_id": "group-fd7ad443c735c5471af7",
+    "horizon_s": 86400.0,
+    "issue_s": 1715463000.0,
+    "pair_id": "2b5753a11903914529e10105",
+    "region": "unknown",
+    "sequence_id": "sequence-0141bf089330d00e9e91a16b",
+    "source_row_ids": [
+      "e30bea00be5df508be448006ffabab9253efaead4bb9aed9e7313dc718720f3d",
+      "aeac019b42c2d159800863642f031e836a76af2569cadbbca2616e1690781f44"
+    ],
+    "target_s": 1715549400.0,
+    "to_index": 6,
+    "year": 2024
+  },
+  {
+    "component_id": "COSJF000348CHRISMOUNTAIN",
+    "from_index": 0,
+    "group_id": "group-fe4318549a0fce49bdf0",
+    "horizon_s": 83880.0,
+    "issue_s": 1688364900.0,
+    "pair_id": "297ba3ae4ff303ad18788838",
+    "region": "unknown",
+    "sequence_id": "sequence-0d80ae2ace3c6b55454a341b",
+    "source_row_ids": [
+      "afb90676d0f0370202716b0aa1b775aced6d8554957bfc9b0b310c39cc2704bd",
+      "c05085b632523e8e4e6edea57bad296e44b4f9032dfcc4886c5085f35d4430e6"
+    ],
+    "target_s": 1688448780.0,
+    "to_index": 1,
+    "year": 2023
+  },
+  {
+    "component_id": "COSJF000348CHRISMOUNTAIN",
+    "from_index": 1,
+    "group_id": "group-fe4318549a0fce49bdf0",
+    "horizon_s": 93780.0,
+    "issue_s": 1688448780.0,
+    "pair_id": "95f8749d7eb2c1f98645a709",
+    "region": "unknown",
+    "sequence_id": "sequence-0d80ae2ace3c6b55454a341b",
+    "source_row_ids": [
+      "c05085b632523e8e4e6edea57bad296e44b4f9032dfcc4886c5085f35d4430e6",
+      "5bd90520a27eed0942dd72e2a8a07bd964a20e4dcabd4e93450ee0af4b9c6709"
+    ],
+    "target_s": 1688542560.0,
+    "to_index": 2,
+    "year": 2023
+  },
+  {
+    "component_id": "COSJF000348CHRISMOUNTAIN",
+    "from_index": 2,
+    "group_id": "group-fe4318549a0fce49bdf0",
+    "horizon_s": 151320.0,
+    "issue_s": 1688542560.0,
+    "pair_id": "301d3f823fe90614e5214423",
+    "region": "unknown",
+    "sequence_id": "sequence-0d80ae2ace3c6b55454a341b",
+    "source_row_ids": [
+      "5bd90520a27eed0942dd72e2a8a07bd964a20e4dcabd4e93450ee0af4b9c6709",
+      "551887693de2ae8c3dbfbee5070cf0cfee046ee3d257b935a110cbf9f58f70eb"
+    ],
+    "target_s": 1688693880.0,
+    "to_index": 3,
+    "year": 2023
+  },
+  {
+    "component_id": "NMLNF000227BLUE2",
+    "from_index": 0,
+    "group_id": "group-fe52c1cab923a7bd95e4",
+    "horizon_s": 105660.0,
+    "issue_s": 1716138840.0,
+    "pair_id": "88231f77dce2d74f40cf09da",
+    "region": "unknown",
+    "sequence_id": "sequence-b05d27a739825ee5abf7d1a7",
+    "source_row_ids": [
+      "3f73d9ab54a716228c5c43d6adb8a1ce8ab62155a9b415472e4446ba5525a8c3",
+      "912908d40defe27fcf66b227f74ab9f8402b721f0f369f69ed114c3f75ff2c67"
+    ],
+    "target_s": 1716244500.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "NMLNF000227BLUE2",
+    "from_index": 8,
+    "group_id": "group-fe52c1cab923a7bd95e4",
+    "horizon_s": 87780.0,
+    "issue_s": 1716874080.0,
+    "pair_id": "7eb00ecc81c2954ddc34a8ce",
+    "region": "unknown",
+    "sequence_id": "sequence-b05d27a739825ee5abf7d1a7",
+    "source_row_ids": [
+      "89fadc7d47c6c0c7e2dcb0036dfea60bb1747e46c761db639ec7e168cdf4c428",
+      "f94521c08de9cef2c6fe4a57232671aedcccd7f5159c6eb14186e79f2887438c"
+    ],
+    "target_s": 1716961860.0,
+    "to_index": 9,
+    "year": 2024
+  },
+  {
+    "component_id": "NMLNF000227BLUE2",
+    "from_index": 16,
+    "group_id": "group-fe52c1cab923a7bd95e4",
+    "horizon_s": 86400.0,
+    "issue_s": 1717642800.0,
+    "pair_id": "f0a7e85d63a83fc5902e0082",
+    "region": "unknown",
+    "sequence_id": "sequence-b05d27a739825ee5abf7d1a7",
+    "source_row_ids": [
+      "e72751e5e370aafabba46b64f6afb9fadde5a01e40a98c9f5ad1172bb862fdd6",
+      "dee517cac9e5927c8afe140ce051f54cfb48236ba4adf616b4315137e7818824"
+    ],
+    "target_s": 1717729200.0,
+    "to_index": 17,
+    "year": 2024
+  },
+  {
+    "component_id": "AZTNF001130BLACK",
+    "from_index": 0,
+    "group_id": "group-ff93c7cac0369c9c8983",
+    "horizon_s": 86820.0,
+    "issue_s": 1721165460.0,
+    "pair_id": "069bf48777acb96de1ba49e5",
+    "region": "unknown",
+    "sequence_id": "sequence-bc64279d4b61b76460df72e7",
+    "source_row_ids": [
+      "f1fcdb9544076d565326b72f38279c2b9b4f618e83981d33cd960d3a0b9cf7f5",
+      "7458b88829bb5933056a3790064b179c79e5d79e8a4ff0967bd14adccfb1050c"
+    ],
+    "target_s": 1721252280.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "AZTNF001130BLACK",
+    "from_index": 3,
+    "group_id": "group-ff93c7cac0369c9c8983",
+    "horizon_s": 74760.0,
+    "issue_s": 1721368440.0,
+    "pair_id": "7776e2498b3df35c01c4df9f",
+    "region": "unknown",
+    "sequence_id": "sequence-bc64279d4b61b76460df72e7",
+    "source_row_ids": [
+      "b702217972371cc6451ae55ae6c9479671364cac67de6c2d1331b83f8d56a530",
+      "7d9094acf1c493a89412c2b5322b28d7f2f58c08e4977c4e27d5278e16679e80"
+    ],
+    "target_s": 1721443200.0,
+    "to_index": 4,
+    "year": 2024
+  },
+  {
+    "component_id": "AZTNF001130BLACK",
+    "from_index": 5,
+    "group_id": "group-ff93c7cac0369c9c8983",
+    "horizon_s": 91500.0,
+    "issue_s": 1721531700.0,
+    "pair_id": "7632c9761d6aa407d49ceeaf",
+    "region": "unknown",
+    "sequence_id": "sequence-bc64279d4b61b76460df72e7",
+    "source_row_ids": [
+      "d9ad1febeffbe12aab0c276f0394dec7018a751e7cbff89536af9bca87401a4d",
+      "783eba891222c962d5ef523b45afc23f6132b299d00c5e44a14f7edb41de990e"
+    ],
+    "target_s": 1721623200.0,
+    "to_index": 6,
+    "year": 2024
+  },
+  {
+    "component_id": "CATCU007675AERO",
+    "from_index": 0,
+    "group_id": "group-ffa8499e0cad5b246c34",
+    "horizon_s": 84120.0,
+    "issue_s": 1718782080.0,
+    "pair_id": "154d84cb765a232b6bb52ae9",
+    "region": "unknown",
+    "sequence_id": "sequence-b5e0d80d6c6c6fff01c1c308",
+    "source_row_ids": [
+      "107984ae4e549b7271b2ad3951586a654bba17fdaa37dcb76d0f9de7f3b11c96",
+      "bc737d4a3d8225409111c17334f07e3165b79255649caa03d706ecad06e863d3"
+    ],
+    "target_s": 1718866200.0,
+    "to_index": 1,
+    "year": 2024
+  },
+  {
+    "component_id": "CATCU007675AERO",
+    "from_index": 1,
+    "group_id": "group-ffa8499e0cad5b246c34",
+    "horizon_s": 88260.0,
+    "issue_s": 1718866200.0,
+    "pair_id": "efee69f179fb2f198cc0f2e2",
+    "region": "unknown",
+    "sequence_id": "sequence-b5e0d80d6c6c6fff01c1c308",
+    "source_row_ids": [
+      "bc737d4a3d8225409111c17334f07e3165b79255649caa03d706ecad06e863d3",
+      "5c8bfc1dbb1afad08c52f6cbabf2cdee390aeb92d2c414fd08c0f823546ba1aa"
+    ],
+    "target_s": 1718954460.0,
+    "to_index": 2,
+    "year": 2024
+  },
+  {
+    "component_id": "CATCU007675AERO",
+    "from_index": 2,
+    "group_id": "group-ffa8499e0cad5b246c34",
+    "horizon_s": 80280.0,
+    "issue_s": 1718954460.0,
+    "pair_id": "83cc5a0a3be226794f1bc98d",
+    "region": "unknown",
+    "sequence_id": "sequence-b5e0d80d6c6c6fff01c1c308",
+    "source_row_ids": [
+      "5c8bfc1dbb1afad08c52f6cbabf2cdee390aeb92d2c414fd08c0f823546ba1aa",
+      "218af2eabf6e24ca048c452a6034c89dbbe85e0d0021d7086f507cdc47af9760"
+    ],
+    "target_s": 1719034740.0,
+    "to_index": 3,
+    "year": 2024
+  },
+  {
+    "component_id": "ORUMF000659GREENRIDGE",
+    "from_index": 0,
+    "group_id": "group-ffb535fe9c97339c4208",
+    "horizon_s": 82920.0,
+    "issue_s": 1625894700.0,
+    "pair_id": "6515fc0c754d2ea2b3de1dfc",
+    "region": "unknown",
+    "sequence_id": "sequence-356c546348ede051f5b7bf8f",
+    "source_row_ids": [
+      "0f6fdd14612218f19ed4438eaea84422b5eb3e4f904b4e4c9b8fb9ad5a30a5b8",
+      "df6cd3b3187b0730aa89480802f213ba9bcb8c6b8309d020e9e1e3fdfa5c72cb"
+    ],
+    "target_s": 1625977620.0,
+    "to_index": 1,
+    "year": 2021
+  },
+  {
+    "component_id": "ORUMF000659GREENRIDGE",
+    "from_index": 8,
+    "group_id": "group-ffb535fe9c97339c4208",
+    "horizon_s": 84660.0,
+    "issue_s": 1629010740.0,
+    "pair_id": "4835e7cc05d8503ef38e8787",
+    "region": "unknown",
+    "sequence_id": "sequence-4732febd01c4090e56433fc3",
+    "source_row_ids": [
+      "3c1121aec2aaa93d87a5306ca0d96b55900f19fe53e3f6a511376e92a467f011",
+      "d8a7f56db375de273ceddb538927d5c77847a2cd9002cfd1a56facb6cec7cb8a"
+    ],
+    "target_s": 1629095400.0,
+    "to_index": 9,
+    "year": 2021
+  },
+  {
+    "component_id": "ORUMF000659GREENRIDGE",
+    "from_index": 8,
+    "group_id": "group-ffb535fe9c97339c4208",
+    "horizon_s": 170940.0,
+    "issue_s": 1632451140.0,
+    "pair_id": "0d58b17c52c97f9562a20d0c",
+    "region": "unknown",
+    "sequence_id": "sequence-ff2a219e604b2121453b063c",
+    "source_row_ids": [
+      "911fd936020cf122bb9e8c5b77aa0788f992c2a6c12c31133afce13193a372f2",
+      "178bca2ea77917356d76a58b5c618ed01847de9f213527e05d890cea752b9b34"
+    ],
+    "target_s": 1632622080.0,
+    "to_index": 9,
+    "year": 2021
+  }
+]

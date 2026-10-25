@@ -1,0 +1,43 @@
+{
+  "case_selection": "three existing predeclared lexical IDs preserved; supplemental target-only case described separately",
+  "diagnostic_threshold": 0.5,
+  "front_definition": "valid & ~current & EDT(~(current&valid),sampling=mpp)<=1000m; empty if no current footprint",
+  "maps": [
+    {
+      "cell_size_m": 60.0,
+      "front_cells": 5544,
+      "pair_id": "0050955e72f0ad1924ea5432",
+      "path": "reports/wildfire_forecast/frozen_operating_point/maps/growth_005_selected_050_diagnostic_0050955e72f0ad19.png"
+    },
+    {
+      "cell_size_m": 50.0,
+      "front_cells": 2714,
+      "pair_id": "00e5220afb63a8e3eb455b47",
+      "path": "reports/wildfire_forecast/frozen_operating_point/maps/growth_005_selected_050_diagnostic_00e5220afb63a8e3.png"
+    },
+    {
+      "cell_size_m": 370.0,
+      "front_cells": 426,
+      "pair_id": "025d74ab93ad924e243b17df",
+      "path": "reports/wildfire_forecast/frozen_operating_point/maps/growth_005_selected_050_diagnostic_025d74ab93ad924e.png"
+    },
+    {
+      "cell_size_m": 50.0,
+      "front_cells": 3611,
+      "pair_id": "3e20d94073d88d5fd999dc47",
+      "path": "reports/wildfire_forecast/frozen_operating_point/maps/posthoc_target_median_growth_3e20d94073d88d5f.png"
+    }
+  ],
+  "model_seed": 202,
+  "selected_epoch": 4,
+  "selected_threshold": 0.05,
+  "source_probability_sha256": "dbaf088e2f1cb879ca7da57e47f79b065f3a92b9db356a49613d0273cba54450",
+  "supplemental_example": {
+    "eligible_pairs": 211,
+    "observed_growth_cells": 59,
+    "pair_id": "3e20d94073d88d5fd999dc47",
+    "selection": "post hoc target-only illustration; upper median after sorting positive observed-growth pairs by (observed growth cell count,pair_id); no prediction quality used",
+    "status": "descriptive illustration only; no tuning or changed metrics"
+  },
+  "test_status": "all 105 groups / 303 pairs reused; no untouched groups claimed"
+}

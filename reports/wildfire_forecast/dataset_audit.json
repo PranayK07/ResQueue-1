@@ -1,0 +1,146 @@
+{
+  "schema_version": "nirops-dataset-audit-v1",
+  "agent": "codex",
+  "archive_sha256": "2eee127eb733696deab8657bd6fb95560f380c696c0cd8b5901512b947fa6c21",
+  "source_records": 12706,
+  "accepted_records": 12704,
+  "excluded_records": 2,
+  "counts": {
+    "geometry_repaired": 288,
+    "conflicting_same_time": 2
+  },
+  "source_components": 737,
+  "incident_groups": 676,
+  "partitions": {
+    "train": 458,
+    "validation": 111,
+    "test": 107
+  },
+  "sequence_counts": {
+    "train": 724,
+    "validation": 197,
+    "test": 156
+  },
+  "eligible_pairs": {
+    "train": 7095,
+    "validation": 1809,
+    "test": 1785
+  },
+  "test_selected_pairs": 303,
+  "test_eligible_groups": 105,
+  "observations_by_year": {
+    "2020": 2333,
+    "2021": 3223,
+    "2022": 2030,
+    "2023": 1383,
+    "2024": 3737
+  },
+  "region_counts": {
+    "unknown": 676
+  },
+  "duration_hours_quantiles": {
+    "0": 27.1,
+    "0.25": 165.06666666666666,
+    "0.5": 385.1,
+    "0.75": 912.0,
+    "1": 2756.0333333333333
+  },
+  "observation_gap_hours_quantiles": {
+    "0": 0.08333333333333333,
+    "0.25": 23.25,
+    "0.5": 24.433333333333334,
+    "0.75": 30.5,
+    "1": 1391.95
+  },
+  "growth_area_m2_quantiles": {
+    "0": -22952191.743329287,
+    "0.25": 431.66588764847256,
+    "0.5": 222557.66705869138,
+    "0.75": 2321524.412076124,
+    "1": 1131936642.5699492
+  },
+  "coverage_fraction_quantiles": {
+    "0": 0.010533427625634731,
+    "0.25": 0.9669941261652221,
+    "0.5": 0.9999999999999992,
+    "0.75": 1.0,
+    "1": 1.0
+  },
+  "area_m2_quantiles": {
+    "0": 144.1675909692746,
+    "0.25": 5122806.176013352,
+    "0.5": 26127812.6784771,
+    "0.75": 133606067.73434508,
+    "1": 4180798164.757477
+  },
+  "available_history_length_quantiles": {
+    "0": 3.0,
+    "0.25": 4.0,
+    "0.5": 7.0,
+    "0.75": 13.0,
+    "1": 75.0
+  },
+  "timestamp_confidence": "unknown; source documentation permits reconstructed timestamps",
+  "information_availability": "not supplied; idealized acquisition-time benchmark only",
+  "rasterization": "rasterio-all-touched-positive-y-south-up-v1",
+  "domain_algorithm": "first-observation-utm-square-margin0.5extent-clipped2to10km-mpp-ceil10m-v1",
+  "canonical_group_count": 676,
+  "split_manifest_sha256": "4371e4cf785c4472bf4f08b79ff09aa6692d3d2b34c19eeacc79de7dc7a48707",
+  "prep_elapsed_s": 287.318824624992,
+  "archive_preflight_elapsed_s": 522.383,
+  "valid_domain_assumption": "Within the fixed domain, raw component perimeter interior is positive and its exterior is negative for this component footprint task; exterior is not independently surveyed fire absence or complete complex coverage.",
+  "scientific_limitations": [
+    "active perimeters can shrink; raw targets preserved",
+    "weather/terrain/vegetation not supplied",
+    "regions not present in inspected attributes",
+    "later footprints clipped to fixed initial domain; excluded area recorded",
+    "parent grouping identifier links may remain ambiguous",
+    "component sequences do not assert complete complex coverage",
+    "Exterior negatives are component-footprint assumptions, not independently surveyed absence of fire."
+  ],
+  "etl_raster_elapsed_s": 284.64206120790914,
+  "total_preparation_elapsed_s": 807.0250612079092,
+  "independent_freeze_checks": {
+    "dataset_canonical_sha256": "44e497626c14418237453afaf44d456e139e98a21f1699f16cc71f0540d5b727",
+    "dataset_file_sha256": "434d17e064ca762906943ff30e9b7bd8f70890df7a7dc2a4302c48c7f1587b1c",
+    "split_manifest_sha256": "4371e4cf785c4472bf4f08b79ff09aa6692d3d2b34c19eeacc79de7dc7a48707",
+    "test_pair_membership_sha256": "0cbba5648b0df028e705b182a34fce02be4fc9a1d2f20c87ca210a4698181dcc",
+    "groups": 676,
+    "partitions": {
+      "train": 458,
+      "validation": 111,
+      "test": 107
+    },
+    "sequences": {
+      "train": 724,
+      "validation": 197,
+      "test": 156
+    },
+    "eligible_pairs": {
+      "train": 7095,
+      "validation": 1809,
+      "test": 1785
+    },
+    "test_pairs": 303,
+    "eligible_test_groups": 105,
+    "all_1077_grids_masks_times_source_ids_unchanged": true,
+    "all_geoparquet_partition_columns_verified": true,
+    "shared_source_parent_year_group_violations": 0
+  },
+  "precorrection_archive_and_first_build_total_elapsed_s": 822.9444751660033,
+  "grouping_correction_rebuild_elapsed_s": 287.318824624992,
+  "nonmonotone_raw_label_audit": {
+    "pixel_loss_transitions": 2161,
+    "pixel_loss_cells": 34707,
+    "projected_area_decline_transitions": 806,
+    "clipped_sequence_observations": 3606,
+    "sequence_observations": 11766,
+    "accepted_observations_outside_admissible_sequences": 938,
+    "primary_12to36hour_transitions": 8847,
+    "secondary_6to12hour_transitions": 91,
+    "secondary_36to72hour_transitions": 1751,
+    "initial_affected_cells_left_censored": 1232276,
+    "never_observed_affected_cells_right_censored": 14737849,
+    "cell_count_scope": "counts per sequence grid, not unique geographic cells"
+  }
+}

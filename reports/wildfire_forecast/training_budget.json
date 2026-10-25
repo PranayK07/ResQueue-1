@@ -1,0 +1,35 @@
+{
+  "cap_respected": true,
+  "cap_seconds": 4500,
+  "combined_seconds": 2327.1827980428934,
+  "new_training_planned": false,
+  "prior_consumed_seconds": 1623.3970930420328,
+  "seeds": [
+    {
+      "best_epoch": 4,
+      "complete": true,
+      "epochs": 9,
+      "seconds": 246.10992824996356,
+      "seed": 101,
+      "updates": 3996
+    },
+    {
+      "best_epoch": 4,
+      "complete": true,
+      "epochs": 9,
+      "seconds": 236.2266584589379,
+      "seed": 202,
+      "updates": 3996
+    },
+    {
+      "best_epoch": 3,
+      "complete": true,
+      "epochs": 8,
+      "seconds": 221.44911829195917,
+      "seed": 303,
+      "updates": 3552
+    }
+  ],
+  "supervised_seconds": 703.7857050008606,
+  "training_finished": true
+}

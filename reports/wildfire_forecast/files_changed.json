@@ -1,0 +1,552 @@
+{
+  "schema_version": "supervised-source-change-inventory-v1",
+  "branch": "rl-fixed-codex",
+  "base_commit": "dcaaf5baa1f8ab8150bf94f49132284e41a54e24",
+  "staged_files_excluding_this_inventory": 135,
+  "files": [
+    {
+      "path": ".env.example",
+      "bytes": 3048
+    },
+    {
+      "path": ".github/workflows/forecast.yml",
+      "bytes": 870
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 1024
+    },
+    {
+      "path": "README.md",
+      "bytes": 17248
+    },
+    {
+      "path": "agents/configs/wildfire_unet.json",
+      "bytes": 390
+    },
+    {
+      "path": "agents/requirements-forecast.in",
+      "bytes": 208
+    },
+    {
+      "path": "agents/requirements-forecast.lock",
+      "bytes": 319
+    },
+    {
+      "path": "agents/rescue/agents/danger.py",
+      "bytes": 6964
+    },
+    {
+      "path": "agents/rescue/agents/delegation.py",
+      "bytes": 11307
+    },
+    {
+      "path": "agents/rescue/config.py",
+      "bytes": 4983
+    },
+    {
+      "path": "agents/rescue/forecast_ml/archive.py",
+      "bytes": 4962
+    },
+    {
+      "path": "agents/rescue/forecast_ml/baselines.py",
+      "bytes": 3603
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "bytes": 25868
+    },
+    {
+      "path": "agents/rescue/forecast_ml/bridge.py",
+      "bytes": 3363
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "bytes": 26810
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "bytes": 4803
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "bytes": 20381
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "bytes": 5503
+    },
+    {
+      "path": "agents/rescue/forecast_ml/frozen_operating_point.py",
+      "bytes": 29992
+    },
+    {
+      "path": "agents/rescue/forecast_ml/geo_contract.py",
+      "bytes": 2018
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "bytes": 9706
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "bytes": 17813
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "bytes": 8326
+    },
+    {
+      "path": "agents/rescue/forecast_ml/metrics.py",
+      "bytes": 13992
+    },
+    {
+      "path": "agents/rescue/forecast_ml/operating_point_maps.py",
+      "bytes": 29090
+    },
+    {
+      "path": "agents/rescue/forecast_ml/physical.py",
+      "bytes": 4252
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "bytes": 13383
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "bytes": 31313
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "bytes": 15802
+    },
+    {
+      "path": "agents/rescue/forecast_ml/risk.py",
+      "bytes": 11074
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "bytes": 3426
+    },
+    {
+      "path": "agents/rescue/forecast_ml/threshold_diagnostics.py",
+      "bytes": 8425
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "bytes": 21829
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "bytes": 18389
+    },
+    {
+      "path": "agents/rescue/hazard/forecast.py",
+      "bytes": 5614
+    },
+    {
+      "path": "agents/rescue/stdb.py",
+      "bytes": 13649
+    },
+    {
+      "path": "docs/DATA_FEATURE_SPECIFICATION.md",
+      "bytes": 9356
+    },
+    {
+      "path": "docs/DATA_INGESTION.md",
+      "bytes": 17262
+    },
+    {
+      "path": "docs/FORECAST_EVALUATION.md",
+      "bytes": 5447
+    },
+    {
+      "path": "docs/FORECAST_INFERENCE.md",
+      "bytes": 2195
+    },
+    {
+      "path": "docs/FORECAST_RUNBOOK.md",
+      "bytes": 4857
+    },
+    {
+      "path": "docs/ML_ARCHITECTURE.md",
+      "bytes": 4133
+    },
+    {
+      "path": "docs/ML_MIGRATION_SUMMARY.md",
+      "bytes": 2390
+    },
+    {
+      "path": "docs/PRD_IMPLEMENTATION_AUDIT.md",
+      "bytes": 9053
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 179
+    },
+    {
+      "path": "reports/wildfire_forecast/BENCHMARK_REPORT.md",
+      "bytes": 15651
+    },
+    {
+      "path": "reports/wildfire_forecast/analysis_metadata.json",
+      "bytes": 260681
+    },
+    {
+      "path": "reports/wildfire_forecast/architecture.md",
+      "bytes": 4133
+    },
+    {
+      "path": "reports/wildfire_forecast/budget_before_supervised_migration.json",
+      "bytes": 359
+    },
+    {
+      "path": "reports/wildfire_forecast/calibration.png",
+      "bytes": 130036
+    },
+    {
+      "path": "reports/wildfire_forecast/cleanup_audit.json",
+      "bytes": 38975
+    },
+    {
+      "path": "reports/wildfire_forecast/cleanup_audit.md",
+      "bytes": 3181
+    },
+    {
+      "path": "reports/wildfire_forecast/cleanup_migration.json",
+      "bytes": 1506
+    },
+    {
+      "path": "reports/wildfire_forecast/confidence_intervals.json",
+      "bytes": 5705
+    },
+    {
+      "path": "reports/wildfire_forecast/data_immutability_after.json",
+      "bytes": 319700
+    },
+    {
+      "path": "reports/wildfire_forecast/data_immutability_before.json",
+      "bytes": 319735
+    },
+    {
+      "path": "reports/wildfire_forecast/data_immutability_comparison.json",
+      "bytes": 948
+    },
+    {
+      "path": "reports/wildfire_forecast/data_immutability_final.json",
+      "bytes": 319700
+    },
+    {
+      "path": "reports/wildfire_forecast/data_quality_history/component_audit.json",
+      "bytes": 247406
+    },
+    {
+      "path": "reports/wildfire_forecast/data_quality_history/dataset_audit.json",
+      "bytes": 3626
+    },
+    {
+      "path": "reports/wildfire_forecast/data_quality_history/dataset_audit.png",
+      "bytes": 124276
+    },
+    {
+      "path": "reports/wildfire_forecast/data_quality_history/grouping_residual_audit.json",
+      "bytes": 35316
+    },
+    {
+      "path": "reports/wildfire_forecast/dataset_audit.json",
+      "bytes": 4937
+    },
+    {
+      "path": "reports/wildfire_forecast/dataset_audit.png",
+      "bytes": 123727
+    },
+    {
+      "path": "reports/wildfire_forecast/diagnostics/boundary_audit.md",
+      "bytes": 2917
+    },
+    {
+      "path": "reports/wildfire_forecast/diagnostics/boundary_comparison.png",
+      "bytes": 237751
+    },
+    {
+      "path": "reports/wildfire_forecast/diagnostics/validation_growth_examples_00307d2e148387c6.png",
+      "bytes": 131370
+    },
+    {
+      "path": "reports/wildfire_forecast/diagnostics/validation_growth_examples_00a0cce8039eaece.png",
+      "bytes": 138007
+    },
+    {
+      "path": "reports/wildfire_forecast/diagnostics/validation_growth_examples_00f7d765ec66a939.png",
+      "bytes": 125521
+    },
+    {
+      "path": "reports/wildfire_forecast/evaluation_input_manifest.json",
+      "bytes": 217325
+    },
+    {
+      "path": "reports/wildfire_forecast/evaluation_pairs.json",
+      "bytes": 164476
+    },
+    {
+      "path": "reports/wildfire_forecast/export_receipt.json",
+      "bytes": 595
+    },
+    {
+      "path": "reports/wildfire_forecast/forecast_examples/0050955e72f0ad19.png",
+      "bytes": 89049
+    },
+    {
+      "path": "reports/wildfire_forecast/forecast_examples/00e5220afb63a8e3.png",
+      "bytes": 81833
+    },
+    {
+      "path": "reports/wildfire_forecast/forecast_examples/025d74ab93ad924e.png",
+      "bytes": 89943
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/REPORT.md",
+      "bytes": 8675
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/airplane_lake_2023_growth_areas.png",
+      "bytes": 43351
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/airplane_lake_2023_saved_observation_windows.png",
+      "bytes": 390297
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/airplane_lake_2023_windows.json",
+      "bytes": 3139
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/airplane_lake_2023_windows.md",
+      "bytes": 1345
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/freeze_receipt.json",
+      "bytes": 1690
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/index.html",
+      "bytes": 2276139
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/maps/growth_005_selected_050_diagnostic_0050955e72f0ad19.png",
+      "bytes": 327699
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/maps/growth_005_selected_050_diagnostic_00e5220afb63a8e3.png",
+      "bytes": 242224
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/maps/growth_005_selected_050_diagnostic_025d74ab93ad924e.png",
+      "bytes": 252980
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/maps/posthoc_target_median_growth_3e20d94073d88d5f.png",
+      "bytes": 256745
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/maps_manifest.json",
+      "bytes": 1886
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/metrics.json",
+      "bytes": 232535
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/metrics.md",
+      "bytes": 22233
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/protocol.json",
+      "bytes": 3767
+    },
+    {
+      "path": "reports/wildfire_forecast/frozen_operating_point/reliability_growth_front.png",
+      "bytes": 174729
+    },
+    {
+      "path": "reports/wildfire_forecast/grouping_residual_audit.json",
+      "bytes": 36731
+    },
+    {
+      "path": "reports/wildfire_forecast/growth_comparison.png",
+      "bytes": 65873
+    },
+    {
+      "path": "reports/wildfire_forecast/hardware.json",
+      "bytes": 288
+    },
+    {
+      "path": "reports/wildfire_forecast/index.html",
+      "bytes": 4456934
+    },
+    {
+      "path": "reports/wildfire_forecast/integration_demo.json",
+      "bytes": 1347
+    },
+    {
+      "path": "reports/wildfire_forecast/learning_curves.png",
+      "bytes": 233823
+    },
+    {
+      "path": "reports/wildfire_forecast/learning_curves/seed-101-learning_curve.json",
+      "bytes": 16282
+    },
+    {
+      "path": "reports/wildfire_forecast/learning_curves/seed-101-training.json",
+      "bytes": 22115
+    },
+    {
+      "path": "reports/wildfire_forecast/learning_curves/seed-202-learning_curve.json",
+      "bytes": 16305
+    },
+    {
+      "path": "reports/wildfire_forecast/learning_curves/seed-202-training.json",
+      "bytes": 22113
+    },
+    {
+      "path": "reports/wildfire_forecast/learning_curves/seed-303-learning_curve.json",
+      "bytes": 14482
+    },
+    {
+      "path": "reports/wildfire_forecast/learning_curves/seed-303-training.json",
+      "bytes": 22112
+    },
+    {
+      "path": "reports/wildfire_forecast/local_artifacts.json",
+      "bytes": 2783
+    },
+    {
+      "path": "reports/wildfire_forecast/metrics.json",
+      "bytes": 30066
+    },
+    {
+      "path": "reports/wildfire_forecast/model_card.md",
+      "bytes": 15808
+    },
+    {
+      "path": "reports/wildfire_forecast/model_metadata.json",
+      "bytes": 99300
+    },
+    {
+      "path": "reports/wildfire_forecast/native_reload_verification.json",
+      "bytes": 5375
+    },
+    {
+      "path": "reports/wildfire_forecast/per_incident_metrics.csv",
+      "bytes": 202476
+    },
+    {
+      "path": "reports/wildfire_forecast/per_incident_scatter.png",
+      "bytes": 49917
+    },
+    {
+      "path": "reports/wildfire_forecast/protocol.json",
+      "bytes": 4247
+    },
+    {
+      "path": "reports/wildfire_forecast/resident_risk.png",
+      "bytes": 41745
+    },
+    {
+      "path": "reports/wildfire_forecast/runtime_comparison.png",
+      "bytes": 27897
+    },
+    {
+      "path": "reports/wildfire_forecast/scorecard.png",
+      "bytes": 72237
+    },
+    {
+      "path": "reports/wildfire_forecast/serving_smoke.json",
+      "bytes": 753
+    },
+    {
+      "path": "reports/wildfire_forecast/subgroup_metrics.json",
+      "bytes": 1034266
+    },
+    {
+      "path": "reports/wildfire_forecast/threshold_comparison.json",
+      "bytes": 554530
+    },
+    {
+      "path": "reports/wildfire_forecast/threshold_comparison.md",
+      "bytes": 1740
+    },
+    {
+      "path": "reports/wildfire_forecast/training_budget.json",
+      "bytes": 733
+    },
+    {
+      "path": "reports/wildfire_forecast/training_runs.json",
+      "bytes": 96656
+    },
+    {
+      "path": "reports/wildfire_forecast/verification.json",
+      "bytes": 4672
+    },
+    {
+      "path": "spacetimedb/src/index.ts",
+      "bytes": 51360
+    },
+    {
+      "path": "spacetimedb/src/schema.ts",
+      "bytes": 17944
+    },
+    {
+      "path": "tests/test_forecast_boundary_diagnostics.py",
+      "bytes": 4339
+    },
+    {
+      "path": "tests/test_forecast_data.py",
+      "bytes": 11871
+    },
+    {
+      "path": "tests/test_forecast_data_guard.py",
+      "bytes": 7142
+    },
+    {
+      "path": "tests/test_forecast_evaluation.py",
+      "bytes": 6969
+    },
+    {
+      "path": "tests/test_forecast_frozen_operating_point.py",
+      "bytes": 9407
+    },
+    {
+      "path": "tests/test_forecast_growth_diagnostics.py",
+      "bytes": 4142
+    },
+    {
+      "path": "tests/test_forecast_metrics.py",
+      "bytes": 3263
+    },
+    {
+      "path": "tests/test_forecast_operating_maps.py",
+      "bytes": 3276
+    },
+    {
+      "path": "tests/test_forecast_resident_eval.py",
+      "bytes": 9082
+    },
+    {
+      "path": "tests/test_forecast_risk.py",
+      "bytes": 10157
+    },
+    {
+      "path": "tests/test_forecast_threshold_diagnostics.py",
+      "bytes": 2215
+    },
+    {
+      "path": "tests/test_forecast_unet.py",
+      "bytes": 8455
+    }
+  ],
+  "local_data_models_raw_reports": "preserved outsideGit with hash receipts",
+  "main_changed": false,
+  "pushed": false,
+  "merged": false
+}

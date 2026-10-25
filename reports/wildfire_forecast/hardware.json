@@ -1,0 +1,12 @@
+{
+  "cpu": "Apple M4 Pro",
+  "frozen_evaluation_device": "cpu",
+  "machine": "arm64",
+  "mps_available": true,
+  "physical_memory_bytes": 25769803776,
+  "python": "3.12.12",
+  "system": "macOS-27.0-arm64-arm-64bit",
+  "torch": "2.14.1",
+  "torch_threads": 1,
+  "training_device": "mps"
+}

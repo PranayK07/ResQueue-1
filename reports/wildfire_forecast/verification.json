@@ -1,0 +1,149 @@
+{
+  "base_commit": "dcaaf5baa1f8ab8150bf94f49132284e41a54e24",
+  "branch": "rl-fixed-codex",
+  "broader_lint_limitation": "Ruff over the modified legacy delegation.py also finds a pre-existing E702 at line160. The forecast CI scope and new modules/tests pass. Unrelated teammate code was not reformatted.",
+  "checks": [
+    {
+      "command": "python -m ruff check agents/rescue/forecast_ml tests",
+      "exit_code": 0,
+      "result": "passed"
+    },
+    {
+      "command": "python -m ruff format --check agents/rescue/forecast_ml tests",
+      "exit_code": 0,
+      "result": "36 files already formatted"
+    },
+    {
+      "command": "PYTHONPATH=agents python agents/scripts/test_planning.py",
+      "exit_code": 0,
+      "result": "planning and validate_plan checks passed"
+    },
+    {
+      "command": "npm run typecheck --prefix spacetimedb",
+      "exit_code": 0,
+      "result": "TypeScript compiler passed"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 0,
+      "result": "passed"
+    }
+  ],
+  "data": {
+    "archive_unchanged": true,
+    "data_files_unchanged": 1828,
+    "receipt": "data_immutability_comparison.json",
+    "status": "passed"
+  },
+  "evaluation": {
+    "forecast_pairs": 303,
+    "incident_groups": 105,
+    "new_model_inference_for_threshold_comparison": false,
+    "split": "test",
+    "status": "previously inspected; reused diagnostic holdout",
+    "thresholds": [
+      0.05,
+      0.5
+    ]
+  },
+  "final_forecast_source_scan": {
+    "forbidden_forecast_dependencies": [],
+    "imports": 269,
+    "modules": 24
+  },
+  "latest_frozen_request": {
+    "diagnostics": "frozen_operating_point/metrics.json",
+    "freeze_hashes_unchanged": {
+      "dataset_manifest_file_sha256": true,
+      "export_checkpoint_sha256": true,
+      "native_model_source_sha256": true,
+      "saved_prediction_sha256": true,
+      "selected_checkpoint_sha256": true,
+      "split_manifest_file_sha256": true,
+      "test_pair_manifest_file_sha256": true,
+      "trainer_source_sha256": true,
+      "training_config_sha256": true
+    },
+    "illustrative_selection": "post hoc target-size-only; eleven eligible sequences, median627observedgrowthcells",
+    "independent_bootstrap_verification": "all280macro/paired entries and intervals reproduced",
+    "local_loopback_server": "stopped after isolated contract test",
+    "named_fire": "AIRPLANE LAKE,2023,WA-OWF-000374",
+    "named_windows": 3,
+    "new_historical_model_inference": false,
+    "new_training": false,
+    "untouched_test_claim": false
+  },
+  "live_limitations": [
+    "Full Fetch.ai/ASI:One/frontend not launched",
+    "station execution is a stub; completed handoffs undefined",
+    "consent expiration timer inspected but not wall-clock waited",
+    "no production settings changed",
+    "simulated synthetic residents; no real emergency dispatch"
+  ],
+  "main_modified": false,
+  "merged": false,
+  "native_inference": {
+    "random_weights_live": false,
+    "reload_receipt": "native_reload_verification.json",
+    "serving_receipt": "serving_smoke.json",
+    "trained_export_forward": "passed",
+    "training_dependency_in_ci": false
+  },
+  "pushed": false,
+  "pytest": {
+    "actual_counts": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 105
+    },
+    "command": "PYTHONPATH=agents python -m pytest -q --junitxml=runs/supervised/pytest.xml",
+    "elapsed_s": 6.488,
+    "warning_detail": "Shapely ops.transform deprecation; no failed assertions",
+    "warnings": 7
+  },
+  "schema_version": "supervised-final-verification-v1",
+  "spacetimedb": {
+    "contract_checks_failed": 0,
+    "contract_checks_passed": 15,
+    "database": "wrq-codex-supervised",
+    "module_build_publish": "passed on isolated loopback only",
+    "receipt": "integration_demo.json",
+    "server": "http://127.0.0.1:3143"
+  },
+  "training_budget": {
+    "cap_respected": true,
+    "cap_seconds": 4500,
+    "combined_seconds": 2327.1827980428934,
+    "new_training_planned": false,
+    "prior_consumed_seconds": 1623.3970930420328,
+    "seeds": [
+      {
+        "best_epoch": 4,
+        "complete": true,
+        "epochs": 9,
+        "seconds": 246.10992824996356,
+        "seed": 101,
+        "updates": 3996
+      },
+      {
+        "best_epoch": 4,
+        "complete": true,
+        "epochs": 9,
+        "seconds": 236.2266584589379,
+        "seed": 202,
+        "updates": 3996
+      },
+      {
+        "best_epoch": 3,
+        "complete": true,
+        "epochs": 8,
+        "seconds": 221.44911829195917,
+        "seed": 303,
+        "updates": 3552
+      }
+    ],
+    "supervised_seconds": 703.7857050008606,
+    "training_finished": true
+  }
+}

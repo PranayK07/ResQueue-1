@@ -1,0 +1,19 @@
+{
+  "schema_version": "supervised-serving-smoke-v1",
+  "split": "validation",
+  "pair_id": "00307d2e148387c651f6c8a6c6d765f5bbd7a6222c06b033519c3f0b30e9ebd2",
+  "active": "learned",
+  "reason": "supplementary historical risk only",
+  "elapsed_s": 0.03576062503270805,
+  "checkpoint_sha256_before": "40dff57a49da752513f51ec8bbe27c1f85d3725c9e4098a08f8bb9e9f5a997ca",
+  "checkpoint_sha256_after": "40dff57a49da752513f51ec8bbe27c1f85d3725c9e4098a08f8bb9e9f5a997ca",
+  "default": "configured simulation; short-horizon physical timing remains active",
+  "missing_history": "timestamped historical observation history unavailable in live simulation",
+  "optimizer_updates": 0,
+  "output_shape": [
+    1,
+    128,
+    128
+  ],
+  "checkpoint_unchanged": true
+}

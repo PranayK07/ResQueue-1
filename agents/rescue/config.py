@@ -18,6 +18,14 @@ def _env(name: str, default: str = "") -> str:
     return os.environ.get(name, default)
 
 
+def _path_env(name: str) -> str:
+    raw = _env(name)
+    if not raw:
+        return ""
+    path = Path(raw).expanduser()
+    return str(path if path.is_absolute() else REPO_ROOT / path)
+
+
 _SERVERS = {"local": "http://127.0.0.1:3000", "maincloud": "https://maincloud.spacetimedb.com"}
 
 
@@ -56,6 +64,13 @@ class Settings:
     # the scenario/commander wind alone and only report.
     weather_source: str = _env("WEATHER_SOURCE", "nws")
     weather_poll_s: float = float(_env("WEATHER_POLL_S", "300"))
+    # Learned forecasting is an optional coarse historical risk layer. The
+    # existing physical forecast still supplies short-horizon route timing.
+    fire_forecast_backend: str = _env("FIRE_FORECAST_BACKEND", "simulation")
+    fire_forecast_checkpoint: str = _path_env("FIRE_FORECAST_CHECKPOINT")
+    fire_forecast_metadata: str = _path_env("FIRE_FORECAST_METADATA")
+    recorded_incident_path: str = _path_env("RECORDED_INCIDENT_PATH")
+    fire_forecast_horizons_s: str = _env("FIRE_FORECAST_HORIZONS_S", "21600,43200,86400")
 
     # Commander (head) agent: the dispatch policy it runs, and how often it pools hazard + news + field reports
     # into a situation. nearest | greedy | lookahead: heuristic placeholders. rl: the RL component, rescue/rl_policy.py.

@@ -1,0 +1,83 @@
+{
+  "schema_version": "preserved-local-evidence-v1",
+  "note": "Large inputs/raw tables remain preserved locally. No observations, probabilities or numerical metrics were altered. See frozen weight/data receipts for native models and cleaned data.",
+  "files": [
+    {
+      "path": "forecast_predictions.parquet",
+      "bytes": 110847469,
+      "sha256": "dbaf088e2f1cb879ca7da57e47f79b065f3a92b9db356a49613d0273cba54450",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "pair_metrics.json",
+      "bytes": 5673862,
+      "sha256": "bc6defc4ee6e9f9fc7904e35c0aeb24211cb03cd64f2347c1f1729d283857d4e",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "resident_outputs.json",
+      "bytes": 5275895,
+      "sha256": "2233a543181ce1148a0ca9ef3bf9243598218e49024ba17b37ef937553d3e658",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "growth_classification_metrics.json",
+      "bytes": 4261159,
+      "sha256": "8b4239f52d04bfac9ddd774e430f36b50d6ce5dcd4e7fd54138b327b6b58cc45",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "frozen_operating_point/pair_metrics.json",
+      "bytes": 4765341,
+      "sha256": "40f6cc6189069ff77d9ad7397c9e3dd6c250d32d4df88f7d750de744fe067226",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "frozen_operating_point/per_incident_metrics.json",
+      "bytes": 1416775,
+      "sha256": "b2a720c7ac2227872da7e7d0f47834bf3d059a98c5d219ef8d8715968dfeca6e",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "data_quality_history/dataset.json",
+      "bytes": 4481548,
+      "sha256": "b71fa503b03d9d157a3cbddafa19dd53755d2aac6b6a7358e7853b2969981348",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "data_quality_history/split_manifest.json",
+      "bytes": 3927823,
+      "sha256": "50b169602f05605ae3bd905c6702b8244043195abd295d49b09d2d0d617d9301",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "split_manifest.json",
+      "bytes": 3947541,
+      "sha256": "4371e4cf785c4472bf4f08b79ff09aa6692d3d2b34c19eeacc79de7dc7a48707",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "diagnostics/boundary_metrics.json",
+      "bytes": 9999513,
+      "sha256": "f54dcfa2f275db46f0de329050603fa22d8142bffb8957c83ae55c9b8ef7a4a2",
+      "preserved_locally": true,
+      "gitignored": true
+    },
+    {
+      "path": "validation_threshold_metrics.json",
+      "bytes": 1724197,
+      "sha256": "5bc22ad1237cb2d736e2ddc20aa101236877fd0d701a0db731bd2fb788106a66",
+      "preserved_locally": true,
+      "gitignored": true
+    }
+  ]
+}

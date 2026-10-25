@@ -18,12 +18,16 @@ import {
 } from 'spacetimedb/server';
 import spacetimedb, {
   AssessmentInput,
+  RiskSnapshotInput,
+  RequestRiskInput,
+  requestRisk,
   DangerInput,
   FireCellInput,
   NewsInput,
   NewsScore,
   SituationInput,
   ForecastCellInput,
+  FireRiskCellInput,
   PlanEntryInput,
   StationInput,
   TravelInput,
@@ -48,6 +52,8 @@ type VCtx = ViewCtx<Schema>;
 type Request = NonNullable<ReturnType<Ctx['db']['helpRequest']['id']['find']>>;
 
 const SIM_TICK_MICROS = 1_000_000n;
+// Python/Rust/V8 JSON f64 round trips can differ by an ulp; timestamps have microsecond precision.
+const CLOCK_EPS_S = 0.000001;
 const NEWS_CONTENT_MAX = 8_000;
 const NEWS_KEEP = 300;
 const SITUATION_KEEP = 2000;
@@ -181,6 +187,7 @@ function closeRequest(ctx: Ctx, r: Request, status: string, actor: string, why: 
   for (const rep of [...ctx.db.fieldReport.requestId.filter(r.id)]) ctx.db.fieldReport.id.delete(rep.id);
   for (const m of [...ctx.db.requestMessage.requestId.filter(r.id)]) ctx.db.requestMessage.id.delete(m.id);
   ctx.db.reportAssessment.requestId.delete(r.id);
+  ctx.db.requestRisk.requestId.delete(r.id);
   ctx.db.helpRequest.id.update({
     ...r,
     status,
@@ -363,6 +370,10 @@ export const load_scenario = spacetimedb.reducer(
     for (const r of [...ctx.db.consentTimer.iter()]) ctx.db.consentTimer.scheduledId.delete(r.scheduledId);
     for (const r of [...ctx.db.fireCell.iter()]) ctx.db.fireCell.cellId.delete(r.cellId);
     for (const r of [...ctx.db.forecastCell.iter()]) ctx.db.forecastCell.cellId.delete(r.cellId);
+    for (const r of [...ctx.db.fireRiskCell.iter()]) ctx.db.fireRiskCell.key.delete(r.key);
+    ctx.db.fireRiskMeta.id.delete(0);
+    ctx.db.riskPipeline.id.delete(0);
+    for (const r of [...ctx.db.requestRisk.iter()]) ctx.db.requestRisk.requestId.delete(r.requestId);
     for (const r of [...ctx.db.roadClosure.iter()]) ctx.db.roadClosure.id.delete(r.id);
     for (const r of [...ctx.db.incident.iter()]) ctx.db.incident.id.delete(r.id);
     for (const r of [...ctx.db.newsFocus.iter()]) ctx.db.newsFocus.id.delete(r.id);
@@ -480,6 +491,11 @@ export const publish_forecast = spacetimedb.reducer(
   },
   (ctx, a) => {
     requireAgent(ctx, 'forecast', 'hazard');
+    const inputs = ctx.db.worldVersion.id.find(0)!;
+    if (a.weatherVersion !== inputs.weather || a.fireVersion !== inputs.fire)
+      throw new SenderError('stale physical forecast snapshot; recompute from current world');
+    if (!Number.isFinite(a.computedAtS) || a.computedAtS > ctx.db.simClock.id.find(0)!.simS + CLOCK_EPS_S)
+      throw new SenderError('physical forecast issue is ahead of simulation clock');
     const keep = new Set<number>();
     for (const c of a.cells) {
       keep.add(c.cellId);
@@ -496,6 +512,110 @@ export const publish_forecast = spacetimedb.reducer(
     });
   }
 );
+
+/** Optional historical probability layer. Existing forecast_cell remains the
+ * short-horizon physics contract consumed by danger/routing/Lookahead.
+ * Reject stale snapshots atomically rather than publishing mixed world state.
+ */
+const fireRiskArgs = {
+    weatherVersion: t.u64(), fireVersion: t.u64(), expectedClockS: t.f64(),
+    schemaVersion: t.string(), modelId: t.string(), source: t.string(), timeBasis: t.string(),
+    issueS: t.f64(), observationAgeS: t.f64(), horizonsS: t.array(t.f64()),
+    crs: t.string(), westM: t.f64(), southM: t.f64(), cellSizeM: t.f64(),
+    rows: t.u32(), cols: t.u32(), qualityFlags: t.array(t.string()),
+    cells: t.array(FireRiskCellInput),
+  };
+type RiskPublication = {
+  weatherVersion: bigint; fireVersion: bigint; expectedClockS: number;
+  schemaVersion: string; modelId: string; source: string; timeBasis: string;
+  issueS: number; observationAgeS: number; horizonsS: number[]; crs: string;
+  westM: number; southM: number; cellSizeM: number; rows: number; cols: number;
+  qualityFlags: string[]; cells: { cellId: number; horizonS: number; probability: number; observed: boolean }[];
+  forecastId?: string; observationId?: string; scenario?: string; sourceIssueUtcS?: number;
+};
+function storeFireRisk(ctx: Ctx, a: RiskPublication, recorded = false) {
+    requireAgent(ctx, 'forecast', 'hazard');
+    const v = ctx.db.worldVersion.id.find(0)!;
+    const clock = ctx.db.simClock.id.find(0)!;
+    if (v.weather !== a.weatherVersion || v.fire !== a.fireVersion
+        || (recorded ? a.expectedClockS > clock.simS + CLOCK_EPS_S || a.expectedClockS < 0 || a.scenario !== clock.scenario
+                     : Math.abs(clock.simS - a.expectedClockS) > CLOCK_EPS_S))
+      throw new SenderError('stale risk snapshot; recompute from current world');
+    if (a.schemaVersion !== 'wildfire-risk-v1' || !['learned', 'simulation', 'persistence'].includes(a.source))
+      throw new SenderError('unsupported risk schema/source');
+    if (!['historical_utc', 'simulation'].includes(a.timeBasis)) throw new SenderError('explicit time basis required');
+    if (a.timeBasis === 'simulation' && a.issueS > clock.simS + CLOCK_EPS_S) throw new SenderError('risk issue ahead of simulation clock');
+    if (!a.modelId || !a.crs || a.rows === 0 || a.cols === 0 || a.rows * a.cols > 40000)
+      throw new SenderError('invalid risk model/geographic grid');
+    if (![a.issueS, a.observationAgeS, a.westM, a.southM, a.cellSizeM].every(Number.isFinite)
+        || a.observationAgeS < 0 || a.cellSizeM <= 0) throw new SenderError('invalid risk units');
+    if (a.horizonsS.length === 0 || a.horizonsS.length > 8 || a.horizonsS.some((h, i) =>
+      !Number.isFinite(h) || h <= 0 || (i > 0 && h <= a.horizonsS[i - 1]))) throw new SenderError('invalid risk horizons');
+    const byCell = new Map<number, Map<number, number>>();
+    const keys = new Set<string>();
+    for (const c of a.cells) {
+      const key = `${c.cellId}:${c.horizonS}`;
+      if (keys.has(key) || c.cellId >= a.rows * a.cols || !a.horizonsS.includes(c.horizonS)
+          || !Number.isFinite(c.probability) || c.probability < 0 || c.probability > 1)
+        throw new SenderError('invalid/duplicate risk probability');
+      keys.add(key);
+      if (!byCell.has(c.cellId)) byCell.set(c.cellId, new Map());
+      byCell.get(c.cellId)!.set(c.horizonS, c.probability);
+    }
+    for (const probabilities of byCell.values()) {
+      if (probabilities.size !== a.horizonsS.length) throw new SenderError('incomplete cell horizons');
+      for (let i = 1; i < a.horizonsS.length; i++)
+        if (probabilities.get(a.horizonsS[i])! < probabilities.get(a.horizonsS[i - 1])!)
+          throw new SenderError('cumulative risk must not decrease');
+    }
+    for (const row of [...ctx.db.fireRiskCell.iter()]) ctx.db.fireRiskCell.key.delete(row.key);
+    for (const c of a.cells) ctx.db.fireRiskCell.insert({ key: `${c.cellId}:${c.horizonS}`, ...c });
+    const { cells: _cells, expectedClockS: _clock, ...metadata } = a;
+    const row = { id: 0, forecastId: '', observationId: '', scenario: '', sourceIssueUtcS: 0,
+                  ...metadata, updatedAt: ctx.timestamp };
+    if (ctx.db.fireRiskMeta.id.find(0)) ctx.db.fireRiskMeta.id.update(row);
+    else ctx.db.fireRiskMeta.insert(row);
+    log(ctx, 'hazard', 'fire_risk_published', `Supplementary ${a.source} risk, ${a.cells.length} cells; ${a.timeBasis}, no minute ETA`);
+    if (recorded) {
+      const state = { id: 0, scenario: clock.scenario, sourceId: a.observationId ?? '',
+        status: 'ready', activeBackend: 'learned', reason: 'Recorded exposure forecast available',
+        forecastId: a.forecastId ?? '', updatedAt: ctx.timestamp };
+      if (ctx.db.riskPipeline.id.find(0)) ctx.db.riskPipeline.id.update(state);
+      else ctx.db.riskPipeline.insert(state);
+    }
+}
+export const publish_fire_risk = spacetimedb.reducer(fireRiskArgs, (ctx, a) => storeFireRisk(ctx, a));
+
+/** Recorded products use scenario/observation identity and permit clock progress during inference. */
+const { cells: _legacyCells, ...recordedRiskArgs } = fireRiskArgs;
+export const publish_recorded_fire_risk = spacetimedb.reducer({
+  ...recordedRiskArgs, cellIds: t.array(t.u32()), probabilities: t.array(t.f64()), observedCellIds: t.array(t.u32()),
+  forecastId: t.string(), observationId: t.string(), scenario: t.string(), sourceIssueUtcS: t.f64(),
+}, (ctx, a) => {
+  if (!a.forecastId || !a.observationId || !Number.isFinite(a.sourceIssueUtcS)
+      || a.timeBasis !== 'simulation' || a.source !== 'learned') throw new SenderError('invalid recorded risk identity');
+  const { cellIds, probabilities, observedCellIds, ...metadata } = a;
+  if (!cellIds.length || cellIds.length > 40000 || new Set(cellIds).size !== cellIds.length
+      || probabilities.length !== cellIds.length * a.horizonsS.length)
+    throw new SenderError('incomplete dense risk probabilities');
+  const valid = new Set(cellIds), observed = new Set(observedCellIds);
+  if (observedCellIds.some(id => !valid.has(id))) throw new SenderError('observed risk cell outside valid domain');
+  const cells = a.horizonsS.flatMap((horizonS, h) => cellIds.map((cellId, i) => ({
+    cellId, horizonS, probability: probabilities[h * cellIds.length + i], observed: observed.has(cellId),
+  })));
+  storeFireRisk(ctx, { ...metadata, cells }, true);
+});
+
+export const publish_risk_pipeline_status = spacetimedb.reducer({
+  scenario: t.string(), sourceId: t.string(), status: t.string(), activeBackend: t.string(), reason: t.string(),
+}, (ctx, a) => {
+  requireAgent(ctx, 'hazard');
+  if (a.scenario !== ctx.db.simClock.id.find(0)!.scenario) throw new SenderError('stale risk scenario');
+  if (!['fallback', 'error', 'disabled'].includes(a.status)) throw new SenderError('invalid risk status');
+  const row = { id: 0, ...a, reason: a.reason.slice(0, 1000), forecastId: '', updatedAt: ctx.timestamp };
+  if (ctx.db.riskPipeline.id.find(0)) ctx.db.riskPipeline.id.update(row);
+  else ctx.db.riskPipeline.insert(row);
+});
 
 export const add_road_closure = spacetimedb.reducer(
   { name: t.string(), lat1: t.f64(), lon1: t.f64(), lat2: t.f64(), lon2: t.f64(), source: t.string() },
@@ -838,6 +958,73 @@ export const publish_danger = spacetimedb.reducer(
   }
 );
 
+/** Inputs are captured before CPU work. Retry rejected snapshots; never relabel old results as current. */
+function unitsStamp(ctx: Ctx | VCtx): string {
+  return [...ctx.db.unit.iter()].sort((a, b) => a.id - b.id)
+    .map(u => `${u.id}:${u.updatedAt.microsSinceUnixEpoch}`).join('|');
+}
+export const publish_risk_assessments = spacetimedb.reducer({
+  snapshot: RiskSnapshotInput, risks: t.array(RequestRiskInput), travel: t.array(TravelInput),
+}, (ctx, { snapshot: s, risks, travel }) => {
+  requireAgent(ctx, 'commander');
+  const v = ctx.db.worldVersion.id.find(0)!;
+  const c = ctx.db.simClock.id.find(0)!;
+  const checks: Array<[boolean, string]> = [
+    [s.scenario !== c.scenario, 'scenario'],
+    [!Number.isFinite(s.assessedAtS) || s.assessedAtS > c.simS + CLOCK_EPS_S, 'clock'],
+    [s.weatherVersion !== v.weather, 'weather'], [s.fireVersion !== v.fire, 'fire'],
+    [s.roadsVersion !== v.roads, 'roads'], [s.requestsVersion !== v.requests, 'requests/evidence'],
+    [s.forecastVersion !== v.forecast, 'physical forecast'], [s.unitsStamp !== unitsStamp(ctx), 'units'],
+    [s.riskUpdatedAt !== (ctx.db.fireRiskMeta.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n), 'risk forecast'],
+    [s.pipelineUpdatedAt !== (ctx.db.riskPipeline.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n), 'risk pipeline'],
+  ];
+  const changed = checks.filter(([mismatch]) => mismatch).map(([, name]) => name);
+  if (changed.length) throw new SenderError(`stale risk assessment snapshot; retry current inputs (${changed.join(', ')})`);
+  const ids = new Set<bigint>();
+  for (const r of risks) {
+    if (ids.has(r.requestId) || r.schemaVersion !== 'resident-risk-v1' || !r.assessmentId
+        || !LEVELS.includes(r.level) || ![r.slackS, r.fireEtaS, r.extractS, r.credibility, r.reportedUrgency, r.forecastIssueS].every(Number.isFinite)
+        || r.extractS < 0 || r.credibility < 0 || r.credibility > 1 || r.headcount < 1 || r.headcount > 50
+        || r.horizonsS.length !== r.probabilities.length || r.horizonsS.length > 8
+        || r.horizonsS.some((h, i) => !Number.isFinite(h) || h <= 0 || (i > 0 && h <= r.horizonsS[i - 1]))
+        || r.probabilities.some(p => !Number.isFinite(p) || p < 0 || p > 1)
+        || r.probabilities.some((p, i) => i > 0 && p < r.probabilities[i - 1])
+        || [r.travelS, r.waitS, r.scheduledSlackS, r.arrivalLowerS, r.arrivalUpperS,
+            r.exposureSlackLowerS, r.exposureSlackUpperS].some(x => x !== undefined && !Number.isFinite(x)))
+      throw new SenderError('invalid resident risk assessment');
+    const request = requireRequest(ctx, r.requestId);
+    if (!isActive(request) || request.locationPurged) throw new SenderError('request closed during assessment');
+    ids.add(r.requestId);
+  }
+  const travelKeys = new Set<string>();
+  for (const tr of travel) {
+    const key = `${tr.requestId}:${tr.stationId}`;
+    if (!ids.has(tr.requestId) || !ctx.db.station.id.find(tr.stationId)
+        || !Number.isFinite(tr.travelS) || tr.travelS < 0 || travelKeys.has(key))
+      throw new SenderError('invalid risk travel');
+    travelKeys.add(key);
+  }
+  if (travelKeys.size !== ids.size * [...ctx.db.station.iter()].length)
+    throw new SenderError('incomplete risk travel matrix');
+  const version = bump(ctx, 'danger');
+  for (const risk of risks) {
+    const request = requireRequest(ctx, risk.requestId);
+    const row = { ...risk, ...s, dangerVersion: version, updatedAt: ctx.timestamp };
+    if (ctx.db.requestRisk.requestId.find(risk.requestId)) ctx.db.requestRisk.requestId.update(row);
+    else ctx.db.requestRisk.insert(row);
+    ctx.db.helpRequest.id.update({ ...request, level: risk.level, slackS: risk.slackS,
+      fireEtaS: risk.fireEtaS, extractS: risk.extractS, dangerVersion: version, updatedAt: ctx.timestamp });
+    if (request.level !== risk.level && ['critical', 'unreachable'].includes(risk.level))
+      log(ctx, 'commander', 'risk_level', `Risk ${risk.assessmentId}: ${risk.level}`, request.id);
+  }
+  for (const tr of travel) {
+    const key = tr.requestId * 1024n + BigInt(tr.stationId);
+    const row = { key, ...tr, dangerVersion: version };
+    if (ctx.db.travelEstimate.key.find(key)) ctx.db.travelEstimate.key.update(row);
+    else ctx.db.travelEstimate.insert(row);
+  }
+});
+
 // ─── Delegation agent ───────────────────────────────────────────────────────
 
 /** Atomically installs a new set of per-station queues. The policy (learned
@@ -1127,6 +1314,34 @@ function visibleRequestIds(ctx: VCtx): Set<bigint> | 'all' {
   if (s.kind === 'station') return new Set([...ctx.db.queueEntry.stationId.filter(s.stationId)].map(q => q.requestId));
   return new Set([...ctx.db.helpRequest.resident.filter(ctx.sender)].map(r => r.id));
 }
+
+const RiskAssessmentCard = t.object('RiskAssessmentCard', {
+  assessment: requestRisk.rowType, current: t.bool(), staleReason: t.string(),
+});
+function riskCard(ctx: VCtx, r: NonNullable<ReturnType<VCtx['db']['requestRisk']['requestId']['find']>>) {
+  const v = ctx.db.worldVersion.id.find(0)!;
+  const c = ctx.db.simClock.id.find(0)!;
+  const current = r.scenario === c.scenario && r.weatherVersion === v.weather && r.fireVersion === v.fire
+    && r.roadsVersion === v.roads && r.requestsVersion === v.requests && r.forecastVersion === v.forecast
+    && r.unitsStamp === unitsStamp(ctx)
+    && r.riskUpdatedAt === (ctx.db.fireRiskMeta.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n)
+    && r.pipelineUpdatedAt === (ctx.db.riskPipeline.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n)
+    && (r.horizonsS.length === 0 || ctx.db.fireRiskMeta.id.find(0)!.issueS + r.horizonsS[r.horizonsS.length - 1] > c.simS);
+  return { assessment: r, current, staleReason: current ? '' : 'Inputs changed or forecast expired; reassessment pending' };
+}
+/** Same role boundary as raw reports. Residents receive only their own request. */
+export const ops_risk = spacetimedb.view({ name: 'ops_risk', public: true }, t.array(RiskAssessmentCard), ctx => {
+  const ids = visibleRequestIds(ctx);
+  const rows = ids === 'all' ? [...ctx.db.requestRisk.iter()]
+    : [...ids].flatMap(id => { const r = ctx.db.requestRisk.requestId.find(id); return r ? [r] : []; });
+  return rows.map(r => riskCard(ctx, r));
+});
+export const my_risk = spacetimedb.view({ name: 'my_risk', public: true }, t.array(RiskAssessmentCard), ctx =>
+  [...ctx.db.helpRequest.resident.filter(ctx.sender)].filter(r => r.externalRef === '').flatMap(r => {
+    const risk = ctx.db.requestRisk.requestId.find(r.id);
+    return risk ? [riskCard(ctx, risk)] : [];
+  })
+);
 
 export const ops_report = spacetimedb.view(
   { name: 'ops_report', public: true },

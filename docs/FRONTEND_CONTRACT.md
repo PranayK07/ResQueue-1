@@ -16,7 +16,7 @@ gets its own identity (SpacetimeDB issues a token; keep it in storage). `ctx.sen
 | Step | Call |
 |---|---|
 | Ping, with consent and location | reducer `submit_help_request(lat, lon, headcount, needs, note, consentMinutes)`. `needs` is a comma list from `mobility, medical, oxygen, infant, elderly, pets, language`. `consentMinutes` is clamped to 15..1440 (24 h). One open request per identity |
-| Add what they see | reducer `submit_report(requestId, externalRef = "", kind, text, mediaUrl, frameUrls)` |
+| Add what they see | reducer `submit_report(requestId, externalRef = "", kind, text, mediaUrl, frameUrls)` (`frameUrls` is a newline-separated string) |
 | Answer a responder | reducer `reply_to_responder(requestId, externalRef = "", text)` |
 | Keep sharing longer | reducer `extend_consent(requestId, externalRef = "", minutes)` |
 | "I'm safe" / stop sharing | reducer `close_my_request(requestId, externalRef = "", outcome = "safe" or "revoked")`. Deletes location, reports and messages at once |
@@ -30,7 +30,7 @@ gets its own identity (SpacetimeDB issues a token; keep it in storage). `ctx.sen
 | `text` | the message | | |
 | `voice` | the transcript (transcribe on the device) | | |
 | `image` | optional caption | https URL of the photo | |
-| `video` | optional caption | https URL of the video (for the console to play) | up to 8 https URLs of still frames sampled from it (what the vision model reads) |
+| `video` | optional caption | https URL of the video (for the console to play) | up to 8 https URLs of still frames, joined with newline characters (what the vision model reads) |
 
 Media are uploaded by the client to your object storage first; the database only stores `https://` URLs (max 1000
 chars). A new ping is held out of the queue for up to `INTAKE_GRACE_S` (20 s) while the intake agent reads it, so show
@@ -70,3 +70,15 @@ Actions:
 - Words alone never move the automatic queue order unless two neighbours report the same thing. Claims backed by photos
   or video can, when they fit the fire and weather at the resident's location.
 - Requests expire after the consent window (default 24 h) and their location, reports and messages are deleted then.
+
+## Integrated resident risk
+
+Subscribe to `my_risk` as a resident or `ops_risk` as a commander/responder/intake agent. Cards have
+`assessment`, `current`, and `stale_reason`. The full field contract and example are in
+[RECORDED_RISK_PIPELINE.md](RECORDED_RISK_PIPELINE.md). Always display freshness alongside predictions;
+`current=false`, missing exposure or right-censored timing must not be presented as low risk.
+
+Public `fire_risk_meta` / `fire_risk_cell` provide geographic probability maps. `risk_pipeline` reports
+activation/failure and the forecast ID. No personal information is stored in those public layers.
+Risk writes are commander-only; frontend writes still use the existing request/report/override reducers.
+Regenerate TypeScript bindings after publishing the extended module.

@@ -1,7 +1,12 @@
 # Plugging in the RL policy
 
-The RL model decides **who goes in which station's queue, in what order, and which unit leaves now**. Nothing else.
-Everything it needs is already computed and handed to it. It does not touch agents, the database or the frontend.
+The complete risk pipeline includes **fire prediction, routing/travel, danger/slack, and resident-evidence weighting**.
+The current trained artifact is the supervised fire U-Net. Its recorded-incident integration runs through the hazard
+and commander agents and publishes app-readable risk assessments: start with [RECORDED_RISK_PIPELINE.md](RECORDED_RISK_PIPELINE.md).
+
+This document describes the narrower **dispatch-policy extension**: `RLPolicy.plan` proposes station queues and unit
+assignments from already composed inputs. A trained dispatch policy is not required to use learned fire risk.
+Keep `POLICY=lookahead` while using `FIRE_FORECAST_BACKEND=learned`; `RLPolicy.plan` remains an unimplemented stub.
 
 ## Quick start
 
@@ -88,17 +93,19 @@ commander is asked for other resources.
 - **If `plan()` raises**, the commander shows `degraded` with your error and keeps the last published plan.
 - **Plans are published only when they change.**
 
-## What the policy does NOT do
+## Components within the complete risk pipeline
 
-| Not yours | Where it lives |
+| Responsibility | Implementation and policy input |
 |---|---|
 | Fire prediction (when fire reaches a place) | hazard agent: `core/fire.py` + `hazard/forecast.py`, a deliberately simple wind-driven spread model. Arrives as `fire_eta_s` |
 | Routing and travel times | `core/routing.py`, via `core/danger.py`. Arrives as `travel_s` |
 | Danger level and slack | `core/slack.py`, `core/danger.py` |
 | How much a resident's photo or text counts | `core/reports.py`. Arrives folded into the fields above plus `credibility` etc. |
 
-Prediction is not a decision problem (nothing the dispatcher does changes the fire), so keep it a separate model and let
-the policy consume its output.
+These are integrated responsibilities of the risk workstream. Their modular boundaries keep the forecast,
+evidence and assistance calculations traceable. Current policy requests also carry `.risk`: the full current
+`resident-risk-v1` assessment, including learned exposure, uncertainty, route/wait timing and source versions.
+The dispatch policy can consume those fields without reinterpreting coarse probability maps as p10 arrivals.
 
 ## What your policy must cope with
 
@@ -151,8 +158,10 @@ Done: SpacetimeDB module; the commander (head agent: reports, danger, planner) a
 intake); freshness flags; situation export; health check. The `POLICY=rl` plug-in point is wired but **not yet exercised
 with a real model**.
 
-Not done / not yours: the RL model itself; unit missions (nothing advances a dispatched unit yet); the frontend. The road
-network is the fire grid as a stand-in, the fire model is simplified, and the demo world is synthetic.
+Implemented risk prediction: the validated supervised U-Net runs through recorded hazard observations and the
+commander's composed risk assessments, exposed in `ops_risk` / `my_risk`. See the recorded runbook for executed tests.
+Pending: a trained dispatch policy, automatic unit missions, the frontend and real emergency-station discovery.
+Routing uses the fire grid as a stand-in; demo stations, units and residents are synthetic.
 
 ## If you change shared pieces
 

@@ -1,0 +1,40 @@
+{
+  "new_training_cap_seconds": 2820,
+  "preserved": [
+    "data/codex/** byte-for-byte",
+    "original NIROPS source ZIP",
+    "current frozen dataset/split manifests",
+    "data-quality reports",
+    "core fire/routing/slack/Lookahead",
+    "legacy teammate assignment hook and guide",
+    "Fetch.ai agents,SpacetimeDB role views and consent"
+  ],
+  "prior_training_seconds": 1623.3970930420328,
+  "reason": "Retired isolated loopback demonstration credentials; no shared identities or data changed.",
+  "remaining_authorized_training_seconds": 2876.602906957967,
+  "removed_local_only_old_demo_tokens": 30,
+  "removed_owned_paths": [
+    "agents/rescue/forecast_ml/env.py",
+    "agents/rescue/forecast_ml/model.py",
+    "agents/rescue/forecast_ml/simulator.py",
+    "agents/rescue/forecast_ml/inference.py",
+    "agents/rescue/forecast_ml/train.py",
+    "agents/rescue/forecast_ml/export.py",
+    "agents/rescue/forecast_ml/reward_diagnostics.py",
+    "agents/configs/fire_rl_benchmark.json",
+    "agents/configs/fire_unet_benchmark.json",
+    "tests/test_fire_rl_env.py",
+    "tests/test_fire_rl_unet.py",
+    "tests/test_fire_rl_risk.py",
+    "tests/test_fire_rl_integration.py",
+    "tests/test_fire_rl_reward_diagnostics.py",
+    "agents/requirements-fire-rl.in",
+    "agents/requirements-fire-rl.lock",
+    "docs/FIRE_RL_EVALUATION.md",
+    "docs/FIRE_RL_INFERENCE.md",
+    "docs/FIRE_RL_RUNBOOK.md",
+    "docs/FORECAST_DIAGNOSTIC_AUDIT.md",
+    "reports/fire_rl_benchmark",
+    "runs/codex"
+  ]
+}

@@ -1,0 +1,25 @@
+name: fire forecast contracts
+on: [push, pull_request]
+jobs:
+  nontraining:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r agents/requirements-forecast.in -r agents/requirements.txt
+      - run: python -m pytest -q
+      - run: PYTHONPATH=agents python agents/scripts/test_planning.py
+      - run: PYTHONPATH=agents python agents/scripts/test_reports.py
+      - run: ruff check agents/rescue/forecast_ml tests
+      - run: ruff format --check agents/rescue/forecast_ml tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: spacetimedb/package-lock.json
+      - run: npm ci --prefix spacetimedb
+      - run: npm run typecheck --prefix spacetimedb
+      # Training is an explicit separate command, never a dependency of CI.
