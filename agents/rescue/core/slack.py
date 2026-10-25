@@ -45,7 +45,9 @@ def level_for(slack: float) -> str:
         return "critical"
     if slack < 1800:
         return "high"
-    return "moderate"
+    if slack < 3600:
+        return "moderate"
+    return "low"
 
 
 def fmt_min(seconds: float) -> str:

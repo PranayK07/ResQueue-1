@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="15" height="3" viewBox="0 0 15 3" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Dotted route sample" clip-path="url(#clip0_0_10)">
+<circle id="Dot" cx="1.5" cy="1.5" r="1.5" fill="#FF958A"/>
+<circle id="Dot_2" cx="7.5" cy="1.5" r="1.5" fill="#FF958A"/>
+<circle id="Dot_3" cx="13.5" cy="1.5" r="1.5" fill="#FF958A"/>
+</g>
+<defs>
+<clipPath id="clip0_0_10">
+<rect width="15" height="3" fill="white"/>
+</clipPath>
+</defs>
+</svg>

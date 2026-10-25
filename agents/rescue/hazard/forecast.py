@@ -83,6 +83,16 @@ class ForecastEngine:
             self._grid, self._fuel = grid, FuelMap.uniform(grid, seed=FUEL_SEED)
         versions = self.db.table("world_version").one()
         now = self.host.sim_now()
+        if settings.fire_source == "recorded":
+            source = self.host.recorded
+            if source is None or not source.matches_grid(grid):
+                return
+            request, observation = source.request(now, [21600.0])
+            if self.host.fire._recorded_observation != observation:
+                return
+            # Restarting an agent must not make an old acquired perimeter look newly observed.
+            # Keep routing deadlines and their validity window anchored to that acquisition.
+            now = request.issue_s - source.start_utc_s
         wind = Wind(w_row["wind_speed_mps"], w_row["wind_from_deg"])
 
         # numpy work off the event loop so the uAgent stays responsive

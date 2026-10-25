@@ -19,6 +19,7 @@ gets its own identity (SpacetimeDB issues a token; keep it in storage). `ctx.sen
 | Add what they see | reducer `submit_report(requestId, externalRef = "", kind, text, mediaUrl, frameUrls)` (`frameUrls` is a newline-separated string) |
 | Answer a responder | reducer `reply_to_responder(requestId, externalRef = "", text)` |
 | Keep sharing longer | reducer `extend_consent(requestId, externalRef = "", minutes)` |
+| Moved, or corrected the pin | reducer `update_my_location(requestId, externalRef = "", lat, lon)`. Same request and queue place; must stay inside the incident area; danger and travel are recomputed |
 | "I'm safe" / stop sharing | reducer `close_my_request(requestId, externalRef = "", outcome = "safe" or "revoked")`. Deletes location, reports and messages at once |
 | Show their card | subscribe `my_requests` (status, danger level, queue position, station, unit, ETA, reason, and `intakeReply`: what the intake agent says back) |
 | Show the conversation | subscribe `ops_message` (only their own request's messages) |
@@ -38,7 +39,9 @@ chars). A new ping is held out of the queue for up to `INTAKE_GRACE_S` (20 s) wh
 
 ## Responder (station console) and commander
 
-Sign in once with `claim_operator(passcode, role = "responder" or "commander", stationId, name)`. Then subscribe:
+Sign in once with `claim_operator(passcode, role = "responder" or "commander", stationId, name)`. The `operator` table is
+private; subscribe to the `my_operator` view to know who this identity is signed in as (it empties when a scenario reload
+deletes responder operators, so sign in again then). Then subscribe:
 
 | Subscribe | What it holds |
 |---|---|
@@ -54,13 +57,32 @@ Actions:
 |---|---|
 | Ask the resident | reducer `message_resident(requestId, text)` |
 | Unit lifecycle | reducers `unit_en_route`, `unit_position`, `unit_on_scene`, `complete_mission`, `unit_available`, `decline_mission` |
-| Commander only | `override_assignment(requestId, stationId, note)` (pin; the policy must obey), `flag_request` (a manual escalation flag), `resolve_flag`, `set_sim`, `set_weather`, `set_incident`, `ping_news` |
+| Responder phone open | reducer `crew_heartbeat(unitId, active)` every ~20 s while the phone shows that unit (`active = false` when it leaves). Fills the public `crew_presence` table; the simulated-crews driver then leaves "rescued" to the phone |
+| Commander only | `override_assignment(requestId, stationId, note)` (pin; the policy must obey), `flag_request` (a manual escalation flag), `resolve_flag`, `set_sim(running, speed)`, `set_weather`, `release_weather_lock`, `set_incident`, `ping_news`, `submit_mock_requests(pings)` (below) |
+
+### Mock help pings (demos and drills)
+
+`submit_mock_requests(pings)` (commander operator, or the commander / scenario agent) files 1..25 simulated residents' pings
+in one transaction. Each `MockRequestInput` is `{lat, lon, headcount, needs, note, report}`: the same validation as a real
+ping (inside the incident area, headcount 1..50, note <= 500 chars), channel `synthetic`, its own externalRef
+(`mock:<batch>:<i>`), consent 24 h, and an optional first text `report` (<= 4000 chars) that the intake agent reads. They
+never appear in anyone's `my_requests`. One transaction means one planner pause instead of one per ping.
+
+### Unit missions
+
+Nothing in the backend moves units on its own. `publish_plan` sets a unit `assigned`; the lifecycle reducers take it
+`en_route` → `on_scene` → `returning` (via `complete_mission`) → `available`. For scenarios and replays (synthetic units),
+`agents/scripts/sim_crews.py` drives every unit through those steps (`run_all` starts it unless `SIM_CREWS=0`); a responder
+phone that has a unit open makes the "rescued" / "can't reach" call for it. **Never stream `unit_position`:** every risk
+card is stamped with all units' `updated_at`, and the planner keeps the old plan until risk is republished (at most every
+5 s), so frequent unit writes stall planning. Write units only at lifecycle steps and animate positions in the client.
 
 ## Everyone (public tables, no personal data)
 
 `sim_clock`, `grid`, `station`, `unit`, `weather`, `fire_cell`, `forecast_cell` (fire arrival times, for the map),
 `road_closure`, `situation` (the commander's pooled picture and the log the RL model reads), `news_article`,
-`event_log`, `agent` (who is online).
+`event_log`, `agent` (who is online), `crew_presence` (which units have a responder phone open), `incident` (the
+replayed fire and its time window; absent = live mode).
 
 ## Rules the frontend can rely on
 

@@ -28,6 +28,8 @@ import spacetimedb, {
   SituationInput,
   ForecastCellInput,
   FireRiskCellInput,
+  fireRiskCell,
+  MockRequestInput,
   PlanEntryInput,
   StationInput,
   TravelInput,
@@ -36,6 +38,7 @@ import spacetimedb, {
   consentTimer,
   fieldReport,
   helpRequest,
+  operator,
   reportAssessment,
   requestMessage,
   simTickTimer,
@@ -61,12 +64,14 @@ const EVENT_LOG_KEEP = 400n;
 const MIN_CONSENT_MIN = 15;
 const MAX_CONSENT_MIN = 24 * 60; // a request (and the location it shares) lives at most 24 h unless extended; "I'm safe" deletes it at once
 const LOCKED_EXTENSION_MICROS = 15n * 60n * 1_000_000n;
+const MAX_MOCK_PINGS = 25;
+const MOCK_CONSENT_MIN = MAX_CONSENT_MIN; // a replay at 30x runs for hours of real time
 
 const AGENT_ROLES = [
   'hazard', 'news', 'fire', 'weather', 'closures', 'forecast', 'danger', 'delegation',
   'station', 'intake', 'commander', 'scenario',
 ];
-const LEVELS = ['unknown', 'unreachable', 'critical', 'high', 'moderate'];
+const LEVELS = ['unknown', 'unreachable', 'critical', 'high', 'moderate', 'low'];
 const ACTIVE = ['pending', 'queued', 'assigned', 'en_route', 'on_scene'];
 const LOCKED = ['assigned', 'en_route', 'on_scene']; // a unit is committed
 const KNOWN_NEEDS = ['mobility', 'medical', 'oxygen', 'infant', 'elderly', 'pets', 'language'];
@@ -194,6 +199,7 @@ function closeRequest(ctx: Ctx, r: Request, status: string, actor: string, why: 
     lat: 0,
     lon: 0,
     locationPurged: true,
+    entrance: '',
     updatedAt: ctx.timestamp,
   });
   bump(ctx, 'requests');
@@ -202,7 +208,7 @@ function closeRequest(ctx: Ctx, r: Request, status: string, actor: string, why: 
 
 function createRequest(
   ctx: Ctx,
-  args: { channel: string; externalRef: string; lat: number; lon: number; headcount: number; needs: string; note: string; consentMinutes: number },
+  args: { channel: string; externalRef: string; lat: number; lon: number; headcount: number; needs: string; note: string; consentMinutes: number; entrance?: string },
   actor: string
 ): Request {
   if (!Number.isFinite(args.lat) || !Number.isFinite(args.lon)) throw new SenderError('invalid location');
@@ -235,6 +241,7 @@ function createRequest(
     pinnedStationId: 0,
     hopCount: 0,
     updatedAt: ctx.timestamp,
+    entrance: (args.entrance ?? '').trim().slice(0, 200),
   });
   ctx.db.consentTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(expiresMicros), requestId: r.id });
   bump(ctx, 'requests');
@@ -376,7 +383,9 @@ export const load_scenario = spacetimedb.reducer(
     for (const r of [...ctx.db.requestRisk.iter()]) ctx.db.requestRisk.requestId.delete(r.requestId);
     for (const r of [...ctx.db.roadClosure.iter()]) ctx.db.roadClosure.id.delete(r.id);
     for (const r of [...ctx.db.incident.iter()]) ctx.db.incident.id.delete(r.id);
+    for (const r of [...ctx.db.replayObservation.iter()]) ctx.db.replayObservation.sequence.delete(r.sequence);
     for (const r of [...ctx.db.newsFocus.iter()]) ctx.db.newsFocus.id.delete(r.id);
+    for (const r of [...ctx.db.crewPresence.iter()]) ctx.db.crewPresence.unitId.delete(r.unitId);
     for (const r of [...ctx.db.unit.iter()]) ctx.db.unit.id.delete(r.id);
     for (const r of [...ctx.db.station.iter()]) ctx.db.station.id.delete(r.id);
     for (const r of [...ctx.db.operator.iter()]) {
@@ -415,6 +424,26 @@ export const set_sim = spacetimedb.reducer(
     log(ctx, actor, 'sim', `Simulation ${running ? 'running' : 'paused'} at ${speed}x`);
   }
 );
+
+/** Acquisition times alone disclose no future perimeter pixels to the forecast model. */
+export const set_replay_schedule = spacetimedb.reducer({ offsets: t.array(t.f64()) }, (ctx, { offsets }) => {
+  requireCommander(ctx);
+  if (!offsets.length || offsets.some((s, i) => !Number.isFinite(s) || s < 0 || (i > 0 && s <= offsets[i - 1]))) throw new SenderError('invalid acquisition schedule');
+  for (const r of [...ctx.db.replayObservation.iter()]) ctx.db.replayObservation.sequence.delete(r.sequence);
+  offsets.forEach((atS, sequence) => ctx.db.replayObservation.insert({ sequence, atS }));
+});
+
+/** Move forward to the next actual acquisition and pause there while agents reforecast. */
+export const advance_replay = spacetimedb.reducer(ctx => {
+  const actor = requireCommander(ctx);
+  const c = ctx.db.simClock.id.find(0)!;
+  const next = [...ctx.db.replayObservation.iter()].filter(o => o.atS > c.simS + 0.001).sort((a, b) => a.atS - b.atS)[0];
+  if (!next) throw new SenderError('last recorded observation reached');
+  ctx.db.simClock.id.update({ ...c, simS: next.atS, running: false, lastTick: ctx.timestamp });
+  const pipeline = ctx.db.riskPipeline.id.find(0);
+  if (pipeline) ctx.db.riskPipeline.id.update({ ...pipeline, status: 'pending', reason: 'Loading the next acquired perimeter and U-Net prediction', updatedAt: ctx.timestamp });
+  log(ctx, actor, 'replay_advanced', `Advanced to acquired observation ${next.sequence + 1}`, 0n);
+});
 
 // ─── Weather (live feed + the judge's wind slider) ──────────────────────────
 
@@ -787,6 +816,35 @@ export const submit_help_request = spacetimedb.reducer(
   }
 );
 
+/** Browser retries recover the sender's existing active request, without duplicating it. */
+export const submit_app_request = spacetimedb.reducer(
+  { lat: t.f64(), lon: t.f64(), headcount: t.u32(), needs: t.string(), note: t.string(), entrance: t.string(), consentMinutes: t.u32() },
+  (ctx, a) => {
+    for (const r of ctx.db.helpRequest.resident.filter(ctx.sender)) {
+      if (isActive(r) && r.externalRef === '') return;
+    }
+    createRequest(ctx, { ...a, channel: 'app', externalRef: '' }, 'resident');
+  }
+);
+
+/** Location, entrance and household edits commit together and invalidate the old risk inputs. */
+export const update_my_request = spacetimedb.reducer(
+  { requestId: t.u64(), lat: t.f64(), lon: t.f64(), headcount: t.u32(), needs: t.string(), note: t.string(), entrance: t.string() },
+  (ctx, a) => {
+    const r = requireRequest(ctx, a.requestId);
+    if (!r.resident.isEqual(ctx.sender) || r.externalRef !== '') throw new SenderError('not your request');
+    if (!isActive(r)) throw new SenderError('request is closed');
+    if (!Number.isFinite(a.lat) || !Number.isFinite(a.lon)) throw new SenderError('invalid location');
+    if (!insideGrid(ctx, a.lat, a.lon)) throw new SenderError('location is outside the active incident area');
+    if (a.headcount < 1 || a.headcount > 50) throw new SenderError('headcount must be 1..50');
+    if (a.note.length > 500) throw new SenderError('note too long (max 500 chars)');
+    ctx.db.helpRequest.id.update({ ...r, lat: a.lat, lon: a.lon, headcount: a.headcount, needs: cleanNeeds(a.needs),
+      note: a.note, entrance: a.entrance.trim().slice(0, 200), updatedAt: ctx.timestamp });
+    bump(ctx, 'requests');
+    log(ctx, 'resident', 'request_updated', `Request #${r.id}: location or household updated; reassessment pending`, r.id);
+  }
+);
+
 /** Same, submitted by the ASI:One intake agent (or the synthetic-resident
  *  generator) on behalf of `externalRef`. One active request per ref. */
 export const submit_help_request_for = spacetimedb.reducer(
@@ -826,6 +884,22 @@ export const extend_consent = spacetimedb.reducer(
     const next = ctx.timestamp.microsSinceUnixEpoch + BigInt(m) * 60_000_000n;
     ctx.db.helpRequest.id.update({ ...r, consentExpiresAt: new Timestamp(next), updatedAt: ctx.timestamp });
     ctx.db.consentTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(next), requestId: r.id });
+  }
+);
+
+/** The resident moved, or corrected the pin: same request (and queue place), new location inside the incident
+ *  area. Danger and travel are recomputed from it; a crew already on the way sees the new point on its map. */
+export const update_my_location = spacetimedb.reducer(
+  { requestId: t.u64(), externalRef: t.string(), lat: t.f64(), lon: t.f64() },
+  (ctx, { requestId, externalRef, lat, lon }) => {
+    const r = requireRequest(ctx, requestId);
+    if (!r.resident.isEqual(ctx.sender) || r.externalRef !== externalRef) throw new SenderError('not your request');
+    if (!isActive(r)) throw new SenderError('request is closed');
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new SenderError('invalid location');
+    if (!insideGrid(ctx, lat, lon)) throw new SenderError('location is outside the active incident area');
+    ctx.db.helpRequest.id.update({ ...r, lat, lon, updatedAt: ctx.timestamp });
+    bump(ctx, 'requests');
+    log(ctx, 'resident', 'location_updated', `Request #${r.id}: resident updated their location`, r.id);
   }
 );
 
@@ -969,12 +1043,14 @@ export const publish_risk_assessments = spacetimedb.reducer({
   requireAgent(ctx, 'commander');
   const v = ctx.db.worldVersion.id.find(0)!;
   const c = ctx.db.simClock.id.find(0)!;
+  const routing = ctx.db.forecastMeta.id.find(0);
   const checks: Array<[boolean, string]> = [
     [s.scenario !== c.scenario, 'scenario'],
     [!Number.isFinite(s.assessedAtS) || s.assessedAtS > c.simS + CLOCK_EPS_S, 'clock'],
     [s.weatherVersion !== v.weather, 'weather'], [s.fireVersion !== v.fire, 'fire'],
     [s.roadsVersion !== v.roads, 'roads'], [s.requestsVersion !== v.requests, 'requests/evidence'],
     [s.forecastVersion !== v.forecast, 'physical forecast'], [s.unitsStamp !== unitsStamp(ctx), 'units'],
+    [!routing || c.simS >= routing.computedAtS + routing.horizonS, 'routing forecast expired'],
     [s.riskUpdatedAt !== (ctx.db.fireRiskMeta.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n), 'risk forecast'],
     [s.pipelineUpdatedAt !== (ctx.db.riskPipeline.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n), 'risk pipeline'],
   ];
@@ -1181,7 +1257,55 @@ export const unit_available = spacetimedb.reducer(
   }
 );
 
+/** A responder phone is open for this unit: sent every ~20 s while it is open, and active=false when it closes.
+ *  Same station scope as the lifecycle calls; it never writes the unit row. */
+export const crew_heartbeat = spacetimedb.reducer(
+  { unitId: t.u32(), active: t.bool() },
+  (ctx, { unitId, active }) => {
+    const u = requireUnit(ctx, unitId);
+    requireStationActor(ctx, u.stationId);
+    if (!active) {
+      ctx.db.crewPresence.unitId.delete(unitId);
+      return;
+    }
+    const row = { unitId, seenAt: ctx.timestamp };
+    if (ctx.db.crewPresence.unitId.find(unitId)) ctx.db.crewPresence.unitId.update(row);
+    else ctx.db.crewPresence.insert(row);
+  }
+);
+
 // ─── Commander (dashboard or ASI:One commander agent) ───────────────────────
+
+/** Human dispatch commits a unit and its station queue row in the same transaction. */
+export const assign_request_to_unit = spacetimedb.reducer(
+  { requestId: t.u64(), unitId: t.u32() },
+  (ctx, { requestId, unitId }) => {
+    const actor = requireCommander(ctx);
+    const r = requireRequest(ctx, requestId);
+    const u = requireUnit(ctx, unitId);
+    if (!isActive(r)) throw new SenderError('request is closed');
+    if (u.currentRequest === r.id) return;
+    if (isLocked(r)) throw new SenderError('request already has a committed unit');
+    if (u.status !== 'available' || u.currentRequest !== 0n) throw new SenderError('unit is not available');
+    if (u.capacity < r.headcount) throw new SenderError('unit capacity is smaller than the party');
+    const travel = [...ctx.db.travelEstimate.requestId.filter(r.id)].find(t => t.stationId === u.stationId && t.reachable);
+    const dy = (r.lat - u.lat) * 111_320;
+    const dx = (r.lon - u.lon) * 111_320 * Math.cos(r.lat * Math.PI / 180);
+    const drive = travel?.travelS ?? Math.hypot(dx, dy) * 1.35 / 12;
+    const prev = ctx.db.queueEntry.requestId.find(r.id);
+    const version = bump(ctx, 'plan');
+    const row = { requestId: r.id, stationId: u.stationId, rank: prev?.rank ?? 1, unitId: u.id,
+      etaS: simNow(ctx) + drive, reason: `Assigned by ${actor} to ${u.callsign}`,
+      residentReason: `Incident command assigned ${u.callsign} to your request`, policy: 'manual',
+      planVersion: version, updatedAt: ctx.timestamp };
+    if (prev) ctx.db.queueEntry.requestId.update(row); else ctx.db.queueEntry.insert(row);
+    ctx.db.unit.id.update({ ...u, status: 'assigned', currentRequest: r.id,
+      freeAtS: simNow(ctx) + drive * 2 + r.extractS, updatedAt: ctx.timestamp });
+    ctx.db.helpRequest.id.update({ ...r, status: 'assigned', pinnedStationId: u.stationId, updatedAt: ctx.timestamp });
+    bump(ctx, 'requests');
+    log(ctx, actor, 'dispatch', `${u.callsign} assigned to request #${r.id}`, r.id);
+  }
+);
 
 /** Pin a request to a station (stationId = 0 unpins). The policy must obey. */
 export const override_assignment = spacetimedb.reducer(
@@ -1225,6 +1349,28 @@ export const resolve_flag = spacetimedb.reducer(
     if (!f) throw new SenderError(`flag ${flagId} not found`);
     ctx.db.flag.id.update({ ...f, resolved: true, resolution });
     log(ctx, actor, 'flag_resolved', `Flag on request #${f.requestId} resolved: ${resolution}`, f.requestId);
+  }
+);
+
+/** Simulated residents pinging for help (demos and drills), as one transaction. Each is an ordinary request on the
+ *  'synthetic' channel with its own externalRef, owned by the caller, plus an optional first text report for the
+ *  intake agent to read. Same validation as a real ping. */
+export const submit_mock_requests = spacetimedb.reducer(
+  { pings: t.array(MockRequestInput) },
+  (ctx, { pings }) => {
+    const actor = requireCommander(ctx);
+    if (pings.length < 1 || pings.length > MAX_MOCK_PINGS) throw new SenderError(`send 1..${MAX_MOCK_PINGS} mock pings at a time`);
+    const batch = ctx.timestamp.microsSinceUnixEpoch;
+    pings.forEach(({ report, ...p }, i) => {
+      if (report.length > 4000) throw new SenderError('text too long (max 4000 chars)');
+      const r = createRequest(ctx, { ...p, channel: 'synthetic', externalRef: `mock:${batch}:${i}`, consentMinutes: MOCK_CONSENT_MIN }, actor);
+      if (report.trim()) {
+        ctx.db.fieldReport.insert({
+          id: 0n, requestId: r.id, kind: 'text', text: report.trim(), mediaUrl: '', frameUrls: '', createdAt: ctx.timestamp,
+        });
+      }
+    });
+    log(ctx, actor, 'mock_pings', `${pings.length} simulated help ping(s) added`);
   }
 );
 
@@ -1275,6 +1421,13 @@ export const ops_request = spacetimedb.view(
   ctx => visibleRequests(ctx)
 );
 
+/** Compact learned concern overlay for field devices; probabilities retain their original horizons. */
+export const fire_concern = spacetimedb.anonymousView(
+  { name: 'fire_concern', public: true },
+  t.array(fireRiskCell.rowType),
+  ctx => [...ctx.db.fireRiskCell.iter()].filter(c => !c.observed && c.probability >= 0.1)
+);
+
 export const ops_queue = spacetimedb.view(
   { name: 'ops_queue', public: true },
   t.array(queueEntry.rowType),
@@ -1321,13 +1474,17 @@ const RiskAssessmentCard = t.object('RiskAssessmentCard', {
 function riskCard(ctx: VCtx, r: NonNullable<ReturnType<VCtx['db']['requestRisk']['requestId']['find']>>) {
   const v = ctx.db.worldVersion.id.find(0)!;
   const c = ctx.db.simClock.id.find(0)!;
-  const current = r.scenario === c.scenario && r.weatherVersion === v.weather && r.fireVersion === v.fire
+  const routing = ctx.db.forecastMeta.id.find(0);
+  const routingExpired = !routing || c.simS >= routing.computedAtS + routing.horizonS;
+  const current = !routingExpired && r.scenario === c.scenario && r.weatherVersion === v.weather && r.fireVersion === v.fire
     && r.roadsVersion === v.roads && r.requestsVersion === v.requests && r.forecastVersion === v.forecast
     && r.unitsStamp === unitsStamp(ctx)
     && r.riskUpdatedAt === (ctx.db.fireRiskMeta.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n)
     && r.pipelineUpdatedAt === (ctx.db.riskPipeline.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n)
     && (r.horizonsS.length === 0 || ctx.db.fireRiskMeta.id.find(0)!.issueS + r.horizonsS[r.horizonsS.length - 1] > c.simS);
-  return { assessment: r, current, staleReason: current ? '' : 'Inputs changed or forecast expired; reassessment pending' };
+  return { assessment: r, current, staleReason: current ? '' : routingExpired
+    ? 'Routing forecast expired; a new observation or routing forecast is required.'
+    : 'Inputs changed or forecast expired; reassessment pending' };
 }
 /** Same role boundary as raw reports. Residents receive only their own request. */
 export const ops_risk = spacetimedb.view({ name: 'ops_risk', public: true }, t.array(RiskAssessmentCard), ctx => {
@@ -1374,6 +1531,14 @@ export const ops_message = spacetimedb.view(
   }
 );
 
+/** Who the caller is signed in as (commander or responder, and which station), if anyone. The operator table is
+ *  private; this lets a console restore its sign-in, and notice when a scenario reload has signed responders out. */
+export const my_operator = spacetimedb.view(
+  { name: 'my_operator', public: true },
+  t.option(operator.rowType),
+  ctx => ctx.db.operator.identity.find(ctx.sender) ?? undefined
+);
+
 /** What a resident's phone shows: only their own request(s), with a coarse
  *  reason, never the scoring formula or anyone else's data. */
 const ResidentCard = t.row('ResidentCardRow', {
@@ -1383,6 +1548,7 @@ const ResidentCard = t.row('ResidentCardRow', {
   queuePosition: t.u32(),
   stationName: t.string(),
   unitCallsign: t.string(),
+  unitId: t.u32(),
   etaS: t.option(t.f64()),
   reason: t.string(),
   headcount: t.u32(),
@@ -1390,6 +1556,11 @@ const ResidentCard = t.row('ResidentCardRow', {
   consentExpiresAt: t.timestamp(),
   createdAt: t.timestamp(),
   intakeReply: t.string(), // the intake agent's answer to what the resident sent ('' = nothing sent / not read yet)
+  lat: t.f64(),
+  lon: t.f64(),
+  note: t.string(),
+  entrance: t.string(),
+  updatedAt: t.timestamp(),
 });
 
 export const my_requests = spacetimedb.view(
@@ -1416,6 +1587,7 @@ export const my_requests = spacetimedb.view(
         queuePosition: q && q.unitId === 0 ? position : 0,
         stationName: st?.name ?? '',
         unitCallsign: u?.callsign ?? '',
+        unitId: u?.id ?? 0,
         etaS: q ? q.etaS : undefined,
         reason: q?.residentReason ?? (isActive(r) ? 'Received. Assessing your location against the fire forecast.' : ''),
         headcount: r.headcount,
@@ -1423,6 +1595,7 @@ export const my_requests = spacetimedb.view(
         consentExpiresAt: r.consentExpiresAt,
         createdAt: r.createdAt,
         intakeReply: ctx.db.reportAssessment.requestId.find(r.id)?.residentReply ?? '',
+        lat: r.lat, lon: r.lon, note: r.note, entrance: r.entrance, updatedAt: r.updatedAt,
       });
     }
     return out;

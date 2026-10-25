@@ -1,0 +1,31 @@
+:root {
+  --chrome: #20272b;
+  --surface: #f6f7f7;
+  --text: #20282d;
+  --text-muted: #56636b;
+  --border: #dce1e3;
+  --accent: #e7a34f;
+  --map-ground: #e9ebdd;
+  --link: #3b6c84;
+  --notice-bg: #fff5e5;
+  --notice-ink: #855011;
+  --danger: #b33b32;
+  --danger-bg: #fbecea;
+  --success: #446655;
+
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: normal;
+  color: var(--text);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}

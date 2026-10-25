@@ -1,0 +1,566 @@
+import { useEffect, useMemo, useState } from 'react';
+import { ForecastSummary } from '../components/ForecastSummary';
+import { useLiveRows } from '../live/hooks';
+import { callWithCopy } from '../live/reducers';
+import layersIcon from '../assets/figma/command/layers.svg';
+import pauseIcon from '../assets/figma/command/pause.svg';
+import scanIcon from '../assets/figma/command/scan.svg';
+import slidersIcon from '../assets/figma/command/sliders-horizontal.svg';
+import triangleAlert from '../assets/figma/command/triangle-alert.svg';
+import { clockHMSTz, clockHMTz, requestCode, simNow, simToMs } from '../ops/derive';
+import { mockPings } from './mockPings';
+import { useCommandData } from '../ops/hooks';
+import type { CommandSnapshot } from '../ops/types';
+import { fetchRoute, type Route } from '../ops/routing';
+import { useNow } from '../lib/useNow';
+import { CommandMap, type Journey } from './components/CommandMap';
+import { LAYERS, type LayerName } from './mapLayers';
+import { CommandNav, SafetyFooter } from './components/CommandNav';
+import { RequestDetails } from './components/RequestDetails';
+import { UnitPanel } from './components/UnitPanel';
+import { alertStatus, bySlack, compass, commandRows, commandEta, commandReason, commandSlack, counts, type CommandRow, mph, mps, pad2, peopleNeeds, stationShort, tPlus, unitJourney } from './derive';
+
+const PAGE = 8;
+const clockHMS = (ms: number) => clockHMSTz(ms).split(' ')[0];
+
+// Live replay: the recording's own clock, in UTC like the source data.
+const SPEEDS = [1, 10, 30, 60, 120, 300, 600];
+const utcClock = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+  timeZone: 'UTC',
+});
+const utcDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+function replayRange(incident: { startAtMs: number; newsToMs: number } | null | undefined) {
+  if (!incident) return '';
+  return incident.newsToMs > incident.startAtMs
+    ? `${utcDay.format(incident.startAtMs)} – ${utcDay.format(incident.newsToMs)}`
+    : utcDay.format(incident.startAtMs);
+}
+function gridCentre(s: CommandSnapshot) {
+  const g = s.grid;
+  const lat = g.originLat + (g.rows * g.cellSizeM) / 2 / 111_320;
+  const lon = g.originLon + (g.cols * g.cellSizeM) / 2 / (111_320 * Math.cos((g.originLat * Math.PI) / 180));
+  return `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? 'N' : 'S'} ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? 'E' : 'W'}`;
+}
+
+/** Figma 3:3691 "Wildfire rescue command". */
+export function OverviewPage() {
+  const acquisitions = useLiveRows('replay_observation');
+  const [advancing, setAdvancing] = useState(false);
+  const [advanceError, setAdvanceError] = useState('');
+  const { snapshot: s, source } = useCommandData();
+  const nowMs = useNow(1000);
+  const [horizon, setHorizon] = useState(86400);
+  const rows = useMemo(() => bySlack(commandRows(s)), [s]);
+  const c = counts(s, rows);
+
+  // ─── Queue table state ───
+  const [stationFilter, setStationFilter] = useState(0);
+  const [search, setSearch] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [page, setPage] = useState(0);
+  const filtered = rows.filter(
+    r =>
+      (!stationFilter || r.station.id === stationFilter) &&
+      (!search.trim() || requestCode(r.request.id).toLowerCase().includes(search.trim().toLowerCase()) || r.station.name.toLowerCase().includes(search.trim().toLowerCase()))
+  );
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
+  const pageIdx = Math.min(page, pages - 1);
+  const pageRows = filtered.slice(pageIdx * PAGE, pageIdx * PAGE + PAGE);
+
+  // ─── Selection: a request, or (Units tab) a unit and its journey ───
+  const [tab, setTab] = useState<'request' | 'units'>('request');
+  const [selectedId, setSelectedId] = useState<bigint | null>(null);
+  const [unitId, setUnitId] = useState<number | null>(null);
+  const selected = rows.find(r => r.request.id === selectedId) ?? rows.find(r => !r.escalated) ?? rows[0] ?? null;
+  const select = (id: bigint) => {
+    setSelectedId(id);
+    setTab('request');
+  };
+  const selectUnit = (id: number | null) => {
+    setUnitId(id);
+    setTab('units');
+  };
+
+  // Road legs for the selected unit's journey: unit → current mission → planned stops.
+  const unit = tab === 'units' && unitId !== null ? (s.units.find(u => u.id === unitId) ?? null) : null;
+  const stops = useMemo(() => {
+    if (!unit) return [];
+    const plan = unitJourney(rows, unit.id);
+    return [...(plan.current ? [{ row: plan.current, current: true }] : []), ...plan.stops.map(row => ({ row, current: false }))].slice(0, 8);
+  }, [unit, rows]);
+  // Units move every few seconds; re-route the first leg only after ~500 m, not on every update.
+  const q = (v: number) => (Math.round(v * 200) / 200).toFixed(3);
+  const legKey = unit ? [[q(unit.lon), q(unit.lat)], ...stops.map(({ row }) => [row.request.lon, row.request.lat])].map(p => p.join(',')).join(';') : '';
+  const [legs, setLegs] = useState<{ key: string; legs: [number, number][][] } | null>(null);
+  useEffect(() => {
+    if (!legKey) return;
+    let live = true;
+    const pts = legKey.split(';').map(p => p.split(',').map(Number) as [number, number]);
+    Promise.all(pts.slice(1).map((p, i) => fetchRoute(pts[i], p))).then(rs => live && setLegs({ key: legKey, legs: rs.map(r => r.coords) }));
+    return () => {
+      live = false;
+    };
+  }, [legKey]);
+  const journeyLegs = legs?.key === legKey ? legs.legs : null;
+  const journey = useMemo<Journey | null>(() => (unit ? { unit, stops, legs: journeyLegs } : null), [unit, stops, journeyLegs]);
+  const escalations = s.flags.filter(f => !f.resolved && f.kind === 'unreachable' && rows.some(r => r.request.id === f.requestId));
+
+  // ─── Route for the selected request ───
+  const [route, setRoute] = useState<{ key: string; route: Route } | null>(null);
+  const routeKey = selected?.unit && !selected.escalated ? [selected.unit.lon, selected.unit.lat, selected.request.lon, selected.request.lat].join(',') : '';
+  useEffect(() => {
+    if (!routeKey) return;
+    let live = true;
+    const [a, b, cc, d] = routeKey.split(',').map(Number);
+    fetchRoute([a, b], [cc, d]).then(r => live && setRoute({ key: routeKey, route: r }));
+    return () => {
+      live = false;
+    };
+  }, [routeKey]);
+
+  // ─── Map + wind controls ───
+  const [visible, setVisible] = useState<Set<LayerName>>(() => new Set(LAYERS));
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [fitSignal, setFitSignal] = useState(0);
+  const [windDir, setWindDir] = useState<number | null>(null);
+  const [windMph, setWindMph] = useState<number | null>(null);
+  const dir = windDir ?? s.weather.windFromDeg;
+  const speedMph = windMph ?? mph(s.weather.windSpeedMps);
+  const windDirty = windDir !== null || windMph !== null;
+  const [busy, setBusy] = useState(false);
+
+  async function applyWind() {
+    setBusy(true);
+    try {
+      await source.setWeather(mps(speedMph), dir, s.weather.gustMps);
+      setWindDir(null);
+      setWindMph(null);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const ago = (ms: number) => `${Math.max(0, Math.round((nowMs - ms) / 1000))}s`;
+  const simClockMs = simToMs(s.clock, simNow(s.clock, nowMs));
+  const rankOf = (id: bigint) => rows.findIndex(r => r.request.id === id) + 1;
+
+  // Live extras: a replay shows the recording's real (UTC) time; mock pings and speed are live-only tools.
+  const live = s.live;
+  const replay = live?.mode === 'replay';
+  const [pingCount, setPingCount] = useState(5);
+  const [pingBusy, setPingBusy] = useState(false);
+  const [pingNote, setPingNote] = useState('');
+  async function sendPings() {
+    const pings = mockPings(s, pingCount, true);
+    if (!pings.length) {
+      setPingNote('No incident area loaded yet.');
+      return;
+    }
+    setPingBusy(true);
+    try {
+      await source.sendMockPings(pings);
+      setPingNote(`${pings.length} pings sent · the intake agent is reading them`);
+    } catch (e) {
+      setPingNote(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPingBusy(false);
+    }
+  }
+  const risk = live?.fireRisk;
+  const pipeline = live?.riskPipeline;
+
+
+  return (
+    <div className="cpage">
+      <CommandNav />
+
+      <section className="cheader">
+        <div>
+          <p className="cheader__meta">
+            <span className="mono">{replay ? 'REPLAY · RECORDED FIRE' : `INCIDENT ${s.incident.id}`}</span>
+            <i className="cdot" />
+            <span className="cheader__active">
+              {s.clock.running ? (live ? `RUNNING ${s.clock.speed}×` : 'ACTIVE SCENARIO') : live ? 'PAUSED' : 'SCENARIO PAUSED'}
+            </span>
+          </p>
+          <h1 className="cheader__title">
+            {s.incident.name} <span>{replay ? `${replayRange(live?.incident)} · ${gridCentre(s)} · synthetic stations & residents` : s.incident.area}</span>
+          </h1>
+        </div>
+        <div className="cheader__timing">
+          <div>
+            <p className="clabel">{replay ? 'RECORDED TIME · UTC' : `INCIDENT CLOCK · ${clockHMTz(nowMs).split(' ')[1]}`}</p>
+            <p className="mono cheader__clock">
+              {replay ? utcClock.format(simClockMs) : clockHMS(simClockMs)} <span>{tPlus(s, nowMs)}</span>
+            </p>
+          </div>
+          {source.capabilities.speed && (
+            <select
+              className="cbtn"
+              aria-label="Replay speed"
+              value={s.clock.speed}
+              onChange={e => void source.setSpeed(Number(e.target.value))}
+            >
+              {[...new Set([...SPEEDS, s.clock.speed])].sort((a, b) => a - b).map(v => (
+                <option key={v} value={v}>
+                  {v}×
+                </option>
+              ))}
+            </select>
+          )}
+          {replay && <button type="button" className="cbtn" disabled={advancing || !acquisitions.some(o => o.atS > s.clock.simS + 0.001)} onClick={async () => {
+            setAdvancing(true); setAdvanceError('');
+            try { await callWithCopy('advance_replay', {}); } catch (e) { setAdvanceError(e instanceof Error ? e.message : String(e)); }
+            finally { setAdvancing(false); }
+          }}>{advancing ? 'Loading observation…' : 'Next observation'}</button>}
+          <button type="button" className="cbtn" onClick={() => source.setRunning(!s.clock.running)}>
+            {s.clock.running ? <img src={pauseIcon} width={14} height={14} alt="" /> : <span aria-hidden>▶</span>}
+            {live ? (s.clock.running ? 'Pause' : 'Resume') : s.clock.running ? 'Pause simulation' : 'Resume simulation'}
+          </button>
+          <a className="cbtn" href="#/command/queue">
+            <img src={slidersIcon} width={14} height={14} alt="" />
+            Scenario settings
+          </a>
+        </div>
+      </section>
+
+      <section className="cmetrics" aria-label="Operational counts">
+        <Metric value={String(c.requests)} title="Opt-in requests" sub={`${c.people} people · consented only`} />
+        <Metric value={pad2(c.escalated)} tone={c.escalated ? 'red' : undefined} title="Unreachable by ground" sub="Commander review required" />
+        <Metric value={pad2(c.critical)} tone={c.critical ? 'amber' : undefined} title="Critical · 0–10 min" sub={`${c.high} high · ${c.moderate} moderate · ${c.low} low`} />
+        <Metric value={`${c.unitsAvailable} / ${c.unitsTotal}`} title="Units available" sub={`${c.unitsTotal - c.unitsAvailable} busy across ${c.stations} stations`} />
+        <Metric value={clockHMS(s.lastPlan.atMs)} small title="Queue recomputed" sub={`${s.lastPlan.reason} · ${ago(s.lastPlan.atMs)} ago`} />
+      </section>
+
+      {advanceError && <p role="alert" className="cerror">{advanceError}</p>}
+      <main className="cworkspace">
+        <section className="cpanel cqueue">
+          <div className="cqueue__heading">
+            <div>
+              <h2>Full rescue queue</h2>
+              <p className="csub">
+                {c.requests} requests · {c.people} people · {c.stations} stations · LOOKAHEAD dispatch · lower slack first
+              </p>
+            </div>
+            <div className="cqueue__tools">
+              <select
+                className="cbtn"
+                aria-label="Filter by station"
+                value={stationFilter}
+                onChange={e => {
+                  setStationFilter(Number(e.target.value));
+                  setPage(0);
+                }}
+              >
+                <option value={0}>All stations · {rows.length}</option>
+                {s.stations.map(st => (
+                  <option key={st.id} value={st.id}>
+                    {st.name} · {rows.filter(r => r.station.id === st.id).length}
+                  </option>
+                ))}
+              </select>
+              {searching ? (
+                <input
+                  className="cbtn cqueue__search"
+                  autoFocus
+                  placeholder="Q-018 or station"
+                  value={search}
+                  onChange={e => {
+                    setSearch(e.target.value);
+                    setPage(0);
+                  }}
+                  onBlur={() => !search && setSearching(false)}
+                />
+              ) : (
+                <button type="button" className="cbtn" onClick={() => setSearching(true)}>
+                  Search queue
+                </button>
+              )}
+              <a className="cbtn cbtn--dark" href="#/command/queue">
+                Manage queue →
+              </a>
+            </div>
+          </div>
+
+          {escalations.map(f => (
+            <div key={String(f.id)} className="cescalation" role="alert">
+              <img src={triangleAlert} width={15} height={15} alt="" />
+              <strong>{requestCode(f.requestId)} · Unreachable by ground</strong>
+              <span>No ground unit committed. Commander must review alternate support.</span>
+              <button type="button" className="cbtn" onClick={() => select(f.requestId)}>
+                Review escalation →
+              </button>
+            </div>
+          ))}
+
+
+          <div className="cpager">
+            <p>
+              Showing {filtered.length ? pageIdx * PAGE + 1 : 0}–{Math.min(filtered.length, (pageIdx + 1) * PAGE)} of {filtered.length} · all requests explicitly opted in
+            </p>
+            <div>
+              <button type="button" disabled={pageIdx === 0} onClick={() => setPage(pageIdx - 1)}>
+                ← Previous
+              </button>
+              <span className="mono">
+                {pageIdx + 1} / {pages}
+              </span>
+              <button type="button" disabled={pageIdx >= pages - 1} onClick={() => setPage(pageIdx + 1)}>
+                Next →
+              </button>
+            </div>
+          </div>
+
+          {s.requests.filter(r => r.channel === 'app').sort((a, b) => b.createdAtMs - a.createdAtMs).slice(0, 1).map(r => <div className="cescalation" role="status" key={String(r.id)}>
+            <strong>Latest caller alert · {requestCode(r.id)}</strong>
+            <button className="cbtn" onClick={() => { setStationFilter(0); setSearch(requestCode(r.id)); setPage(0); select(r.id); }}>Show request and pin</button>
+          </div>)}
+          <div className="ctable__scroll">
+          <table className="ctable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>REQUEST</th>
+                <th>STATUS</th>
+                <th>STATION / UNIT</th>
+                <th>ETA¹</th>
+                <th>SLACK ↑</th>
+                <th>WHY THIS RANK</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.map(r => {
+                const level = r.escalated ? 'unreachable' : r.request.level;
+                const isSel = r === selected;
+                return (
+                  <tr key={String(r.request.id)} className={isSel ? 'is-selected' : ''} onClick={() => select(r.request.id)} aria-selected={isSel}>
+                    <td className="mono muted">{pad2(rankOf(r.request.id))}</td>
+                    <td>
+                      <button type="button" className="ctable__link mono" onClick={() => select(r.request.id)}>
+                        {requestCode(r.request.id)}
+                      </button>
+                      <p className="ctable__sub">{peopleNeeds(r.request)}</p>
+                    </td>
+                    <td>
+                      <StatusPill row={r} snapshot={s} />
+                    </td>
+                    <td className="mono">
+                      {stationShort(r.station.name)} /{' '}
+                      {r.escalated || !r.unit ? (
+                        r.pending ? 'Awaiting assignment' : 'Review'
+                      ) : (
+                        <button
+                          type="button"
+                          className="clinkbtn"
+                          title={`Show ${r.unit.callsign}'s journey`}
+                          onClick={e => {
+                            e.stopPropagation();
+                            selectUnit(r.unit!.id);
+                          }}
+                        >
+                          {r.unit.callsign}
+                        </button>
+                      )}
+                    </td>
+                    <td className="mono">{commandEta(r, s)}</td>
+                    <td className={`mono cslack-text cslack-text--${level}`}>{commandSlack(r, s)}</td>
+                    <td className="muted ctable__why">{commandReason(r, s)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          </div>
+          <p className="cfootnote">Slack: &lt;0 unreachable · 0–10 critical · 10–30 high · 30–60 moderate · &gt;60 low. ETA = unit wait + travel, not extraction.</p>
+        </section>
+
+        <section className="cpicture">
+          <div className="cpanel cpicture__map">
+            <div className="cmaptools">
+              <div className="cmaptools__identity">
+                <h2>Incident picture</h2>
+                <span className="cbadge cbadge--muted">{c.requests} consented locations</span>
+              </div>
+              <div className="cmaptools__actions">
+                <div className="cmenu">
+                  <button type="button" className="cbtn" aria-expanded={layersOpen} onClick={() => setLayersOpen(o => !o)}>
+                    <img src={layersIcon} width={14} height={14} alt="" />
+                    Layers · {visible.size}
+                  </button>
+                  {layersOpen && (
+                    <div className="cmenu__list">
+                      {LAYERS.map(name => (
+                        <label key={name}>
+                          <input
+                            type="checkbox"
+                            checked={visible.has(name)}
+                            onChange={e => {
+                              const next = new Set(visible);
+                              if (e.target.checked) next.add(name);
+                              else next.delete(name);
+                              setVisible(next);
+                            }}
+                          />
+                          {name}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {source.capabilities.mockPings && (
+                  <>
+                    <select
+                      className="cbtn"
+                      aria-label="How many mock pings"
+                      value={pingCount}
+                      onChange={e => setPingCount(Number(e.target.value))}
+                    >
+                      {[1, 3, 5, 10].map(n => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                    <button type="button" className="cbtn" disabled={pingBusy} onClick={sendPings} title={pingNote}>
+                      {pingBusy ? 'Sending…' : 'Mock pings'}
+                    </button>
+                  </>
+                )}
+                <button type="button" className="cbtn" onClick={() => setFitSignal(n => n + 1)}>
+                  <img src={scanIcon} width={14} height={14} alt="" />
+                  Fit incident
+                </button>
+              </div>
+            </div>
+            {pingNote && <p className="cmap__wind-note" style={{ margin: '0 0 6px' }}>{pingNote}</p>}
+
+            <CommandMap
+              snapshot={s}
+              horizon={horizon}
+              rows={rows}
+              selected={selected}
+              labeled={new Set(pageRows.map(r => r.request.id))}
+              route={route?.key === routeKey ? route.route : null}
+              visible={visible}
+              fitSignal={fitSignal}
+              journey={journey}
+              onSelect={select}
+            />
+
+            <ForecastSummary live={live} />
+            <label className="cwind" style={{ gap: 12 }}>U-Net forecast horizon
+              <select className="cbtn" aria-label="U-Net forecast horizon" value={horizon} onChange={e => setHorizon(Number(e.target.value))}>
+                {(risk?.horizonsS ?? [21600, 43200, 86400]).map(h => <option key={h} value={h}>{h / 3600} hours after observation</option>)}
+              </select>
+            </label>
+            <div className="clegend">
+              <span><i className="ckey ckey--dot ckey--unreachable" />Unreachable</span>
+              <span><i className="ckey ckey--dot ckey--critical" />Critical</span>
+              <span><i className="ckey ckey--dot ckey--high" />High</span>
+              <span><i className="ckey ckey--dot ckey--moderate" />Moderate</span>
+              <span><i className="ckey ckey--fire" />Observed fire</span>
+              <span><i className="ckey ckey--forecast" />U-Net predicted exposure</span>
+              <span><i className="ckey ckey--closed" />Closed road</span>
+              <span><i className="ckey ckey--route" />Selected route</span>
+            </div>
+
+            {!replay && <>
+            <div className="cwind">
+              <div>
+                <p className="cwind__title">Simulation wind</p>
+                <p className="cwind__sub">Changes rerank the queue</p>
+              </div>
+              <select className="cbtn" aria-label="Wind from" value={Math.round(dir / 45) * 45 % 360} onChange={e => setWindDir(Number(e.target.value))}>
+                {[0, 45, 90, 135, 180, 225, 270, 315].map(d => (
+                  <option key={d} value={d}>
+                    {compass(d)} · {d}°
+                  </option>
+                ))}
+              </select>
+              <label className="cwind__speed">
+                <input type="range" min={0} max={45} value={speedMph} aria-label="Wind speed" onChange={e => setWindMph(Number(e.target.value))} />
+                <span className="mono">{speedMph} mph</span>
+              </label>
+              <button type="button" className="cbtn" disabled={!windDirty || busy} onClick={applyWind}>
+                {busy ? 'Reranking…' : 'Apply & rerank'}
+              </button>
+              <div className="cwind__fresh">
+                <p className="mono">
+                  FIRE {clockHMS(s.sources.fireMs)} · WEATHER {clockHMS(s.sources.weatherMs)} · CLOSURES {clockHMS(s.sources.closuresMs)}
+                </p>
+                <p>
+                  {live
+                    ? risk
+                      ? `Learned forecast · model ${risk.modelId} · issued ${replay ? utcClock.format(simToMs(s.clock, risk.issueS)) : clockHMS(simToMs(s.clock, risk.issueS))} · pipeline ${pipeline?.status ?? '—'}`
+                      : `Learned forecast: waiting${pipeline ? ` (${pipeline.status}: ${pipeline.reason})` : ''}`
+                    : 'All sources simulated'}{' '}
+                  · updated {ago(s.sources.fireMs)} / {ago(s.sources.weatherMs)} / {ago(s.sources.closuresMs)} ago
+                </p>
+              </div>
+            </div>
+            </>}
+          </div>
+
+          <div className="cside">
+            <div className="ctabs" role="tablist" aria-label="Details">
+              <button type="button" role="tab" aria-selected={tab === 'request'} className={tab === 'request' ? 'is-on' : ''} onClick={() => setTab('request')}>
+                Request{selected ? ` · ${requestCode(selected.request.id)}` : ''}
+              </button>
+              <button type="button" role="tab" aria-selected={tab === 'units'} className={tab === 'units' ? 'is-on' : ''} onClick={() => setTab('units')}>
+                Units · {c.unitsTotal}
+                {unit ? ` · ${unit.callsign}` : ''}
+              </button>
+            </div>
+            {tab === 'units' ? (
+              <UnitPanel snapshot={s} source={source} rows={rows} unitId={unitId} nowMs={nowMs} onSelectUnit={selectUnit} onSelectRequest={select} />
+            ) : (
+              selected && (
+                <RequestDetails
+                  key={String(selected.request.id)}
+                  row={selected}
+                  rank={rankOf(selected.request.id)}
+                  total={rows.length}
+                  snapshot={s}
+                  source={source}
+                  nowMs={nowMs}
+                  onSelectUnit={selectUnit}
+                />
+              )
+            )}
+          </div>
+        </section>
+      </main>
+
+      <SafetyFooter snapshotLabel={`SNAPSHOT ${clockHMSTz(s.updatedAtMs)}`} />
+    </div>
+  );
+}
+
+function Metric({ value, title, sub, tone, small }: { value: string; title: string; sub: string; tone?: 'red' | 'amber'; small?: boolean }) {
+  return (
+    <div className="cmetric">
+      <p className={`mono cmetric__value${tone ? ` tone-${tone}` : ''}${small ? ' cmetric__value--small' : ''}`}>{value}</p>
+      <div>
+        <p className="cmetric__title">{title}</p>
+        <p className="cmetric__sub">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+function StatusPill({ row, snapshot }: { row: CommandRow; snapshot: CommandSnapshot }) {
+  const st = alertStatus(row, snapshot);
+  return (
+    <span className="cstatus">
+      <span className={`cstatus__pill cstatus__pill--${st.tone}`}>{st.label}</span>
+      {st.flagged && <span className="cstatus__pill cstatus__pill--red">Flagged</span>}
+    </span>
+  );
+}
