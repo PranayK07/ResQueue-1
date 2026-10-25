@@ -1,0 +1,251 @@
+{
+  "dataset": "Data: NIROPS daily fire perimeters, Western US 2020-2024 (Magstadt, O'Connor et al., Mendeley Data, doi:10.17632/95rj5d379g.1, CC BY 4.0)",
+  "timestamps_from": "UTC (full timestamp)",
+  "headline": {
+    "scope": "CA",
+    "fires": 133,
+    "one_day_intervals": 1968,
+    "median_one_day_growth_acres": 219,
+    "p90_one_day_growth_acres": 6847,
+    "days_bigger_than_oakland_1991": 604,
+    "share_days_bigger_than_oakland_1991_pct": 30.7,
+    "fires_with_at_least_one_such_day": 67,
+    "biggest_one_day_jump": {
+      "fire": "North Complex",
+      "state": "CA",
+      "night_of": "2020-09-08",
+      "acres_added": 205757,
+      "hours_between_maps": 26.8,
+      "football_fields_per_min": 97.1,
+      "x_oakland_1991": 135.4
+    },
+    "fastest_spread": {
+      "fire": "North Complex",
+      "state": "CA",
+      "night_of": "2020-09-08",
+      "acres_added": 205757,
+      "hours_between_maps": 26.8,
+      "football_fields_per_min": 97.1,
+      "x_oakland_1991": 135.4
+    },
+    "top10": [
+      {
+        "fire": "North Complex",
+        "state": "CA",
+        "night_of": "2020-09-08",
+        "acres_added": 205757,
+        "hours_between_maps": 26.8,
+        "football_fields_per_min": 97.1,
+        "x_oakland_1991": 135.4
+      },
+      {
+        "fire": "LNU Lightning Complex",
+        "state": "CA",
+        "night_of": "2020-08-19",
+        "acres_added": 146485,
+        "hours_between_maps": 22.4,
+        "football_fields_per_min": 82.6,
+        "x_oakland_1991": 96.4
+      },
+      {
+        "fire": "Park",
+        "state": "CA",
+        "night_of": "2024-07-26",
+        "acres_added": 143010,
+        "hours_between_maps": 21.4,
+        "football_fields_per_min": 84.6,
+        "x_oakland_1991": 94.1
+      },
+      {
+        "fire": "Dixie",
+        "state": "CA",
+        "night_of": "2021-08-05",
+        "acres_added": 110319,
+        "hours_between_maps": 24.0,
+        "football_fields_per_min": 58.0,
+        "x_oakland_1991": 72.6
+      },
+      {
+        "fire": "SCU Lightning Complex",
+        "state": "CA",
+        "night_of": "2020-08-20",
+        "acres_added": 94803,
+        "hours_between_maps": 27.6,
+        "football_fields_per_min": 43.3,
+        "x_oakland_1991": 62.4
+      },
+      {
+        "fire": "Creek",
+        "state": "CA",
+        "night_of": "2020-09-07",
+        "acres_added": 62366,
+        "hours_between_maps": 30.5,
+        "football_fields_per_min": 25.8,
+        "x_oakland_1991": 41.0
+      },
+      {
+        "fire": "Mcfarland",
+        "state": "CA",
+        "night_of": "2021-08-16",
+        "acres_added": 45462,
+        "hours_between_maps": 24.6,
+        "football_fields_per_min": 23.3,
+        "x_oakland_1991": 29.9
+      },
+      {
+        "fire": "Caldor",
+        "state": "CA",
+        "night_of": "2021-08-17",
+        "acres_added": 42735,
+        "hours_between_maps": 26.4,
+        "football_fields_per_min": 20.5,
+        "x_oakland_1991": 28.1
+      },
+      {
+        "fire": "Dolan",
+        "state": "CA",
+        "night_of": "2020-09-07",
+        "acres_added": 36989,
+        "hours_between_maps": 26.2,
+        "football_fields_per_min": 17.8,
+        "x_oakland_1991": 24.3
+      },
+      {
+        "fire": "Glass",
+        "state": "CA",
+        "night_of": "2020-09-28",
+        "acres_added": 35652,
+        "hours_between_maps": 23.8,
+        "football_fields_per_min": 19.0,
+        "x_oakland_1991": 23.5
+      }
+    ]
+  },
+  "western_us": {
+    "scope": "all",
+    "fires": 692,
+    "one_day_intervals": 8144,
+    "median_one_day_growth_acres": 80,
+    "p90_one_day_growth_acres": 2999,
+    "days_bigger_than_oakland_1991": 1385,
+    "share_days_bigger_than_oakland_1991_pct": 17.0,
+    "fires_with_at_least_one_such_day": 259,
+    "biggest_one_day_jump": {
+      "fire": "North Complex",
+      "state": "CA",
+      "night_of": "2020-09-08",
+      "acres_added": 205757,
+      "hours_between_maps": 26.8,
+      "football_fields_per_min": 97.1,
+      "x_oakland_1991": 135.4
+    },
+    "fastest_spread": {
+      "fire": "North Complex",
+      "state": "CA",
+      "night_of": "2020-09-08",
+      "acres_added": 205757,
+      "hours_between_maps": 26.8,
+      "football_fields_per_min": 97.1,
+      "x_oakland_1991": 135.4
+    },
+    "top10": [
+      {
+        "fire": "North Complex",
+        "state": "CA",
+        "night_of": "2020-09-08",
+        "acres_added": 205757,
+        "hours_between_maps": 26.8,
+        "football_fields_per_min": 97.1,
+        "x_oakland_1991": 135.4
+      },
+      {
+        "fire": "LNU Lightning Complex",
+        "state": "CA",
+        "night_of": "2020-08-19",
+        "acres_added": 146485,
+        "hours_between_maps": 22.4,
+        "football_fields_per_min": 82.6,
+        "x_oakland_1991": 96.4
+      },
+      {
+        "fire": "Park",
+        "state": "CA",
+        "night_of": "2024-07-26",
+        "acres_added": 143010,
+        "hours_between_maps": 21.4,
+        "football_fields_per_min": 84.6,
+        "x_oakland_1991": 94.1
+      },
+      {
+        "fire": "Dixie",
+        "state": "CA",
+        "night_of": "2021-08-05",
+        "acres_added": 110319,
+        "hours_between_maps": 24.0,
+        "football_fields_per_min": 58.0,
+        "x_oakland_1991": 72.6
+      },
+      {
+        "fire": "East Troublesome",
+        "state": "WY",
+        "night_of": "2020-10-21",
+        "acres_added": 106517,
+        "hours_between_maps": 27.6,
+        "football_fields_per_min": 48.8,
+        "x_oakland_1991": 70.1
+      },
+      {
+        "fire": "SCU Lightning Complex",
+        "state": "CA",
+        "night_of": "2020-08-20",
+        "acres_added": 94803,
+        "hours_between_maps": 27.6,
+        "football_fields_per_min": 43.3,
+        "x_oakland_1991": 62.4
+      },
+      {
+        "fire": "Durkee",
+        "state": "OR",
+        "night_of": "2024-07-20",
+        "acres_added": 92527,
+        "hours_between_maps": 19.4,
+        "football_fields_per_min": 60.2,
+        "x_oakland_1991": 60.9
+      },
+      {
+        "fire": "Bootleg",
+        "state": "OR",
+        "night_of": "2021-07-10",
+        "acres_added": 66666,
+        "hours_between_maps": 25.0,
+        "football_fields_per_min": 33.7,
+        "x_oakland_1991": 43.9
+      },
+      {
+        "fire": "Creek",
+        "state": "CA",
+        "night_of": "2020-09-07",
+        "acres_added": 62366,
+        "hours_between_maps": 30.5,
+        "football_fields_per_min": 25.8,
+        "x_oakland_1991": 41.0
+      },
+      {
+        "fire": "Mcfarland",
+        "state": "CA",
+        "night_of": "2021-08-16",
+        "acres_added": 45462,
+        "hours_between_maps": 24.6,
+        "football_fields_per_min": 23.3,
+        "x_oakland_1991": 29.9
+      }
+    ]
+  },
+  "front_run": {
+    "fire": "North Complex",
+    "state": "CA",
+    "night_of": "2020-09-08",
+    "front_km": 38.3,
+    "hours": 26.75
+  }
+}
