@@ -12,7 +12,6 @@ agents/news_archive/
 agents/exports/
 # Agent-isolated historical data, native weights and transient experiment logs.
 /data/
-/runs/
 .venv-forecast/
 .venv-risk/
 .pytest_cache/

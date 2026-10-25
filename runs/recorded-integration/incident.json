@@ -1,0 +1,361 @@
+{
+  "schema_version": "recorded-fire-v1",
+  "scenario": "recorded-sequence-2bdb2cbdb71e878fee72eef8",
+  "source_id": "sequence-2bdb2cbdb71e878fee72eef8",
+  "grid": {
+    "origin_lat": 35.611374179181645,
+    "origin_lon": -112.7753483191119,
+    "cell_size_m": 60,
+    "rows": 128,
+    "cols": 128,
+    "crs": "EPSG:32612",
+    "x_min": 339202.3624578576,
+    "y_min": 3942296.4319059793
+  },
+  "routing_grid": {
+    "origin_lat": 35.61102060621019,
+    "origin_lon": -112.77731676608781,
+    "cell_size_m": 70,
+    "rows": 128,
+    "cols": 128
+  },
+  "arrays": "observations.npz",
+  "arrays_sha256": "577be1ff01e07f66cac3e244220f48374545143cc5ebffa18f8478dc8d638ed6",
+  "source_dataset_sha256": "434d17e064ca762906943ff30e9b7bd8f70890df7a7dc2a4302c48c7f1587b1c",
+  "source_sequence_sha256": "577be1ff01e07f66cac3e244220f48374545143cc5ebffa18f8478dc8d638ed6",
+  "availability_assumption": "idealized_release_equals_acquisition",
+  "stations": [
+    {
+      "id": 1,
+      "name": "Synthetic station 1",
+      "lat": 35.61133501512143,
+      "lon": -112.77693003392112
+    },
+    {
+      "id": 2,
+      "name": "Synthetic station 2",
+      "lat": 35.69119487857814,
+      "lon": -112.67870006358204
+    }
+  ],
+  "units": [
+    {
+      "id": 1,
+      "station_id": 1,
+      "callsign": "SIM-1",
+      "kind": "ambulance",
+      "capacity": 8
+    },
+    {
+      "id": 2,
+      "station_id": 1,
+      "callsign": "SIM-2",
+      "kind": "ambulance",
+      "capacity": 8
+    },
+    {
+      "id": 3,
+      "station_id": 2,
+      "callsign": "SIM-3",
+      "kind": "ambulance",
+      "capacity": 8
+    },
+    {
+      "id": 4,
+      "station_id": 2,
+      "callsign": "SIM-4",
+      "kind": "ambulance",
+      "capacity": 8
+    }
+  ],
+  "residents": [
+    {
+      "request_id": 1,
+      "cell_id": 10873,
+      "lat": 35.65822663421063,
+      "lon": -112.69585775422298,
+      "headcount": 4,
+      "needs": "",
+      "extract_s": 420.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 2,
+      "cell_id": 11949,
+      "lat": 35.662373422101716,
+      "lon": -112.74631916878283,
+      "headcount": 3,
+      "needs": "medical",
+      "extract_s": 855.0,
+      "compatible_vehicle": "ambulance",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 3,
+      "cell_id": 1285,
+      "lat": 35.617105486601034,
+      "lon": -112.77183163301628,
+      "headcount": 4,
+      "needs": "",
+      "extract_s": 420.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 4,
+      "cell_id": 5570,
+      "lat": 35.63553744279066,
+      "lon": -112.73182069238676,
+      "headcount": 1,
+      "needs": "mobility",
+      "extract_s": 705.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 5,
+      "cell_id": 3580,
+      "lat": 35.627431760553954,
+      "lon": -112.69321942143517,
+      "headcount": 2,
+      "needs": "",
+      "extract_s": 330.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 6,
+      "cell_id": 6932,
+      "lat": 35.64104347117727,
+      "lon": -112.76242062175596,
+      "headcount": 2,
+      "needs": "",
+      "extract_s": 330.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 7,
+      "cell_id": 7445,
+      "lat": 35.64321609433615,
+      "lon": -112.7618056963044,
+      "headcount": 2,
+      "needs": "",
+      "extract_s": 330.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 8,
+      "cell_id": 6249,
+      "lat": 35.63860991890643,
+      "lon": -112.70604498487924,
+      "headcount": 4,
+      "needs": "",
+      "extract_s": 420.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 9,
+      "cell_id": 11564,
+      "lat": 35.66074160369342,
+      "lon": -112.74694642317392,
+      "headcount": 2,
+      "needs": "mobility",
+      "extract_s": 750.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 10,
+      "cell_id": 8460,
+      "lat": 35.647454559221735,
+      "lon": -112.76786292969913,
+      "headcount": 3,
+      "needs": "",
+      "extract_s": 375.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 11,
+      "cell_id": 10394,
+      "lat": 35.655701362586626,
+      "lon": -112.75876617989319,
+      "headcount": 1,
+      "needs": "medical",
+      "extract_s": 765.0,
+      "compatible_vehicle": "ambulance",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 12,
+      "cell_id": 4975,
+      "lat": 35.633258659942136,
+      "lon": -112.70195579482443,
+      "headcount": 3,
+      "needs": "mobility",
+      "extract_s": 795.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 13,
+      "cell_id": 10684,
+      "lat": 35.657109804018305,
+      "lon": -112.73626304452466,
+      "headcount": 1,
+      "needs": "",
+      "extract_s": 285.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 14,
+      "cell_id": 1946,
+      "lat": 35.620012930333075,
+      "lon": -112.75798418935952,
+      "headcount": 4,
+      "needs": "mobility",
+      "extract_s": 840.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 15,
+      "cell_id": 4797,
+      "lat": 35.63224532367051,
+      "lon": -112.73506246613569,
+      "headcount": 1,
+      "needs": "",
+      "extract_s": 285.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 16,
+      "cell_id": 12927,
+      "lat": 35.6669345751116,
+      "lon": -112.69206483301593,
+      "headcount": 2,
+      "needs": "mobility",
+      "extract_s": 750.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 17,
+      "cell_id": 2944,
+      "lat": 35.62408623055779,
+      "lon": -112.77529811929152,
+      "headcount": 3,
+      "needs": "medical",
+      "extract_s": 855.0,
+      "compatible_vehicle": "ambulance",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 18,
+      "cell_id": 6541,
+      "lat": 35.639353322359476,
+      "lon": -112.7670218163335,
+      "headcount": 2,
+      "needs": "medical",
+      "extract_s": 810.0,
+      "compatible_vehicle": "ambulance",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 19,
+      "cell_id": 2954,
+      "lat": 35.62418366871139,
+      "lon": -112.76867536911563,
+      "headcount": 4,
+      "needs": "",
+      "extract_s": 420.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 20,
+      "cell_id": 1298,
+      "lat": 35.617231816220105,
+      "lon": -112.7632227836726,
+      "headcount": 3,
+      "needs": "",
+      "extract_s": 375.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 21,
+      "cell_id": 11650,
+      "lat": 35.660875301176,
+      "lon": -112.77478672881878,
+      "headcount": 4,
+      "needs": "",
+      "extract_s": 420.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 22,
+      "cell_id": 9220,
+      "lat": 35.6506210006298,
+      "lon": -112.77323438929267,
+      "headcount": 4,
+      "needs": "mobility",
+      "extract_s": 840.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 23,
+      "cell_id": 4606,
+      "lat": 35.63177640442001,
+      "lon": -112.69198594005583,
+      "headcount": 1,
+      "needs": "medical",
+      "extract_s": 765.0,
+      "compatible_vehicle": "ambulance",
+      "synthetic": true,
+      "request_s": 0.0
+    },
+    {
+      "request_id": 24,
+      "cell_id": 10633,
+      "lat": 35.65661775889403,
+      "lon": -112.77005318815581,
+      "headcount": 1,
+      "needs": "",
+      "extract_s": 285.0,
+      "compatible_vehicle": "rescue",
+      "synthetic": true,
+      "request_s": 0.0
+    }
+  ]
+}
