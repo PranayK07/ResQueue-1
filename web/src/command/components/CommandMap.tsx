@@ -9,7 +9,7 @@ import warehouse from '../../assets/figma/command/warehouse.svg';
 import { cellsOutline, cellsToPolygons, centroid, clockHM, forecastArea, nearestCellPoint, requestCode, simToMs } from '../../ops/derive';
 import type { Route } from '../../ops/routing';
 import type { CommandSnapshot, Unit } from '../../ops/types';
-import { compass, mph, slackMin, type CommandRow } from '../derive';
+import { compass, mph, slackMin, stationShort, type CommandRow } from '../derive';
 import { FORECAST_WINDOW_S, type LayerName } from '../mapLayers';
 import './CommandMap.css';
 
@@ -207,7 +207,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
       for (const s of snapshot.stations) {
         want[`station-${s.id}`] = {
           at: [s.lon, s.lat],
-          html: `<span class="cmap-station__icon"><img src="${warehouse}" width="15" height="15" alt="" /></span>${s.name.split(' ')[0]}`,
+          html: `<span class="cmap-station__icon"><img src="${warehouse}" width="15" height="15" alt="" /></span>${stationShort(s.name)}`,
           className: 'cmap-station',
           anchor: 'left',
           offset: [-13, 0],
@@ -297,9 +297,11 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
   useEffect(() => {
     fitRef.current = fitIncident;
   });
+  // Live data can arrive after the map loads, or a reseed can move the incident: refit when the stations change.
+  const stationsKey = snapshot.stations.map(s => `${s.id}:${s.lat}:${s.lon}`).join('|');
   useEffect(() => {
     if (ready) fitRef.current();
-  }, [ready, fitSignal]);
+  }, [ready, fitSignal, stationsKey]);
 
   // Frame a unit's whole journey when it's selected (and once its roads load).
   const journeyKey = journey ? `${journey.unit.id}:${journey.legs ? 'roads' : 'stops'}` : '';

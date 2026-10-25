@@ -4,7 +4,8 @@ import pauseIcon from '../assets/figma/command/pause.svg';
 import scanIcon from '../assets/figma/command/scan.svg';
 import slidersIcon from '../assets/figma/command/sliders-horizontal.svg';
 import triangleAlert from '../assets/figma/command/triangle-alert.svg';
-import { clockHMSTz, clockHMTz, requestCode, simNow } from '../ops/derive';
+import { clockHMSTz, clockHMTz, requestCode, simNow, simToMs } from '../ops/derive';
+import { mockPings } from './mockPings';
 import { useCommandData } from '../ops/hooks';
 import type { CommandSnapshot } from '../ops/types';
 import { fetchRoute, type Route } from '../ops/routing';
@@ -14,10 +15,36 @@ import { LAYERS, type LayerName } from './mapLayers';
 import { CommandNav, SafetyFooter } from './components/CommandNav';
 import { RequestDetails } from './components/RequestDetails';
 import { UnitPanel } from './components/UnitPanel';
-import { alertStatus, bySlack, compass, commandRows, counts, type CommandRow, mph, mps, pad2, peopleNeeds, slackText, tPlus, unitJourney } from './derive';
+import { alertStatus, bySlack, compass, commandRows, counts, type CommandRow, mph, mps, pad2, peopleNeeds, slackText, stationShort, tPlus, unitJourney } from './derive';
 
 const PAGE = 8;
 const clockHMS = (ms: number) => clockHMSTz(ms).split(' ')[0];
+
+// Live replay: the recording's own clock, in UTC like the source data.
+const SPEEDS = [1, 10, 30, 60, 120, 300, 600];
+const utcClock = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+  timeZone: 'UTC',
+});
+const utcDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+function replayRange(incident: { startAtMs: number; newsToMs: number } | null | undefined) {
+  if (!incident) return '';
+  return incident.newsToMs > incident.startAtMs
+    ? `${utcDay.format(incident.startAtMs)} – ${utcDay.format(incident.newsToMs)}`
+    : utcDay.format(incident.startAtMs);
+}
+function gridCentre(s: CommandSnapshot) {
+  const g = s.grid;
+  const lat = g.originLat + (g.rows * g.cellSizeM) / 2 / 111_320;
+  const lon = g.originLon + (g.cols * g.cellSizeM) / 2 / (111_320 * Math.cos((g.originLat * Math.PI) / 180));
+  return `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? 'N' : 'S'} ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? 'E' : 'W'}`;
+}
 
 /** Figma 3:3691 "Wildfire rescue command". */
 export function OverviewPage() {
@@ -114,8 +141,33 @@ export function OverviewPage() {
   }
 
   const ago = (ms: number) => `${Math.max(0, Math.round((nowMs - ms) / 1000))}s`;
-  const simClockMs = s.clock.lastTickMs + (simNow(s.clock, nowMs) - s.clock.simS) * 1000;
+  const simClockMs = simToMs(s.clock, simNow(s.clock, nowMs));
   const rankOf = (id: bigint) => rows.findIndex(r => r.request.id === id) + 1;
+
+  // Live extras: a replay shows the recording's real (UTC) time; mock pings and speed are live-only tools.
+  const live = s.live;
+  const replay = live?.mode === 'replay';
+  const [pingCount, setPingCount] = useState(5);
+  const [pingBusy, setPingBusy] = useState(false);
+  const [pingNote, setPingNote] = useState('');
+  async function sendPings() {
+    const pings = mockPings(s, pingCount, true);
+    if (!pings.length) {
+      setPingNote('No incident area loaded yet.');
+      return;
+    }
+    setPingBusy(true);
+    try {
+      await source.sendMockPings(pings);
+      setPingNote(`${pings.length} pings sent · the intake agent is reading them`);
+    } catch (e) {
+      setPingNote(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPingBusy(false);
+    }
+  }
+  const risk = live?.fireRisk;
+  const pipeline = live?.riskPipeline;
 
 
   return (
@@ -125,24 +177,40 @@ export function OverviewPage() {
       <section className="cheader">
         <div>
           <p className="cheader__meta">
-            <span className="mono">INCIDENT {s.incident.id}</span>
+            <span className="mono">{replay ? 'REPLAY · RECORDED FIRE' : `INCIDENT ${s.incident.id}`}</span>
             <i className="cdot" />
-            <span className="cheader__active">{s.clock.running ? 'ACTIVE SCENARIO' : 'SCENARIO PAUSED'}</span>
+            <span className="cheader__active">
+              {s.clock.running ? (live ? `RUNNING ${s.clock.speed}×` : 'ACTIVE SCENARIO') : live ? 'PAUSED' : 'SCENARIO PAUSED'}
+            </span>
           </p>
           <h1 className="cheader__title">
-            {s.incident.name} <span>{s.incident.area}</span>
+            {s.incident.name} <span>{replay ? `${replayRange(live?.incident)} · ${gridCentre(s)} · synthetic stations & residents` : s.incident.area}</span>
           </h1>
         </div>
         <div className="cheader__timing">
           <div>
-            <p className="clabel">INCIDENT CLOCK · {clockHMTz(nowMs).split(' ')[1]}</p>
+            <p className="clabel">{replay ? 'RECORDED TIME · UTC' : `INCIDENT CLOCK · ${clockHMTz(nowMs).split(' ')[1]}`}</p>
             <p className="mono cheader__clock">
-              {clockHMS(simClockMs)} <span>{tPlus(s, nowMs)}</span>
+              {replay ? utcClock.format(simClockMs) : clockHMS(simClockMs)} <span>{tPlus(s, nowMs)}</span>
             </p>
           </div>
+          {source.capabilities.speed && (
+            <select
+              className="cbtn"
+              aria-label="Replay speed"
+              value={s.clock.speed}
+              onChange={e => void source.setSpeed(Number(e.target.value))}
+            >
+              {[...new Set([...SPEEDS, s.clock.speed])].sort((a, b) => a - b).map(v => (
+                <option key={v} value={v}>
+                  {v}×
+                </option>
+              ))}
+            </select>
+          )}
           <button type="button" className="cbtn" onClick={() => source.setRunning(!s.clock.running)}>
             {s.clock.running ? <img src={pauseIcon} width={14} height={14} alt="" /> : <span aria-hidden>▶</span>}
-            {s.clock.running ? 'Pause simulation' : 'Resume simulation'}
+            {live ? (s.clock.running ? 'Pause' : 'Resume') : s.clock.running ? 'Pause simulation' : 'Resume simulation'}
           </button>
           <a className="cbtn" href="#/command/queue">
             <img src={slidersIcon} width={14} height={14} alt="" />
@@ -267,7 +335,7 @@ export function OverviewPage() {
                       <StatusPill row={r} snapshot={s} />
                     </td>
                     <td className="mono">
-                      {r.station.name.split(' ')[0]} /{' '}
+                      {stationShort(r.station.name)} /{' '}
                       {r.escalated || !r.unit ? (
                         'Review'
                       ) : (
@@ -329,12 +397,32 @@ export function OverviewPage() {
                     </div>
                   )}
                 </div>
+                {source.capabilities.mockPings && (
+                  <>
+                    <select
+                      className="cbtn"
+                      aria-label="How many mock pings"
+                      value={pingCount}
+                      onChange={e => setPingCount(Number(e.target.value))}
+                    >
+                      {[1, 3, 5, 10].map(n => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                    <button type="button" className="cbtn" disabled={pingBusy} onClick={sendPings} title={pingNote}>
+                      {pingBusy ? 'Sending…' : 'Mock pings'}
+                    </button>
+                  </>
+                )}
                 <button type="button" className="cbtn" onClick={() => setFitSignal(n => n + 1)}>
                   <img src={scanIcon} width={14} height={14} alt="" />
                   Fit incident
                 </button>
               </div>
             </div>
+            {pingNote && <p className="cmap__wind-note" style={{ margin: '0 0 6px' }}>{pingNote}</p>}
 
             <CommandMap
               snapshot={s}
@@ -383,7 +471,12 @@ export function OverviewPage() {
                   FIRE {clockHMS(s.sources.fireMs)} · WEATHER {clockHMS(s.sources.weatherMs)} · CLOSURES {clockHMS(s.sources.closuresMs)}
                 </p>
                 <p>
-                  All sources simulated · updated {ago(s.sources.fireMs)} / {ago(s.sources.weatherMs)} / {ago(s.sources.closuresMs)} ago
+                  {live
+                    ? risk
+                      ? `Learned forecast · model ${risk.modelId} · issued ${replay ? utcClock.format(simToMs(s.clock, risk.issueS)) : clockHMS(simToMs(s.clock, risk.issueS))} · pipeline ${pipeline?.status ?? '—'}`
+                      : `Learned forecast: waiting${pipeline ? ` (${pipeline.status}: ${pipeline.reason})` : ''}`
+                    : 'All sources simulated'}{' '}
+                  · updated {ago(s.sources.fireMs)} / {ago(s.sources.weatherMs)} / {ago(s.sources.closuresMs)} ago
                 </p>
               </div>
             </div>

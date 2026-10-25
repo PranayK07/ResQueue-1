@@ -3,7 +3,7 @@ import arrowLeft from '../../assets/figma/command/arrow-left.svg';
 import { clockHM, requestCode, simNow, simToMs } from '../../ops/derive';
 import type { CommandSource } from '../../ops/sources';
 import type { CommandSnapshot, Unit } from '../../ops/types';
-import { UNIT_STATUS, peopleNeeds, slackText, unitJourney, type CommandRow } from '../derive';
+import { UNIT_STATUS, peopleNeeds, slackText, stationShort, unitJourney, type CommandRow } from '../derive';
 
 interface Props {
   snapshot: CommandSnapshot;
@@ -181,7 +181,7 @@ function UnitDetail({ snapshot: s, source, rows, unit, nowMs, onSelectUnit, onSe
                       <option value="">Move to unit…</option>
                       {others.map(u => (
                         <option key={u.id} value={u.id}>
-                          {u.callsign} · {s.stations.find(st => st.id === u.stationId)!.name.split(' ')[0]}
+                          {u.callsign} · {stationShort(s.stations.find(st => st.id === u.stationId)?.name ?? '')}
                         </option>
                       ))}
                     </select>
@@ -208,7 +208,7 @@ function UnitDetail({ snapshot: s, source, rows, unit, nowMs, onSelectUnit, onSe
             <option value="">Choose a waiting request…</option>
             {candidates.map(r => (
               <option key={String(r.request.id)} value={String(r.request.id)}>
-                {requestCode(r.request.id)} · {slackText(r.request.slackS)} · {r.escalated ? 'escalated' : `${r.station.name.split(' ')[0]} / ${r.unit?.callsign ?? '—'}`}
+                {requestCode(r.request.id)} · {slackText(r.request.slackS)} · {r.escalated ? 'escalated' : `${stationShort(r.station.name)} / ${r.unit?.callsign ?? '—'}`}
               </option>
             ))}
           </select>

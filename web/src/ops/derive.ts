@@ -11,13 +11,21 @@ const mPerDegLon = (lat: number) => 111_320 * Math.cos((lat * Math.PI) / 180);
 
 // ─── Time ──────────────────────────────────────────────────────────────────
 
+/** Live clocks (originMs set) arrive every second: extrapolate at most the 5 s the server credits per tick. */
+const MAX_EXTRAPOLATE_MS = 5000;
+
 /** Sim time now, extrapolated from the last clock row. */
 export function simNow(clock: SimClock, nowMs = Date.now()) {
-  return clock.running ? clock.simS + ((nowMs - clock.lastTickMs) / 1000) * clock.speed : clock.simS;
+  if (!clock.running) return clock.simS;
+  const elapsedMs = nowMs - clock.lastTickMs;
+  // The simulation publishes its clock only every few seconds, so it extrapolates freely.
+  if (clock.originMs === undefined) return clock.simS + (elapsedMs / 1000) * clock.speed;
+  return clock.simS + (Math.min(Math.max(elapsedMs, 0), MAX_EXTRAPOLATE_MS) / 1000) * clock.speed;
 }
 
-/** Wall-clock ms for an absolute sim second. */
+/** Clock time (ms) for an absolute sim second: on the live clock's display origin, else now at the current speed. */
 export function simToMs(clock: SimClock, s: number) {
+  if (clock.originMs !== undefined) return clock.originMs + s * 1000;
   return clock.lastTickMs + ((s - clock.simS) * 1000) / clock.speed;
 }
 

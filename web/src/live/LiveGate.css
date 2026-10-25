@@ -1,0 +1,69 @@
+/* Live-data gate: one centred card on the page background, built from the components/ui primitives. */
+
+.livegate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px 16px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.livegate p {
+  margin: 0;
+}
+
+.livegate :focus-visible {
+  outline: 2px solid var(--chrome);
+  outline-offset: 2px;
+}
+
+.livegate__card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.livegate__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.livegate__title,
+.livegate__body,
+.livegate__form {
+  display: flex;
+  flex-direction: column;
+}
+
+.livegate__title {
+  gap: 4px;
+}
+
+.livegate__body,
+.livegate__form {
+  gap: 12px;
+}
+
+.livegate .heading {
+  font-size: 22px;
+}
+
+.livegate__select {
+  min-height: 50px;
+  padding: 0 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.livegate__select:focus-visible {
+  border-color: var(--text);
+}

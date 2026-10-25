@@ -23,7 +23,7 @@ import type { PlanPreview } from '../ops/sim/world';
 import type { CommandSnapshot, DangerLevel, PlanPolicy, PositionPin } from '../ops/types';
 import { useNow } from '../lib/useNow';
 import { CommandNav, SafetyFooter } from './components/CommandNav';
-import { alertStatus, commandRows, counts, mph, mps, pad2, peopleNeedsLong, slackText, type CommandRow } from './derive';
+import { alertStatus, commandRows, counts, mph, mps, pad2, peopleNeedsLong, slackText, stationShort, type CommandRow } from './derive';
 
 const PAGE = 7;
 const DRAFT_KEY = 'wrq.command.draft';
@@ -314,7 +314,7 @@ export function QueuePage() {
                       setPage(0);
                     }}
                   >
-                    {st.name.split(' ')[0]} · {stationsCount(st.id)}
+                    {stationShort(st.name)} · {stationsCount(st.id)}
                   </button>
                 ))}
               </div>
@@ -345,7 +345,7 @@ export function QueuePage() {
                     {requestCode(r.request.id)} · Unreachable by ground · {slackText(r.request.slackS)} slack
                   </p>
                   <p>
-                    {peopleNeedsLong(r.request)} · {r.station.name.split(' ')[0]} review · no ETA · algorithm rank {pad2(rows.indexOf(r) + 1)}
+                    {peopleNeedsLong(r.request)} · {stationShort(r.station.name)} review · no ETA · algorithm rank {pad2(rows.indexOf(r) + 1)}
                   </p>
                   <p className="tone-red">Outside the draggable queue. Commander review for alternate support; no ground dispatch.</p>
                 </div>
@@ -775,7 +775,7 @@ function Row(p: RowProps) {
           <p className="muted">{r.entry.reason}</p>
         </td>
         <td className="mono">
-          {r.station.name.split(' ')[0]} / {r.unit?.callsign ?? '—'}
+          {stationShort(r.station.name)} / {r.unit?.callsign ?? '—'}
         </td>
         <td className="mono">{Math.max(0, Math.round((r.entry.etaS - p.nowS) / 60))} min</td>
         <td>

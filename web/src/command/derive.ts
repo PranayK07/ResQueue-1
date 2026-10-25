@@ -132,7 +132,7 @@ export function slackText(slackS: number | null) {
 
 /** "S02 / E21" ("S03 / Review" for escalations). */
 export function stationUnit(row: CommandRow) {
-  const s = row.station.name.split(' ')[0];
+  const s = stationShort(row.station.name);
   return `${s} / ${row.escalated ? 'Review' : (row.unit?.callsign ?? '—')}`;
 }
 
@@ -174,3 +174,10 @@ export function compass(deg: number) {
 
 export const mph = (mps: number) => Math.round(mps * 2.23694);
 export const mps = (mphValue: number) => mphValue / 2.23694;
+
+/** Short station label for tight spots: the first word ("S02 Canyon" → "S02"), or "St. 1" for names such as
+ *  "Synthetic station 1", whose first words repeat. */
+export function stationShort(name: string) {
+  const m = /^synthetic station (\S+)$/i.exec(name.trim());
+  return m ? `St. ${m[1]}` : name.split(' ')[0];
+}
