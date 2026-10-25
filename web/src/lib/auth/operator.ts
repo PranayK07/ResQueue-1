@@ -5,6 +5,7 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { connection } from '@/lib/stdb/connection';
 import { call } from '@/lib/stdb/reducers';
 import { store } from '@/lib/stdb/store';
+import { ENV } from '@/lib/env';
 import { loadJSON, remove, saveJSON } from '@/lib/storage';
 
 export type OperatorRole = 'commander' | 'responder';
@@ -22,8 +23,11 @@ const SURFACE_FOR = { commander: 'command', responder: 'crew' } as const;
 const RESUBSCRIBE_AFTER_MS = 2000;
 const key = (role: OperatorRole) => `operator:${role}`;
 
-const isMemory = (v: unknown): v is OperatorMemory => {
-  const m = v as OperatorMemory;
+// Saved with the server it was claimed on: after switching databases the new identity isn't an operator.
+type Saved = OperatorMemory & { uri?: string; db?: string };
+
+const isMemory = (v: unknown): v is Saved => {
+  const m = v as Saved;
   return (
     typeof v === 'object' &&
     v !== null &&
@@ -38,12 +42,16 @@ const cache = new Map<OperatorRole, OperatorMemory | null>();
 const listeners = new Set<() => void>();
 
 function read(role: OperatorRole): OperatorMemory | null {
-  if (!cache.has(role)) cache.set(role, loadJSON(key(role), isMemory));
+  if (!cache.has(role)) {
+    const saved = loadJSON(key(role), isMemory);
+    const sameServer = saved && saved.uri === ENV.stdbUri && saved.db === ENV.stdbDb;
+    cache.set(role, sameServer ? { role: saved.role, stationId: saved.stationId, name: saved.name, unitId: saved.unitId } : null);
+  }
   return cache.get(role) ?? null;
 }
 
 function write(role: OperatorRole, value: OperatorMemory | null) {
-  if (value) saveJSON(key(role), value);
+  if (value) saveJSON(key(role), { ...value, uri: ENV.stdbUri, db: ENV.stdbDb });
   else remove(key(role));
   cache.set(role, value);
   listeners.forEach(l => l());

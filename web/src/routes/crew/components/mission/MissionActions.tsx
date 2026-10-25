@@ -40,7 +40,7 @@ export function MissionActions({
   const showOnScene = status === 'on_scene' && can.complete;
 
   return (
-    <div {...anchor} className={cn('grid gap-2', className)}>
+    <div {...anchor} data-guide-clear className={cn('grid gap-2', className)}>
       {showAssigned && (
         <>
           {can.enRoute && (

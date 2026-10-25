@@ -7,7 +7,7 @@ import { Call911Link } from './Call911Link';
  */
 export function HelpHeader() {
   return (
-    <header className="sticky top-0 z-[75] bg-background/90 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+    <header data-guide-clear className="sticky top-0 z-[75] bg-background/90 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <div className="mx-auto flex min-h-16 w-full max-w-md items-center gap-3 px-4">
         <span aria-hidden className="size-7 shrink-0 rounded-lg bg-linear-to-br from-lvl-high to-lvl-critical" />
         <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">

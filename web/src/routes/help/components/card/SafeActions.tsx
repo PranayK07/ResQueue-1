@@ -36,7 +36,7 @@ export function SafeActions({ onSafe, onStopSharing, pending, disabled, error, c
   const off = disabled || pending !== null;
 
   return (
-    <div {...anchor} className={cn('flex flex-col gap-1', className)}>
+    <div {...anchor} data-guide-clear className={cn('flex flex-col gap-1', className)}>
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button

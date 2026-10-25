@@ -14,6 +14,7 @@ export function GuidancePill({ className }: { className?: string }) {
       aria-pressed={guide.open}
       className={cn(
         'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border border-guide/30 bg-guide/10 px-3 text-xs font-medium text-guide transition-colors hover:bg-guide/15 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+        guide.mode === 'scroll' && 'h-12 px-4',
         className
       )}
     >

@@ -49,6 +49,9 @@ export type ReducerArgs = {
 
 export type ReducerName = keyof ReducerArgs;
 
+/** A call that hasn't settled by now is treated as "may or may not have run". */
+const CALL_TIMEOUT_MS = 15_000;
+
 const camel = (s: string) => s.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
 
 function toCallError(e: unknown, reducer: string): CallError {
@@ -77,10 +80,19 @@ export async function call<N extends ReducerName>(name: N, args: ReducerArgs[N])
   const reducers = conn.reducers as unknown as Record<string, ((a: object) => Promise<void>) | undefined>;
   const key = camel(name);
   if (typeof reducers[key] !== 'function') throw new CallError(`Unknown reducer ${name}`, 'internal', name);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new CallError('No answer from the server; it may or may not have gone through.', 'unknown_result', name)),
+      CALL_TIMEOUT_MS
+    );
+  });
   try {
-    await reducers[key]!(args);
+    await Promise.race([reducers[key]!(args), timeout]);
   } catch (e) {
-    throw toCallError(e, name);
+    throw e instanceof CallError ? e : toCallError(e, name);
+  } finally {
+    clearTimeout(timer);
   }
 }
 

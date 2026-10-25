@@ -24,23 +24,48 @@ type TipCardProps = {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), Math.max(lo, hi));
 
-/** Where the card goes: beside the anchor on desktop, below or above it on phones, flipped to stay on screen. */
+type Box = { top: number; left: number; width: number; height: number };
+
+const overlaps = (a: Box, b: Box) =>
+  a.left < b.left + b.width && b.left < a.left + a.width && a.top < b.top + b.height && b.top < a.top + a.height;
+
+/** Controls that must stay uncovered (Call 911, I'm safe now, mission actions) carry data-guide-clear. */
+function clearRects(): Box[] {
+  return Array.from(document.querySelectorAll('[data-guide-clear]')).map(el => {
+    const r = el.getBoundingClientRect();
+    return { top: r.top, left: r.left, width: r.width, height: r.height };
+  });
+}
+
+/**
+ * Where the card goes: beside the anchor on desktop, below or above it on
+ * phones, then the top or bottom of the viewport. The first slot that fits on
+ * screen and covers no data-guide-clear control wins.
+ */
 function place(rect: Rect | null, w: number, h: number, mode: GuideMode) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  if (!rect) return { top: vh - h - 24, left: (vw - w) / 2 };
-  const right = rect.left + rect.width + GAP;
-  const left = rect.left - GAP - w;
-  const below = rect.top + rect.height + GAP;
-  const above = rect.top - GAP - h;
-  let top: number;
-  let x: number;
-  if (mode === 'step' && right + w <= vw - MARGIN) [top, x] = [rect.top, right];
-  else if (mode === 'step' && left >= MARGIN) [top, x] = [rect.top, left];
-  else if (below + h <= vh - MARGIN) [top, x] = [below, rect.left];
-  else if (above >= MARGIN) [top, x] = [above, rect.left];
-  else [top, x] = [vh - h - MARGIN, (vw - w) / 2];
-  return { top: clamp(top, MARGIN, vh - h - MARGIN), left: clamp(x, MARGIN, vw - w - MARGIN) };
+  const avoid = clearRects();
+  const fits = (top: number, left: number) => {
+    const box = { top, left, width: w, height: h };
+    return top >= MARGIN && left >= MARGIN && top + h <= vh - MARGIN && left + w <= vw - MARGIN && !avoid.some(a => overlaps(a, box));
+  };
+  const candidates: [number, number][] = [];
+  if (rect) {
+    const x = clamp(rect.left, MARGIN, vw - w - MARGIN);
+    if (mode === 'step') {
+      candidates.push([rect.top, rect.left + rect.width + GAP], [rect.top, rect.left - GAP - w]);
+    }
+    candidates.push([rect.top + rect.height + GAP, x], [rect.top - GAP - h, x]);
+  }
+  const cx = (vw - w) / 2;
+  candidates.push([vh - h - MARGIN, cx], [MARGIN + 64, cx]);
+  for (const [top, left] of candidates) {
+    const t = clamp(top, MARGIN, vh - h - MARGIN);
+    const l = clamp(left, MARGIN, vw - w - MARGIN);
+    if (t === top && l === left && fits(t, l)) return { top: t, left: l };
+  }
+  return { top: clamp(vh - h - MARGIN, MARGIN, vh - h - MARGIN), left: clamp(cx, MARGIN, vw - w - MARGIN) };
 }
 
 /** The tip: anchor tag, title, body, tryIt, step dots, Back / Next / Skip. */

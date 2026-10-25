@@ -18,6 +18,13 @@ async function signInAndPickUnit(page: Page) {
 }
 
 test.describe('/crew', () => {
+  // The guide auto-starts once per browser; these tests aren't about it (see guide.spec.ts).
+  test.beforeEach(async ({ context }) => {
+    await context.addInitScript(() => {
+      for (const screen of ['help', 'command', 'crew']) localStorage.setItem(`guide:${screen}:done`, '1');
+    });
+  });
+
   test('a responder signs in, picks a unit and sees their station line', async ({ page }) => {
     await signInAndPickUnit(page);
     await expect(page.getByText('Next in line')).toBeVisible({ timeout: 15_000 });

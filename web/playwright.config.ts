@@ -19,7 +19,7 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      testMatch: /(debug|command)\.spec\.ts$/,
+      testMatch: /(debug|command|guide)\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
     },
     {

@@ -15,6 +15,13 @@ async function signIn(page: Page) {
 }
 
 test.describe('/command', () => {
+  // The guide auto-starts once per browser; these tests aren't about it (see guide.spec.ts).
+  test.beforeEach(async ({ context }) => {
+    await context.addInitScript(() => {
+      for (const screen of ['help', 'command', 'crew']) localStorage.setItem(`guide:${screen}:done`, '1');
+    });
+  });
+
   test('a wrong passcode shows the error; the right one fills the requests without a reload', async ({ page }) => {
     await page.goto('/command');
     await page.getByLabel(/name/i).first().fill('e2e');

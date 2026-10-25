@@ -19,6 +19,13 @@ async function submitAsPersona(page: Page) {
 }
 
 test.describe('/help', () => {
+  // The guide auto-starts once per browser; these tests aren't about it (see guide.spec.ts).
+  test.beforeEach(async ({ context }) => {
+    await context.addInitScript(() => {
+      for (const screen of ['help', 'command', 'crew']) localStorage.setItem(`guide:${screen}:done`, '1');
+    });
+  });
+
   test('persona flow: card shows Received within 5 s of Send', async ({ page }) => {
     await submitAsPersona(page);
     await expect(page.getByText('Received', { exact: true })).toBeVisible({ timeout: 5000 });
