@@ -14,9 +14,9 @@ see the same live state through SpacetimeDB.
 > per-resident exposure, routing, slack and accepted evidence through `ops_risk` / `my_risk`.
 > [RL_INTEGRATION.md](docs/RL_INTEGRATION.md) describes the separate dispatch-policy extension.
 
-> **Everything here is simulated.** Synthetic residents, a simplified fire model,
-> no real dispatch. This is decision support for a human incident commander. It
-> never replaces 911.
+> **Arizona replay:** real 2020 NIROPS fire perimeters and trained U-Net forecasts, with synthetic residents,
+> stations and units. The [demo runbook](docs/DEMO_RUNBOOK.md) configures three location-dependent calls and
+> LOOKAHEAD dispatch, without device GPS.
 
 ## Recorded-incident risk pipeline
 
@@ -43,7 +43,8 @@ Forecast selection and dispatch selection are independent.
 The model supports **6–72-hour exposure horizons**; these do not imply precise minute-level arrival times.
 Recorded acquisition time is an idealized information-release assumption. Demo station locations, units and residents
 are synthetic. Real emergency-station discovery through Bright Data Google Maps remains deferred. The grid router
-remains a road-network approximation, and automated unit missions/frontends are still separate application work.
+remains a road-network approximation. Caller, commander and responder screens share live requests, assignments,
+location updates and mission status. Operational maps project learned exposure onto satellite imagery.
 
 See [the runbook](docs/RECORDED_RISK_PIPELINE.md) for bundle preparation, configuration, seeding, app subscriptions,
 reproducible tests, migration and failure diagnosis. No training runs during replay or normal CI.
@@ -55,7 +56,7 @@ reproducible tests, migration and failure diagnosis. No training runs during rep
           │                                     (residents, commander)
           ▼                                              │
  ┌───────────────────────── Fetch.ai agent mesh (uAgents) ──────────────────────────┐
- │ commander (head: reports → danger → planner/RL) · hazard · news · intake            │
+ │ commander (head: reports → danger → LOOKAHEAD) · hazard · news · intake             │
  └───────────────▲──────────────────────────────────────────────┬───────────────────┘
       subscribe  │ live row deltas (WebSocket)                  │ reducer calls (validated, atomic)
                  │                                              ▼
@@ -69,7 +70,7 @@ reproducible tests, migration and failure diagnosis. No training runs during rep
  │  timers:  sim_tick (1 s) · expire_consent (per request)                          │
  └─────────────────────────────────────────────────────────────────────────────────┘
                  ▲ same subscriptions
-        web dashboard / resident & responder phones (frontend, TODO)
+        live web dashboard / resident & responder phones
 ```
 
 **Why SpacetimeDB is load-bearing:**
@@ -141,7 +142,7 @@ web/                          frontend (Vite + React + TS): cd web && npm instal
 | `danger` engine (inside commander) | risk + slack + level + travel time per request, via `rescue/core/danger.py` (written; end-to-end run on a throwaway database: 24 requests scored, 24 queued, 5 units dispatched) |
 | Commander planning loop | builds `PlanInput` from the database, runs the policy chosen by `POLICY` (`lookahead` placeholder by default, `rl` = the RL teammate's `rescue/rl_policy.py`), publishes the plan with current risk records and trace IDs; learned fire risk exercised through the real local agent mesh. The separate RL dispatcher remains a stub. See `docs/RL_INTEGRATION.md` |
 | Unit missions | **simulated crews**: `agents/scripts/sim_crews.py` (started by `run_all` unless `SIM_CREWS=0`) takes dispatched units en route, on scene and back; a responder phone open for a unit makes the rescued call itself |
-| Frontend (`web/`, Vite + React) | **wired to SpacetimeDB** (`VITE_DATA_SOURCE=live`, the default; `sim` keeps Sharon's in-browser simulation). Incident command (`#/command`: sign-in, replay clock, speed, mock pings, learned-forecast status) and the responder phone (`#/responder/<unitId>`) run on live data; the resident screen (`#/`) still uses simulated dispatch. Live layer: `web/src/live/` (connection, store, reducers, sign-in gate) and `web/src/ops/live/` (the two sources). Demo: [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md) |
+| Frontend (`web/`, Vite + React) | **wired to SpacetimeDB** (`VITE_DATA_SOURCE=live`, the default). Caller (`#/`), command (`#/command`) and responder (`#/responder/<unitId>`) share live requests, assignments and location updates. Command and responder maps display recorded fire and learned exposure; the caller map shows only its own location. `VITE_DEMO_MODE=true` avoids GPS. See [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md). |
 
 ## Quick start
 

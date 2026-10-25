@@ -6,7 +6,7 @@ export type PositionState =
   | { status: 'denied' | 'unavailable'; message: string };
 
 /** One-shot high-accuracy browser geolocation, with a retry. */
-export function useCurrentPosition() {
+export function useCurrentPosition(enabled = true) {
   const [state, setState] = useState<PositionState>(() =>
     'geolocation' in navigator
       ? { status: 'locating' }
@@ -14,6 +14,7 @@ export function useCurrentPosition() {
   );
 
   const request = useCallback(() => {
+    if (!enabled) return;
     if (!('geolocation' in navigator)) return;
     navigator.geolocation.getCurrentPosition(
       pos =>
@@ -32,7 +33,7 @@ export function useCurrentPosition() {
         ),
       { enableHighAccuracy: true, timeout: 15_000, maximumAge: 30_000 }
     );
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
     request();

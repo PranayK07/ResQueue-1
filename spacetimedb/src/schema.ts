@@ -382,6 +382,7 @@ export const helpRequest = table(
     pinnedStationId: t.u32(), // commander override; 0 = not pinned
     hopCount: t.u32(),
     updatedAt: t.timestamp(),
+    entrance: t.string().default(''),
   }
 );
 
@@ -712,6 +713,10 @@ export const requestRisk = table({ name: 'request_risk' }, {
   forecastIssueS: t.f64().default(0),
 });
 
+const replayObservation = table({ name: 'replay_observation', public: true }, {
+  sequence: t.u32().primaryKey(), atS: t.f64(),
+});
+
 const spacetimedb = schema(
   {
     agent,
@@ -735,6 +740,7 @@ const spacetimedb = schema(
     newsArticle,
     newsFocus,
     incident,
+    replayObservation,
     situation,
     helpRequest,
     queueEntry,

@@ -1,0 +1,7 @@
+.forecast-summary { display: flex; flex-direction: column; gap: 7px; padding: 12px 16px; border-block: 1px solid currentColor; border-color: rgb(128 128 128 / .25); font-size: 12px; line-height: 1.5; }
+.forecast-summary > strong { font-size: 14px; }
+.forecast-key { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.forecast-key i { display: block; width: 110px; height: 10px; border-radius: 2px; background: linear-gradient(90deg, #e92616, #ff8522, #f2e535); }
+.forecast-probabilities { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.forecast-probabilities span { display: flex; flex-direction: column; }
+.forecast-probabilities b { font-size: 18px; }

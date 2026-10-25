@@ -1,12 +1,13 @@
 import { useState } from 'react';
+import { RiskSummary } from '../../components/ForecastSummary';
 import arrowRightLeft from '../../assets/figma/command/arrow-right-left.svg';
 import flagIcon from '../../assets/figma/command/flag.svg';
 import shieldCheck from '../../assets/figma/command/shield-check.svg';
-import { clockHM, clockHMTz, requestCode, simToMs } from '../../ops/derive';
+import { clockHM, clockHMTz, requestCode } from '../../ops/derive';
 import { useAddress } from '../../ops/hooks';
 import type { CommandSource } from '../../ops/sources';
 import type { CommandSnapshot, FlagKind } from '../../ops/types';
-import { pad2, peopleNeedsLong, slackBreakdown, slackText, unitAvailability, type CommandRow } from '../derive';
+import { commandEta, commandSlack, pad2, peopleNeedsLong, slackBreakdown, slackText, unitAvailability, type CommandRow } from '../derive';
 
 interface Props {
   row: CommandRow;
@@ -29,7 +30,8 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
   const openFlags = snapshot.flags.filter(f => f.requestId === r.id && !f.resolved);
   const consentLeft = Math.round((r.consentExpiresAtMs - nowMs) / 60000);
 
-  const [mode, setMode] = useState<'none' | 'override' | 'flag'>('none');
+  const [mode, setMode] = useState<'none' | 'override' | 'flag' | 'dispatch'>('none');
+  const [dispatchUnit, setDispatchUnit] = useState('');
   const [stationId, setStationId] = useState<number>(r.pinnedStationId);
   const [note, setNote] = useState('');
   const [kind, setKind] = useState<FlagKind>('escalation');
@@ -78,7 +80,7 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
         <div>
           <p className="cdetail__address">{place ? place.street : 'Finding address…'}</p>
           <p className="mono cdetail__coords">
-            {r.lat.toFixed(4)}, {r.lon.toFixed(4)} · synthetic location
+            {r.lat.toFixed(4)}, {r.lon.toFixed(4)}
           </p>
         </div>
 
@@ -86,6 +88,7 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
           <div>
             <p className="cdetail__strong">{peopleNeedsLong(r)}</p>
             {r.note && <p className="cdetail__sub">“{r.note}”</p>}
+            {r.entrance && <p className="cdetail__sub">Entrance: {r.entrance}</p>}
           </div>
           <div>
             <p className="mono cdetail__strong">
@@ -99,7 +102,7 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
               )}
             </p>
             <p className="cdetail__sub">
-              {row.escalated ? 'No ground unit committed' : row.committed ? `${row.unit?.status === 'on_scene' ? 'On scene' : 'En route'} to this request` : unitAvailability(row.unit, snapshot, nowMs)}
+              {row.escalated ? 'No ground unit committed' : row.committed ? `${row.unit?.status === 'on_scene' ? 'On scene' : row.unit?.status === 'assigned' ? 'Assigned' : 'En route'} to this request` : unitAvailability(row.unit, snapshot, nowMs)}
               {r.pinnedStationId > 0 && ` · pinned to ${stationName(r.pinnedStationId)}`}
             </p>
           </div>
@@ -126,16 +129,17 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
           </div>
         )}
 
+        <RiskSummary card={snapshot.live?.risks.get(r.id)} />
         <div className={`cslack cslack--${level}`}>
           <div className="cslack__top">
             <div>
-              <p className="mono cslack__value">{slackText(r.slackS)}</p>
+              <p className="mono cslack__value">{commandSlack(row, snapshot)}</p>
               <p className="cslack__label">Safety-adjusted slack</p>
             </div>
-            {!row.escalated && (
+            {!row.escalated && !row.pending && (
               <div className="cslack__eta">
                 <p className="mono">
-                  ETA {clockHM(simToMs(snapshot.clock, row.entry.etaS))} · {Math.max(0, Math.round((row.entry.etaS - snapshot.clock.simS) / 60))} min
+                  Arrival estimate · {commandEta(row, snapshot)}
                 </p>
                 {breakdown && (
                   <p className="cslack__label">
@@ -157,6 +161,17 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
           )}
         </div>
 
+        {mode === 'dispatch' && <div className="cform">
+          <label className="cform__label" htmlFor="dispatch-unit">Assign {requestCode(r.id)} to a ground unit</label>
+          <select id="dispatch-unit" value={dispatchUnit} onChange={e => setDispatchUnit(e.target.value)}>
+            <option value="">Choose an available unit…</option>
+            {snapshot.units.filter(u => u.status === 'available' && u.currentRequest === 0n).map(u => <option key={u.id} value={u.id} disabled={u.capacity < r.headcount}>{u.callsign} · {stationName(u.stationId)} · {u.capacity} seats</option>)}
+          </select>
+          <div className="cform__actions">
+            <button type="button" className="cbtn" disabled={busy} onClick={() => setMode('none')}>Cancel</button>
+            <button type="button" className="cbtn cbtn--dark" disabled={busy || !dispatchUnit} onClick={() => run(() => source.assignToUnit(r.id, Number(dispatchUnit)))}>{busy ? 'Assigning…' : 'Dispatch unit'}</button>
+          </div>
+        </div>}
         {mode === 'override' && (
           <div className="cform">
             <label className="cform__label" htmlFor="override-station">
@@ -210,6 +225,7 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
         )}
         {mode === 'none' && (
           <div className="cdetail__actions">
+            {source.capabilities.unitAssignment && <button type="button" className="cbtn cbtn--dark" disabled={row.committed} onClick={() => { setDispatchUnit(''); setMode('dispatch'); }}>Assign ground unit</button>}
             <button type="button" className="cbtn cbtn--dark" onClick={() => setMode('override')}>
               <img src={arrowRightLeft} width={14} height={14} alt="" />
               Override assignment

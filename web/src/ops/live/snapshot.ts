@@ -56,7 +56,7 @@ const FRESH_MS = 45_000;
 const NEWS_MIN_RELEVANCE = 0.5;
 const NEWS_MAX = 20;
 const ACTIVE = new Set(['pending', 'queued', 'assigned', 'en_route', 'on_scene']);
-const LEVELS = new Set(['unknown', 'unreachable', 'critical', 'high', 'moderate']);
+const LEVELS = new Set(['unknown', 'unreachable', 'critical', 'high', 'moderate', 'low']);
 const FLAG_KINDS = new Set(['unreachable', 'suspect', 'escalation']);
 /** Their rows change every few seconds without anything happening (clock, heartbeats). */
 const NOT_UPDATES = new Set<SourceName>(['sim_clock', 'agent', 'crew_presence']);
@@ -171,6 +171,7 @@ const toRequest = perRow(
     pinnedStationId: r.pinnedStationId,
     pinnedUnitId: 0, // the backend pins stations only
     channel: r.channel,
+    entrance: r.entrance,
     createdSimS: r.createdSimS,
     hopCount: r.hopCount,
   })
@@ -575,6 +576,10 @@ function sharedBuilder(surface: Surface, command: boolean) {
   const stationMapOf = memo((stations: Station[]) => new Map(stations.map(s => [s.id, s])));
   const unitsOf = memo((rows: Rows<'unit'>) => rows.map(toUnit).sort(byId));
   const requestsOf = memo((rows: Rows<'ops_request'>) => rows.filter(r => ACTIVE.has(r.status) && !r.locationPurged).map(toRequest));
+  const assessedRequestsOf = memo((requests: HelpRequest[], risks: ReadonlyMap<bigint, RiskCard>) => requests.map(r => {
+    const risk = risks.get(r.id);
+    return !risk || !risk.current ? { ...r, level: 'unknown' as const, slackS: null, fireEtaS: null } : r;
+  }));
   const requestMapOf = memo((requests: HelpRequest[]) => new Map(requests.map(r => [r.id, r])));
   const queueMapOf = memo((rows: Rows<'ops_queue'>) => new Map(rows.map(q => [q.requestId, q])));
   const fireOf = memo((rows: Rows<'fire_cell'>) => rows.map(toFireCell));
@@ -687,13 +692,13 @@ function sharedBuilder(surface: Surface, command: boolean) {
 
     const stations = stationsOf(read.rows('station'));
     const stationById = stationMapOf(stations);
-    const requests = requestsOf(read.rows('ops_request'));
+    const risks = risksOf(read.rows('ops_risk'));
+    const requests = assessedRequestsOf(requestsOf(read.rows('ops_request')), risks);
     const queueRows = read.rows('ops_queue');
     const baseUnits = unitsOf(read.rows('unit'));
     const motion: Motion = { nowS, clockRow, queueByRequest: queueMapOf(queueRows), requestById: requestMapOf(requests), stationById };
     const units = keepArray(prev?.shared.units, baseUnits.map(u => move(u, motion)));
     const flags = command ? flagsOf(read.rows('ops_flag')) : NO_FLAGS;
-    const risks = risksOf(read.rows('ops_risk'));
     const { queue, pending } = buildQueue({
       queueRows,
       units: baseUnits,
@@ -744,7 +749,7 @@ function sharedBuilder(surface: Surface, command: boolean) {
       messages: messagesOf(read.rows('ops_message')),
       risks,
       pending: keepArray(prev?.shared.live.pending, pending.length ? pending : NO_REQUESTS),
-      fireRisk: command ? fireRiskOf(read.rows('fire_risk_meta'), read.rows('fire_risk_cell')) : null,
+      fireRisk: fireRiskOf(read.rows('fire_risk_meta'), command ? read.rows('fire_risk_cell') : read.rows('fire_concern')),
       situation: command ? situationOf(read.rows('situation')) : null,
       news: command ? newsOf(read.rows('news_article'), incident ? incident.key : null) : NO_NEWS,
     });

@@ -89,12 +89,9 @@ export interface CommandSource extends Store<CommandSnapshot> {
   releaseWeatherLock(): Promise<void>;
   /** override_assignment (stationId 0 unpins) */
   overrideAssignment(requestId: bigint, stationId: number, note: string): Promise<void>;
-  /**
-   * SIM-ONLY unit management (the backend can pin a station, not a unit, and
-   * has no stop-order field). A live version needs a reducer such as
-   * `assign_unit(requestId, unitId)` plus queue_entry position pins.
-   */
+  /** Commit an available unit to a request; live uses assign_request_to_unit. Zero releases a station pin. */
   assignToUnit(requestId: bigint, unitId: number): Promise<void>;
+  /** Local simulation only: the live planner owns stop ordering. */
   setUnitOrder(unitId: number, requestIds: bigint[]): Promise<void>;
   releaseUnit(unitId: number): Promise<void>;
   /** flag_request */

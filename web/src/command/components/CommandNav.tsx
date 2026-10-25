@@ -20,7 +20,7 @@ export function CommandNav() {
         <a className="cnav__switch" href="#/responder">
           Responder view
         </a>
-        <span className="cnav__status">SIMULATION / SYNTHETIC DATA</span>
+        <span className="cnav__status">ARIZONA · JULY 2020 REPLAY</span>
         <span className="cnav__role">Incident commander</span>
         <span className="cnav__avatar" aria-label="A. Lee">
           AL
@@ -33,7 +33,7 @@ export function CommandNav() {
 export function SafetyFooter({ snapshotLabel }: { snapshotLabel: string }) {
   return (
     <footer className="cfooter">
-      <p>Human decision support only · Synthetic residents and simplified fire spread · No real dispatch · Not a replacement for 911</p>
+      <p>NIROPS recorded perimeters · Trained U-Net exposure · Synthetic residents, stations and units</p>
       <p className="mono">{snapshotLabel}</p>
     </footer>
   );

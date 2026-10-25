@@ -11,6 +11,7 @@ import type AgentRow from '../module_bindings/agent_table';
 import type CrewPresenceRow from '../module_bindings/crew_presence_table';
 import type EventLogRow from '../module_bindings/event_log_table';
 import type FireCellRow from '../module_bindings/fire_cell_table';
+import type FireConcernRow from '../module_bindings/fire_concern_table';
 import type FireRiskCellRow from '../module_bindings/fire_risk_cell_table';
 import type FireRiskMetaRow from '../module_bindings/fire_risk_meta_table';
 import type ForecastCellRow from '../module_bindings/forecast_cell_table';
@@ -31,6 +32,7 @@ import type OpsRequestRow from '../module_bindings/ops_request_table';
 import type OpsRiskRow from '../module_bindings/ops_risk_table';
 import type OpsTravelRow from '../module_bindings/ops_travel_table';
 import type RiskPipelineRow from '../module_bindings/risk_pipeline_table';
+import type ReplayObservationRow from '../module_bindings/replay_observation_table';
 import type RoadClosureRow from '../module_bindings/road_closure_table';
 import type SimClockRow from '../module_bindings/sim_clock_table';
 import type SituationRow from '../module_bindings/situation_table';
@@ -46,6 +48,7 @@ type Schemas = {
   unit: typeof UnitRow;
   weather: typeof WeatherRow;
   fire_cell: typeof FireCellRow;
+  fire_concern: typeof FireConcernRow;
   forecast_cell: typeof ForecastCellRow;
   forecast_meta: typeof ForecastMetaRow;
   world_version: typeof WorldVersionRow;
@@ -58,6 +61,7 @@ type Schemas = {
   agent: typeof AgentRow;
   crew_presence: typeof CrewPresenceRow;
   risk_pipeline: typeof RiskPipelineRow;
+  replay_observation: typeof ReplayObservationRow;
   fire_risk_meta: typeof FireRiskMetaRow;
   fire_risk_cell: typeof FireRiskCellRow;
   my_operator: typeof MyOperatorRow;
@@ -86,6 +90,7 @@ export const ACCESSOR = {
   unit: 'unit',
   weather: 'weather',
   fire_cell: 'fireCell',
+  fire_concern: 'fireConcern',
   forecast_cell: 'forecastCell',
   forecast_meta: 'forecastMeta',
   world_version: 'worldVersion',
@@ -98,6 +103,7 @@ export const ACCESSOR = {
   agent: 'agent',
   crew_presence: 'crewPresence',
   risk_pipeline: 'riskPipeline',
+  replay_observation: 'replayObservation',
   fire_risk_meta: 'fireRiskMeta',
   fire_risk_cell: 'fireRiskCell',
   my_operator: 'myOperator',
@@ -129,7 +135,7 @@ export interface QueryGroups {
 
 export const QUERIES: { caller: QueryGroups; command: QueryGroups; responder: QueryGroups } = {
   caller: {
-    core: ['sim_clock', 'grid', 'incident', 'my_requests', 'ops_message'],
+    core: ['sim_clock', 'grid', 'incident', 'fire_cell', 'my_requests', 'ops_message'],
     extra: ['my_risk', 'ops_assessment'],
   },
   responder: {
@@ -137,7 +143,7 @@ export const QUERIES: { caller: QueryGroups; command: QueryGroups; responder: Qu
       'sim_clock', 'grid', 'station', 'unit', 'weather', 'fire_cell', 'forecast_cell', 'road_closure', 'incident', 'agent',
       'ops_request', 'ops_queue',
     ],
-    extra: ['my_operator', 'crew_presence', 'ops_risk', 'ops_assessment', 'ops_report', 'ops_message'],
+    extra: ['my_operator', 'crew_presence', 'ops_risk', 'ops_assessment', 'ops_report', 'ops_message', 'fire_risk_meta', 'fire_concern', 'risk_pipeline'],
   },
   command: {
     core: [
@@ -146,7 +152,7 @@ export const QUERIES: { caller: QueryGroups; command: QueryGroups; responder: Qu
     ],
     // fire_risk_cell stays off the phones: up to 40k cells x 8 horizons.
     extra: [
-      'my_operator', 'crew_presence', 'risk_pipeline', 'fire_risk_meta', 'fire_risk_cell', 'situation', 'news_article',
+      'my_operator', 'crew_presence', 'risk_pipeline', 'replay_observation', 'fire_risk_meta', 'fire_risk_cell', 'situation', 'news_article',
       'ops_risk', 'ops_assessment', 'ops_report', 'ops_message',
     ],
   },

@@ -145,12 +145,13 @@ def compose_risks(
                         lower_slack = window["lower_s"] - duration if window["lower_s"] is not None else None
                         upper_slack = window["upper_s"] - duration if window["upper_s"] is not None else None
         reason = (
-            f"Physical risk {danger['level']}; immediate slack {danger['slack_s'] / 60:.1f} min. "
+            (f"Physical risk {danger['level']}; immediate slack {danger['slack_s'] / 60:.1f} min. "
+             if abs(danger['slack_s']) < 1e8 else "Ground approach unavailable. ")
             + (
                 f"Station {leg['station_id']}: travel {drive / 60:.1f} min, wait {wait / 60:.1f} min, "
                 f"extraction {danger['extract_s'] / 60:.1f} min; scheduled slack {scheduled / 60:.1f} min. "
                 if leg
-                else "No station-unit route is currently available. "
+                else (danger.get("route_reason") or "No eligible station-unit route is currently available.") + " "
             )
             + (
                 f"Learned exposure {probabilities[-1]:.1%} by {product.horizons_s[-1] / 3600:g} h; "

@@ -82,7 +82,7 @@ export function fetchRoute(from: LngLat, to: LngLat): Promise<Route> {
   const key = [...from, ...to].map(v => v.toFixed(4)).join(',');
   let route = cache.get(key);
   if (!route) {
-    route = fetch(`${OSRM}/${from.join(',')};${to.join(',')}?overview=full&geometries=geojson&steps=true`)
+    route = fetch(`${OSRM}/${from.join(',')};${to.join(',')}?overview=full&geometries=geojson&steps=true`, { signal: AbortSignal.timeout(10_000) })
       .then(res => (res.ok ? (res.json() as Promise<OsrmResponse>) : Promise.reject(new Error(String(res.status)))))
       .then(data => {
         const r = data.routes[0];

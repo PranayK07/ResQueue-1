@@ -102,6 +102,9 @@ export const FireCellInput = __t.object("FireCellInput", {
 });
 export type FireCellInput = __Infer<typeof FireCellInput>;
 
+export const FireConcern = __t.object("FireConcern", {});
+export type FireConcern = __Infer<typeof FireConcern>;
+
 export const FireRiskCell = __t.object("FireRiskCell", {
   key: __t.string(),
   cellId: __t.u32(),
@@ -217,6 +220,7 @@ export const HelpRequest = __t.object("HelpRequest", {
   pinnedStationId: __t.u32(),
   hopCount: __t.u32(),
   updatedAt: __t.timestamp(),
+  entrance: __t.string(),
 });
 export type HelpRequest = __Infer<typeof HelpRequest>;
 
@@ -378,6 +382,12 @@ export const QueueEntry = __t.object("QueueEntry", {
 });
 export type QueueEntry = __Infer<typeof QueueEntry>;
 
+export const ReplayObservation = __t.object("ReplayObservation", {
+  sequence: __t.u32(),
+  atS: __t.f64(),
+});
+export type ReplayObservation = __Infer<typeof ReplayObservation>;
+
 export const ReportAssessment = __t.object("ReportAssessment", {
   requestId: __t.u64(),
   reportCount: __t.u32(),
@@ -499,6 +509,7 @@ export const ResidentCardRow = __t.object("ResidentCardRow", {
   queuePosition: __t.u32(),
   stationName: __t.string(),
   unitCallsign: __t.string(),
+  unitId: __t.u32(),
   etaS: __t.option(__t.f64()),
   reason: __t.string(),
   headcount: __t.u32(),
@@ -506,6 +517,11 @@ export const ResidentCardRow = __t.object("ResidentCardRow", {
   consentExpiresAt: __t.timestamp(),
   createdAt: __t.timestamp(),
   intakeReply: __t.string(),
+  lat: __t.f64(),
+  lon: __t.f64(),
+  note: __t.string(),
+  entrance: __t.string(),
+  updatedAt: __t.timestamp(),
 });
 export type ResidentCardRow = __Infer<typeof ResidentCardRow>;
 

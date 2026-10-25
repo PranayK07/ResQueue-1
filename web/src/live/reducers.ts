@@ -1,8 +1,12 @@
 // The reducers the web app may call, by their snake_case module names. Agent-only and seed-only reducers
-// (register_agent, publish_*, load_scenario, unit_en_route, ...) are deliberately missing: a commander identity
-// could otherwise call them from here.
+// (register_agent, publish_*, load_scenario, ...) are deliberately missing. Server authorization applies to every call.
 
 import type {
+  AssignRequestToUnitParams,
+  SubmitAppRequestParams,
+  UpdateMyRequestParams,
+  UnitEnRouteParams,
+  UnitOnSceneParams,
   ClaimOperatorParams,
   CloseMyRequestParams,
   CompleteMissionParams,
@@ -28,6 +32,12 @@ import { CallError, errorCopy } from './errors';
 
 /** Arguments are the generated camelCase params; u64 ids are bigint. Zero-argument reducers take {}. */
 export type ReducerArgs = {
+  advance_replay: Record<string, never>;
+  assign_request_to_unit: AssignRequestToUnitParams;
+  submit_app_request: SubmitAppRequestParams;
+  update_my_request: UpdateMyRequestParams;
+  unit_en_route: UnitEnRouteParams;
+  unit_on_scene: UnitOnSceneParams;
   claim_operator: ClaimOperatorParams;
   submit_help_request: SubmitHelpRequestParams;
   close_my_request: CloseMyRequestParams;

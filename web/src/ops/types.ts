@@ -110,7 +110,7 @@ export interface RoadClosure {
   updatedAtMs: number;
 }
 
-export type DangerLevel = 'unknown' | 'unreachable' | 'critical' | 'high' | 'moderate';
+export type DangerLevel = 'unknown' | 'unreachable' | 'critical' | 'high' | 'moderate' | 'low';
 
 /** help_request, as exposed through the ops_request view. */
 export interface HelpRequest {
@@ -131,10 +131,11 @@ export interface HelpRequest {
   extractS: number;
   /** Commander override; 0 = not pinned. */
   pinnedStationId: number;
-  /** SIM-ONLY: commander assignment to one unit (the backend can only pin a station); 0 = none. */
+  /** Local simulation's unit pin; live committed assignments are carried by queue_entry.unitId. */
   pinnedUnitId: number;
   /** LIVE-ONLY: app | asi1 | sms_sim | synthetic (seeded or mock pings). */
   channel?: string;
+  entrance?: string;
   /** LIVE-ONLY: sim second the request arrived. */
   createdSimS?: number;
   /** LIVE-ONLY: how many times the plan moved it between stations. */

@@ -1,6 +1,5 @@
-// Incident command on SpacetimeDB. The backend plans the queue itself (the commander agent's dispatch policy), so
-// the simulation's unit-level tools (assign to a unit, stop order, what-if preview) are off; the commander pins a
-// request to a station instead. Rejections carry UI copy (the screens print e.message).
+// Incident command on SpacetimeDB. LOOKAHEAD plans queues; commanders may pin stations or commit an
+// available ground unit atomically. Stop reordering and policy previews remain local-simulation features.
 
 import { callWithCopy as run } from '../../live/reducers';
 import { store } from '../../live/store';
@@ -9,7 +8,7 @@ import type { CommandCapabilities, CommandSource } from '../sources';
 import { createCommandBuilder, liveStore } from './snapshot';
 
 const CAPABILITIES: CommandCapabilities = Object.freeze({
-  unitAssignment: false,
+  unitAssignment: true,
   planPreview: false,
   speed: true,
   releaseWind: true,
@@ -43,11 +42,9 @@ export function createLiveCommandSource(): CommandSource {
     releaseWeatherLock: () => run('release_weather_lock', {}),
     overrideAssignment: (requestId, stationId, note) => run('override_assignment', { requestId, stationId, note }),
     assignToUnit: (requestId, unitId) => {
-      // The backend can pin a station, not a unit: pin the unit's station (0 unpins).
+      // Zero releases a station pin; committing a unit uses the transactional dispatch reducer.
       if (unitId === 0) return run('override_assignment', { requestId, stationId: 0, note: '' });
-      const unit = store.rows('unit').find(u => u.id === unitId);
-      if (!unit) return Promise.reject(new Error('That unit is no longer in the incident.'));
-      return run('override_assignment', { requestId, stationId: unit.stationId, note: `assign to ${unit.callsign}` });
+      return run('assign_request_to_unit', { requestId, unitId });
     },
     setUnitOrder: () => notLive('Reordering a unit'),
     releaseUnit: () => notLive('Releasing a unit'),

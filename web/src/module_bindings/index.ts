@@ -35,7 +35,9 @@ import {
 
 // Import all reducer arg schemas
 import AddRoadClosureReducer from "./add_road_closure_reducer";
+import AdvanceReplayReducer from "./advance_replay_reducer";
 import AgentHeartbeatReducer from "./agent_heartbeat_reducer";
+import AssignRequestToUnitReducer from "./assign_request_to_unit_reducer";
 import ClaimOperatorReducer from "./claim_operator_reducer";
 import ClearIncidentReducer from "./clear_incident_reducer";
 import ClearNewsFocusReducer from "./clear_news_focus_reducer";
@@ -65,9 +67,11 @@ import ReplyToResponderReducer from "./reply_to_responder_reducer";
 import RescoreNewsReducer from "./rescore_news_reducer";
 import ResolveFlagReducer from "./resolve_flag_reducer";
 import SetIncidentReducer from "./set_incident_reducer";
+import SetReplayScheduleReducer from "./set_replay_schedule_reducer";
 import SetRoadClosureActiveReducer from "./set_road_closure_active_reducer";
 import SetSimReducer from "./set_sim_reducer";
 import SetWeatherReducer from "./set_weather_reducer";
+import SubmitAppRequestReducer from "./submit_app_request_reducer";
 import SubmitHelpRequestReducer from "./submit_help_request_reducer";
 import SubmitHelpRequestForReducer from "./submit_help_request_for_reducer";
 import SubmitMockRequestsReducer from "./submit_mock_requests_reducer";
@@ -77,6 +81,7 @@ import UnitEnRouteReducer from "./unit_en_route_reducer";
 import UnitOnSceneReducer from "./unit_on_scene_reducer";
 import UnitPositionReducer from "./unit_position_reducer";
 import UpdateMyLocationReducer from "./update_my_location_reducer";
+import UpdateMyRequestReducer from "./update_my_request_reducer";
 import UpsertFireCellsReducer from "./upsert_fire_cells_reducer";
 
 // Import all procedure arg schemas
@@ -88,6 +93,7 @@ import EventLogRow from "./event_log_table";
 import FireCellRow from "./fire_cell_table";
 import FireRiskCellRow from "./fire_risk_cell_table";
 import FireRiskMetaRow from "./fire_risk_meta_table";
+import FireConcernRow from "./fire_concern_table";
 import ForecastCellRow from "./forecast_cell_table";
 import ForecastMetaRow from "./forecast_meta_table";
 import GridRow from "./grid_table";
@@ -105,6 +111,7 @@ import OpsReportRow from "./ops_report_table";
 import OpsRequestRow from "./ops_request_table";
 import OpsRiskRow from "./ops_risk_table";
 import OpsTravelRow from "./ops_travel_table";
+import ReplayObservationRow from "./replay_observation_table";
 import RiskPipelineRow from "./risk_pipeline_table";
 import RoadClosureRow from "./road_closure_table";
 import SimClockRow from "./sim_clock_table";
@@ -254,6 +261,17 @@ const tablesSchema = __schema({
       { name: 'news_focus_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, NewsFocusRow),
+  replayObservation: __table({
+    name: 'replay_observation',
+    indexes: [
+      { accessor: 'sequence', name: 'replay_observation_sequence_idx_btree', algorithm: 'btree', columns: [
+        'sequence',
+      ] },
+    ],
+    constraints: [
+      { name: 'replay_observation_sequence_key', constraint: 'unique', columns: ['sequence'] },
+    ],
+  }, ReplayObservationRow),
   riskPipeline: __table({
     name: 'risk_pipeline',
     indexes: [
@@ -345,6 +363,13 @@ const tablesSchema = __schema({
       { name: 'world_version_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, WorldVersionRow),
+  fireConcern: __table({
+    name: 'fire_concern',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, FireConcernRow),
   myOperator: __table({
     name: 'my_operator',
     indexes: [
@@ -427,7 +452,9 @@ const tablesSchema = __schema({
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("add_road_closure", AddRoadClosureReducer),
+  __reducerSchema("advance_replay", AdvanceReplayReducer),
   __reducerSchema("agent_heartbeat", AgentHeartbeatReducer),
+  __reducerSchema("assign_request_to_unit", AssignRequestToUnitReducer),
   __reducerSchema("claim_operator", ClaimOperatorReducer),
   __reducerSchema("clear_incident", ClearIncidentReducer),
   __reducerSchema("clear_news_focus", ClearNewsFocusReducer),
@@ -457,9 +484,11 @@ const reducersSchema = __reducers(
   __reducerSchema("rescore_news", RescoreNewsReducer),
   __reducerSchema("resolve_flag", ResolveFlagReducer),
   __reducerSchema("set_incident", SetIncidentReducer),
+  __reducerSchema("set_replay_schedule", SetReplayScheduleReducer),
   __reducerSchema("set_road_closure_active", SetRoadClosureActiveReducer),
   __reducerSchema("set_sim", SetSimReducer),
   __reducerSchema("set_weather", SetWeatherReducer),
+  __reducerSchema("submit_app_request", SubmitAppRequestReducer),
   __reducerSchema("submit_help_request", SubmitHelpRequestReducer),
   __reducerSchema("submit_help_request_for", SubmitHelpRequestForReducer),
   __reducerSchema("submit_mock_requests", SubmitMockRequestsReducer),
@@ -469,6 +498,7 @@ const reducersSchema = __reducers(
   __reducerSchema("unit_on_scene", UnitOnSceneReducer),
   __reducerSchema("unit_position", UnitPositionReducer),
   __reducerSchema("update_my_location", UpdateMyLocationReducer),
+  __reducerSchema("update_my_request", UpdateMyRequestReducer),
   __reducerSchema("upsert_fire_cells", UpsertFireCellsReducer),
 );
 
@@ -478,6 +508,8 @@ const proceduresSchema = __procedures(
 
 type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "tables"> & {
   tables: typeof tablesSchema.schemaType.tables & {
+    /** @deprecated Use `fireConcern` instead. This alias will be removed in the next major version. */
+    readonly "fire_concern": Omit<typeof tablesSchema.schemaType.tables["fireConcern"], "accessorName"> & { readonly accessorName: "fire_concern" };
     /** @deprecated Use `myOperator` instead. This alias will be removed in the next major version. */
     readonly "my_operator": Omit<typeof tablesSchema.schemaType.tables["myOperator"], "accessorName"> & { readonly accessorName: "my_operator" };
     /** @deprecated Use `myRequests` instead. This alias will be removed in the next major version. */
@@ -518,6 +550,7 @@ const REMOTE_MODULE = {
 >;
 
 const tableAccessorAliases = {
+  "fire_concern": "fireConcern",
   "my_operator": "myOperator",
   "my_requests": "myRequests",
   "my_risk": "myRisk",
@@ -549,6 +582,8 @@ function __withTableAccessorAliases<T extends object>(target: T, freeze = false)
 
 type __DbViewBase = __DbConnectionImpl<typeof REMOTE_MODULE>["db"];
 export type DbView = __DbViewBase & {
+  /** @deprecated Use `fireConcern` instead. This alias will be removed in the next major version. */
+  readonly "fire_concern": __DbViewBase["fireConcern"];
   /** @deprecated Use `myOperator` instead. This alias will be removed in the next major version. */
   readonly "my_operator": __DbViewBase["myOperator"];
   /** @deprecated Use `myRequests` instead. This alias will be removed in the next major version. */
@@ -575,6 +610,8 @@ export type DbView = __DbViewBase & {
 
 type __TablesBase = __QueryBuilder<typeof tablesSchema.schemaType>;
 export type Tables = __TablesBase & {
+  /** @deprecated Use `fireConcern` instead. This alias will be removed in the next major version. */
+  readonly "fire_concern": __TablesBase["fireConcern"];
   /** @deprecated Use `myOperator` instead. This alias will be removed in the next major version. */
   readonly "my_operator": __TablesBase["myOperator"];
   /** @deprecated Use `myRequests` instead. This alias will be removed in the next major version. */

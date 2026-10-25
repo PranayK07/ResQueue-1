@@ -1,4 +1,6 @@
 import type { FeatureCollection } from 'geojson';
+import { satelliteStyle } from '../../lib/mapStyle';
+import { EXPOSURE_COLOR, learnedConcern } from '../../ops/learnedForecast';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
@@ -25,7 +27,6 @@ import './NavMap.css';
 
 maplibregl.setWorkerUrl(workerUrl);
 
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/dark';
 /** The p10 boundary drawn on the map: where fire could be within this window. */
 const FORECAST_WINDOW_S = 40 * 60;
 const FOLLOW_ZOOM = 14.5;
@@ -68,11 +69,12 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     onUserMoveRef.current = onUserMove;
   });
   const [ready, setReady] = useState(false);
+  const [sizeKey, setSizeKey] = useState('');
 
   useEffect(() => {
     const map = new maplibregl.Map({
       container: containerRef.current!,
-      style: STYLE_URL,
+      style: satelliteStyle,
       center: [snapshot.station.lon, snapshot.station.lat],
       zoom: 13,
       attributionControl: { compact: true },
@@ -87,10 +89,10 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
       ];
       for (const [id, prop, value] of tint) if (map.getLayer(id)) map.setPaintProperty(id, prop, value);
       map.getContainer().querySelector('.maplibregl-compact-show')?.classList.remove('maplibregl-compact-show');
-      for (const id of ['fire', 'fire-edge', 'forecast', 'closures', 'route']) map.addSource(id, { type: 'geojson', data: EMPTY });
-      map.addLayer({ id: 'fire-fill', type: 'fill', source: 'fire', paint: { 'fill-color': '#7a3a31', 'fill-opacity': 0.55, 'fill-antialias': false } });
-      map.addLayer({ id: 'fire-line', type: 'line', source: 'fire-edge', paint: { 'line-color': '#ff958a', 'line-width': 1.5 } });
-      map.addLayer({ id: 'forecast-line', type: 'line', source: 'forecast', paint: { 'line-color': '#f0be73', 'line-width': 1.5, 'line-dasharray': [2, 2] } });
+      for (const id of ['fire', 'fire-edge', 'forecast', 'concern', 'closures', 'route']) map.addSource(id, { type: 'geojson', data: EMPTY });
+      map.addLayer({ id: 'concern-fill', type: 'fill', source: 'concern', paint: { 'fill-color': EXPOSURE_COLOR as unknown as string, 'fill-opacity': 0.65, 'fill-antialias': false } });
+      map.addLayer({ id: 'fire-fill', type: 'fill', source: 'fire', paint: { 'fill-color': '#ec2917', 'fill-opacity': 0.8, 'fill-antialias': false } });
+      map.addLayer({ id: 'fire-line', type: 'line', source: 'fire-edge', paint: { 'line-color': '#a9160b', 'line-width': 1.5 } });
       map.addLayer({ id: 'closure-line', type: 'line', source: 'closures', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#ff958a', 'line-width': 3, 'line-dasharray': [0.1, 2] } });
       map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#0b0f12', 'line-width': 9 } });
       map.addLayer({ id: 'route-lower', type: 'line', source: 'route', filter: ['==', ['get', 'exposure'], 'lower'], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#a7cee5', 'line-width': 5 } });
@@ -103,7 +105,10 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     map.on('zoomstart', e => {
       if ((e as { originalEvent?: Event }).originalEvent) onUserMoveRef.current();
     });
-    const ro = new ResizeObserver(() => map.resize());
+    const ro = new ResizeObserver(([entry]) => {
+      map.resize();
+      setSizeKey(`${entry.contentRect.width}:${entry.contentRect.height}`);
+    });
     ro.observe(containerRef.current!);
     mapRef.current = map;
     const markers = markersRef.current;
@@ -121,6 +126,9 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
   const { fireCells, forecastCells, grid, closures, clock } = snapshot;
   const fireIds = useMemo(() => new Set(fireCells.map(c => c.cellId)), [fireCells]);
   const forecastIds = useMemo(() => forecastArea(fireCells, forecastCells, clock.simS + FORECAST_WINDOW_S), [fireCells, forecastCells, clock.simS]);
+  const modelLayer = snapshot.live?.riskPipeline?.status === 'ready' ? snapshot.live.fireRisk : null;
+  const horizon = modelLayer?.horizonsS.at(-1) ?? 86400;
+  const concern = useMemo(() => learnedConcern(modelLayer, horizon), [modelLayer, horizon]);
   const runs = useMemo(
     () => (route && target ? routeExposure(route.coords, clock.simS, Math.max(clock.simS + 60, target.etaS), grid, fireCells, forecastCells) : []),
     [route, target, clock.simS, grid, fireCells, forecastCells]
@@ -132,7 +140,8 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     const set = (id: string, data: Parameters<maplibregl.GeoJSONSource['setData']>[0]) => (map.getSource(id) as maplibregl.GeoJSONSource).setData(data);
     set('fire', cellsToPolygons(grid, fireIds));
     set('fire-edge', cellsOutline(grid, fireIds));
-    set('forecast', cellsOutline(grid, forecastIds));
+    set('forecast', EMPTY);
+    set('concern', concern);
     set('closures', {
       type: 'FeatureCollection',
       features: closures.filter(c => c.active).map(c => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[c.lon1, c.lat1], [c.lon2, c.lat2]] } })),
@@ -141,7 +150,7 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
       type: 'FeatureCollection',
       features: runs.map(r => ({ type: 'Feature', properties: { exposure: r.exposure }, geometry: { type: 'LineString', coordinates: r.coords } })),
     });
-  }, [ready, grid, fireIds, forecastIds, closures, runs]);
+  }, [ready, grid, fireIds, concern, closures, runs]);
 
   // ─── Markers ───
   const forecastLabelAt = useMemo(
@@ -180,7 +189,6 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
       };
     });
     if (fireLabelAt) want.fire = { at: fireLabelAt, html: 'FIRE', className: 'nav-text nav-text--fire', anchor: 'center' };
-    if (forecastLabelAt) want.forecast = { at: forecastLabelAt, html: `p10 · ${forecastTime}`, className: 'nav-tag nav-tag--forecast', anchor: 'bottom', offset: [0, -10] };
     for (const c of closures.filter(x => x.active)) {
       want[`closure-${c.id}`] = {
         at: [(c.lon1 + c.lon2) / 2, (c.lat1 + c.lat2) / 2],
@@ -220,7 +228,7 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     map.easeTo({ center: position, zoom: Math.max(map.getZoom(), FOLLOW_ZOOM), duration: 800 });
     // posKey captures position changes; position itself is a fresh array each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, follow, posKey]);
+  }, [ready, follow, posKey, sizeKey, padding.top, padding.bottom]);
 
   // Not following: show the whole trip when it changes.
   const routeKey = route ? `${route.coords.length}:${route.distanceM}` : '';
@@ -230,9 +238,9 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     const pts = [...route.coords, ...(position ? [position] : [])];
     const b = pts.reduce((acc, p) => acc.extend(p), new maplibregl.LngLatBounds(pts[0], pts[0]));
     map.fitBounds(b, { maxZoom: 16, duration: 600 });
-    // Re-frame only on a new route (or when following stops), not on every position update.
+    // Re-frame on a new route or layout, not on every position update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, routeKey, follow]);
+  }, [ready, routeKey, follow, sizeKey, padding.top, padding.bottom]);
 
   return <div ref={containerRef} className="nav-map" />;
 }

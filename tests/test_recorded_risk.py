@@ -102,6 +102,51 @@ def test_health_status_is_republished_after_same_scenario_reset():
     asyncio.run(run())
 
 
+def test_restarting_routing_forecast_does_not_redate_a_recorded_acquisition(recorded, monkeypatch):
+    pytest.importorskip("uagents")
+    from rescue.hazard import forecast as module
+
+    source, _ = recorded
+    now = 18000  # five hours after acquisition zero, still before the next observation
+    _, observation = source.request(now, [21600])
+    rows = {
+        "grid": [asdict(source.routing_grid)],
+        "weather": [dict(wind_speed_mps=0, wind_from_deg=0)],
+        "world_version": [dict(weather=1, fire=1)],
+        "fire_cell": source.fire_cells(now),
+    }
+
+    class Database:
+        calls = []
+
+        def table(self, name):
+            class Table(list):
+                def one(self):
+                    return self[0] if self else None
+            return Table(rows.get(name, []))
+
+        async def call(self, *args, **kwargs):
+            self.calls.append(args)
+
+    seen = []
+    def ensemble(grid, fuel, burning, wind, *, now_s, **kwargs):
+        seen.append(now_s)
+        return np.full((grid.rows, grid.cols), np.inf), np.full((grid.rows, grid.cols), np.inf)
+
+    monkeypatch.setattr(module, "settings", SimpleNamespace(fire_source="recorded"))
+    monkeypatch.setattr(module, "ensemble_arrival", ensemble)
+    engine = object.__new__(module.ForecastEngine)
+    engine.db = Database()
+    engine.host = SimpleNamespace(recorded=source, fire=SimpleNamespace(_recorded_observation=observation),
+                                  sim_now=lambda: now, set_part=lambda *args: None)
+    engine.log = SimpleNamespace(info=lambda *args: None)
+    engine._fuel, engine._grid = None, None
+    asyncio.run(engine.tick())
+    assert seen == [0.0]
+    assert engine.db.calls[0][0] == "publish_forecast"
+    assert engine.db.calls[0][3] == 0.0  # computed_at_s remains the acquisition, not restart time
+
+
 def inputs(recorded):
     source, _ = recorded
     req, _ = source.request(0, [21600, 86400])
@@ -241,6 +286,8 @@ def test_unsupported_risk_states_are_explicit_and_json_finite(recorded, conditio
         pipeline = dict(status="fallback", reason="checkpoint absent")
     elif condition == "no_route":
         f.travel[0]["reachable"] = False
+        f.danger[0].update(level="unreachable", slack_s=-1e9,
+                          route_reason="Forecast safety deadline blocks the approach outside the observed fire.")
     else:
         f.requests[0]["lat"] = 0.0
     r = compose_risks(
@@ -256,6 +303,7 @@ def test_unsupported_risk_states_are_explicit_and_json_finite(recorded, conditio
     )[0]
     if condition == "no_route":
         assert r["travel_s"] is None and r["scheduled_slack_s"] is None and not r["reachable"]
+        assert "Forecast safety deadline" in r["reason"] and "16666666" not in r["reason"]
     else:
         assert r["probabilities"] == [] and r["forecast_state"] != "interval"
     if condition == "fallback":

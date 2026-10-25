@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_DATA_SOURCE?: string;
   readonly VITE_STDB_URI?: string;
   readonly VITE_STDB_DB?: string;
+  readonly VITE_DEMO_MODE?: string;
 }
 
 /** SpacetimeDB server and database from the repo-root .env (see vite.config.ts). */

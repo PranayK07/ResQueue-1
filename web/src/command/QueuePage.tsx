@@ -1,4 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { isLive } from '../live/config';
+import { LiveQueuePage } from './LiveQueuePage';
 import arrowLeft from '../assets/figma/command/arrow-left.svg';
 import arrowUpRight from '../assets/figma/command/arrow-up-right.svg';
 import checkCircle from '../assets/figma/command/check-circle2.svg';
@@ -62,6 +64,10 @@ function applyPins(order: bigint[], pins: Map<bigint, number>, firstMovable: num
 
 /** Figma 8:1397 "Rescue queue management". */
 export function QueuePage() {
+  return isLive ? <LiveQueuePage /> : <SimulatedQueuePage />;
+}
+
+function SimulatedQueuePage() {
   const { snapshot: s, source } = useCommandData();
   const nowMs = useNow(1000);
   const rows = useMemo(() => commandRows(s), [s]);
@@ -572,7 +578,7 @@ export function QueuePage() {
                 <img src={slidersIcon} width={16} height={16} alt="" />
                 Sorting parameters
               </h2>
-              <span className="cbadge cbadge--amber">SIMULATED</span>
+              <span className="cbadge cbadge--amber">LOCAL PREVIEW</span>
             </div>
             <p className="qparams__intro">Draft a policy, preview it, then apply. Nothing changes until you apply.</p>
             <p className="qparams__baseline">

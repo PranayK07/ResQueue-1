@@ -1,112 +1,89 @@
 # Demo runbook: recorded Arizona wildfire replay
 
-One scenario, end to end: a real 2020 wildfire replayed from aerial infrared perimeters, a learned model forecasting
-its spread, and the agent mesh triaging synthetic residents into station rescue queues, shown in the web app.
+The demo replays a real 2020 wildfire through a trained time-conditioned U-Net. LOOKAHEAD dispatch prioritizes assistance using location-dependent slack, travel and extraction estimates.
 
-## What the audience sees, and what is real
+## What is real
 
-- **Real:** the fire. NIROPS aerial infrared perimeters of a northern-Arizona wildfire (sequence
-  `2bdb2cbdb71e878fee72eef8`, near 35.65°N 112.73°W), 7 observations from Jul 8 01:10 UTC to Jul 14 02:20 UTC 2020,
-  burned area 1.57 → 3.50 → 4.32 → 4.32 → 6.39 → 6.39 → 6.39 km². Also real: the trained time-conditioned U-Net that
-  forecasts spread (the learned fire-risk layer, 6 / 12 / 24 h horizons).
-- **Synthetic:** 2 fire stations, 4 units and 24 residents placed inside the fire area by the seeder, plus any mock pings
-  you add. Say so.
-- **Causal replay:** an observation reaches the model only when the replay clock gets to it. The model never sees the
-  future.
-- **Model score, if asked:** Brier 0.0121 vs 0.0134 for persistence, on a reused test panel the benchmark report calls
-  "diagnostic, not pristine unseen evidence". Don't claim more.
-- Pitch line: *"We replay a real 2020 Arizona wildfire from aerial infrared perimeters. A learned forecast model predicts
-  where it spreads. Synthetic residents and stations let us test the rescue queue on real fire behavior."*
+- NIROPS aerial infrared perimeters near 35.65°N, 112.73°W, sequence `2bdb2cbdb71e878fee72eef8`. The bundle does not identify the fire's name.
+- Seven acquisitions, Jul 8 01:10 UTC to Jul 14 02:20 UTC 2020. Burned areas: 1.57 → 3.50 → 4.32 → 4.32 → 6.39 → 6.39 → 6.39 km². The source grid is 128 × 128 at 60 m in UTM zone 12N.
+- A trained U-Net predicts exposure at 6, 12 and 24 hours from each acquired observation. Later recorded perimeters are unavailable to inference until their replay time.
+- Two stations, four units and three resident fixtures are synthetic. The original bundle contains 24 residents; `DEMO_PROFILE=hackathon` selects three new positions using actual inference and slack calculations. No fixture stores a preset risk level.
+- If asked about scores: Brier 0.0121 vs 0.0134 for persistence on the reused test panel, described by the benchmark as “diagnostic, not pristine unseen evidence.”
 
-## One-time setup on the demo laptop
+Pitch: “We replay a real 2020 Arizona wildfire from aerial infrared perimeters. A learned forecast model predicts where it spreads. Synthetic residents and stations let us test the rescue queue on real fire behavior.”
 
-1. Code: `git fetch origin && git switch web-backend-integration`.
-2. Tools: SpacetimeDB CLI 2.13 (`spacetime --version`), Node 18+, and the Python 3.12 forecast environment from
-   [RECORDED_RISK_PIPELINE.md](RECORDED_RISK_PIPELINE.md) (`.venv-risk`, which has torch, rasterio and affine; the plain
-   `venv` cannot load a recorded bundle).
-3. The bundle: `runs/recorded-integration/` with `incident.json`, `observations.npz`, `model.pt`,
-   `model_metadata.json`. It is gitignored, so copy the folder over if it is missing.
-4. `.env` in the repo root. Keep your existing `AGENT_JOIN_KEY` / `OPERATOR_PASSCODE` / `AGENT_SEED_PREFIX`, and set:
+## Configuration
 
-   ```dotenv
-   STDB_SERVER=local
-   STDB_DB=wildfire-rescue
-   PYTHON=.venv-risk/bin/python
-   FIRE_SOURCE=recorded
-   RECORDED_INCIDENT_PATH=runs/recorded-integration/incident.json
-   FIRE_FORECAST_BACKEND=learned
-   FIRE_FORECAST_CHECKPOINT=runs/recorded-integration/model.pt
-   FIRE_FORECAST_METADATA=runs/recorded-integration/model_metadata.json
-   FIRE_FORECAST_HORIZONS_S=21600,43200,86400
-   POLICY=lookahead
-   WEATHER_SOURCE=scenario
-   NEWS_SOURCE=off
-   INTAKE_ANALYZER=keywords
-   MAILBOX_AGENTS=none
-   SIM_CREWS=1
-   SIM_SPEED=60
-   ```
+Use the Python forecast environment described in [RECORDED_RISK_PIPELINE.md](RECORDED_RISK_PIPELINE.md), containing torch, rasterio and affine. The bundle `runs/recorded-integration/` must contain `incident.json`, `observations.npz`, `model.pt` and `model_metadata.json`; it is gitignored.
 
-   `POLICY=lookahead` matters: `rl` is still a stub that raises, and the queue would stay empty.
-5. `cd web && npm install`.
+Keep existing credentials in the root `.env` and configure:
 
-## Start (two terminals)
-
-```bash
-# 1: fresh database, publish the module, seed the recorded fire + 24 synthetic residents, start the agents and crews
-scripts/dev.sh reset
-
-# 2: the web app (it follows STDB_SERVER / STDB_DB from the root .env)
-cd web && npm run dev          # http://localhost:5173
+```dotenv
+STDB_SERVER=local
+STDB_DB=wildfire-rescue-arizona-demo
+PYTHON=.venv-risk/bin/python
+FIRE_SOURCE=recorded
+RECORDED_INCIDENT_PATH=runs/recorded-integration/incident.json
+FIRE_FORECAST_BACKEND=learned
+FIRE_FORECAST_CHECKPOINT=runs/recorded-integration/model.pt
+FIRE_FORECAST_METADATA=runs/recorded-integration/model_metadata.json
+FIRE_FORECAST_HORIZONS_S=21600,43200,86400
+POLICY=lookahead
+WEATHER_SOURCE=scenario
+NEWS_SOURCE=off
+INTAKE_ANALYZER=keywords
+MAILBOX_AGENTS=none
+DEMO_PROFILE=hackathon
+SIM_CREWS=0
+SIM_SPEED=60
 ```
 
-Give the agents ~30 s to come online (`hazard`, `news`, `intake`, `commander`, plus the `sim-crews` driver).
+`PYTHON` may also be an absolute path. In `web/.env.local`:
+
+```dotenv
+VITE_DATA_SOURCE=live
+VITE_DEMO_MODE=true
+```
+
+This disables caller/responder geolocation requests and places each caller near the acquired fire. The caller sees a normal location preview without fire layers. Leave `VITE_DEMO_MODE=false` for device GPS outside this demo.
+
+## Start
+
+```bash
+# Terminal 1: publish, replace the selected database scenario, seed three calls, start agents
+scripts/dev.sh
+
+# Terminal 2
+cd web && npm install && npm run dev
+```
+
+The hackathon profile starts paused at the first observation, even when the seeder receives `--run`. Allow roughly 30 seconds for learned forecasts, assessments and queues. The initial calls should be wheelchair assistance near fire (high), no listed needs nearby (moderate), and no listed needs farther away (low). These are computed results for T+0; they change with position, needs, resources and the acquired fire.
 
 | Screen | URL | Sign-in |
 |---|---|---|
-| Incident command (main screen, live) | `http://localhost:5173/#/command` | name + `OPERATOR_PASSCODE` |
-| Responder phone (live) | `http://localhost:5173/#/responder/1` (units 1–4: SIM-1..SIM-4) | name + `OPERATOR_PASSCODE` |
-| Resident ("I need help") | `http://localhost:5173/#/` | none. **Not wired to the backend yet**: it is Sharon's UI flow with simulated dispatch. Show it as the resident experience; the live pings come from Mock pings below. |
+| Commander | `http://localhost:5173/#/command` | Any display name and `OPERATOR_PASSCODE` |
+| Caller | `http://localhost:5173/#/` | None |
+| Responder | `http://localhost:5173/#/responder/4` | Display name and `OPERATOR_PASSCODE` |
 
-Use separate browser windows for command and responder. Each keeps its own identity, so they don't clash.
+The operator name is a display label attached to actions in the audit log. Use separate tabs for roles; each tab has its own stored identity. Existing browser tabs must reload after changing Vite environment variables.
 
-## Demo flow (about 5 minutes)
+## Demonstration
 
-1. **Command console.** The header reads REPLAY · RECORDED FIRE with the recording's real time in UTC (starts
-   Jul 8 2020 01:10), T+ and the speed. On the map: the recorded perimeter and the short-horizon fire forecast; the
-   stations, units and 24 synthetic residents, scored and sorted into the two stations' queues, each with a reason. The
-   line under the wind control shows the learned forecast: model id, issue time and pipeline status (`ready` once the
-   U-Net has run on the current observation).
-2. **Fast-forward.** Pick 300× or 600× in the speed menu. The next perimeters arrive (1.6 → 3.5 → 4.3 → 6.4 km²), the
-   learned forecast re-issues, and the queue re-ranks. Units go out, rescue and return (simulated crews). Drop back to
-   60× for the rescue part.
-3. **Mock pings.** Map tools: choose 5 and press Mock pings. Five simulated residents ping from 300–1500 m off the fire,
-   each with a field report. The intake agent reads them (trapped / injured / fire seen / road blocked) and they enter
-   the queues within ~20–30 s. Headless alternative: `cd agents && ../.venv-risk/bin/python scripts/mock_pings.py
-   --count 6 --reports --cluster`.
-4. **Responder.** Open `#/responder/1` in another window and sign in: that unit's active mission, route and danger level.
-   Mark it complete. While a phone is open for a unit, the crew driver leaves the "rescued" call to the phone.
+1. In command, show the three fixture calls and their slack ordering. Select a call to see learned exposure probabilities and the assistance timing calculation.
+2. The satellite map renders the recorded fire in red. Orange/yellow cells are actual U-Net probabilities, with the selected 6/12/24-hour horizon and a 10% display threshold. Red-to-yellow is exposure, not a predicted minute of arrival. Narrow bands are valid model output; the UI never expands them with a visual buffer. There are no replay wind controls: this checkpoint has no wind input.
+3. Open the caller in another tab. Send an alert. Command immediately shows the new call, including before the agents assign its queue. “Show request and pin” selects it. Assign an available ground unit from Request details, or allow LOOKAHEAD to assign one.
+4. Open the assigned unit's responder URL. Its destination pin, route, entrance and risk assessment come from the shared database. “Start response” and “Mark on scene” update the caller's receipt. “Mark complete” closes it and purges shared coordinates.
+5. On the caller page, use “My location has changed” and click a new map position. The confirmed update changes the command/responder destination; the pipeline recalculates exposure and slack. A location farther from the fire normally has lower exposure, but the actual priority also depends on travel, extraction and unit availability.
+6. “Next observation” pauses at the next recorded acquisition and runs inference from that newly available perimeter. The observed time, footprint and forecast ID update. Resume/speed controls remain available for continuous replay.
 
-## If something is off
+## Interpretation and troubleshooting
 
-| Symptom | Fix |
-|---|---|
-| Console stuck on "No incident loaded" | The seed failed. Check terminal 1: usually `PYTHON` is not the forecast env (no rasterio / affine) or `RECORDED_INCIDENT_PATH` is wrong. Fix it and run `scripts/dev.sh reset` again. |
-| "Learned forecast: waiting" / pipeline `fallback` or `error` | Check `FIRE_FORECAST_BACKEND=learned` and the checkpoint / metadata paths, then restart terminal 1. The physical forecast and the queue still work meanwhile. |
-| Units stay "Dispatched" and never move | The crew driver is offline: `SIM_CREWS=1`, and terminal 1 (run_all) must be running. Look for `[run_all] crews exited` in its log. |
-| Requests stay "Assessing", no queue | `POLICY` must be `lookahead`. The planner also waits for a current risk assessment after every change; give it a few seconds. |
-| "Wrong passcode" | It is `OPERATOR_PASSCODE` from `.env`, published with the module by `scripts/dev.sh`. Re-run it after changing the value. |
-| Signed out after a reset | A reseed deletes responder sign-ins; sign in again. |
-| Web app shows another database | It reads `STDB_SERVER` / `STDB_DB` from the root `.env` at startup: restart `npm run dev`. `web/.env.local` (`VITE_STDB_URI`, `VITE_STDB_DB`) overrides. |
-| Want the UI without any backend | `VITE_DATA_SOURCE=sim npm run dev` runs Sharon's in-browser simulation. |
+- U-Net probabilities describe exposure at hour-scale horizons. The existing physical ensemble and grid router supply short-horizon fire/travel estimates used in slack. LOOKAHEAD consumes the complete assessment; no RL dispatch checkpoint is involved. Do not describe approximate slack as measured historical rescue timing.
+- Road directions use OSRM when available. They are ordinary road directions; no fire-safe road-routing guarantee is made. A timed-out road request shows an explicit direct-route fallback.
+- `SIM_CREWS=0` keeps missions under manual control. Use `SIM_CREWS=1` only if you want the synthetic crew driver to execute missions automatically.
+- A pending/error forecast shows its pipeline state and does not paint a fallback as learned exposure. Check bundle/checkpoint paths and `FIRE_FORECAST_BACKEND=learned`.
+- “Reassessing location risk” means an input version changed; the previous card is marked stale until the commander publishes a matching assessment.
+- A destination outside the red perimeter may still fail the routing model's five-minute fire-clearance requirement. This does not establish a road closure: the safety router uses a grid approximation. The separate physical forecast is valid for three hours from its acquired perimeter. After that, assessments are marked “Reassessing” with an explicit expired-routing explanation until a fresh observation/forecast is available; old deadlines are not treated as current route blocks. Agent restarts preserve the historical acquisition time.
+- Running `scripts/dev.sh` again replaces the selected scenario and restores the three-call, paused opening. `scripts/dev.sh db` only republishes code. Use `reset` only when you intend to delete that selected database's data.
 
-Keep everything on one laptop. Phones on the LAN would need SpacetimeDB listening on `0.0.0.0`,
-`VITE_STDB_URI=ws://<laptop-ip>:3000` and `npm run dev -- --host`.
-
-## Not done yet (say so if asked)
-
-- The resident screen still runs Sharon's simulated dispatch; the backend reducers it needs exist
-  (`submit_help_request`, `my_requests`, `update_my_location`, `close_my_request`).
-- The learned forecast shows as a status line, not as a map layer (its grid is UTM; the map needs a projection step).
-- Queue tools that only the simulation has (assign to a specific unit, reorder stops, what-if preview) answer with an
-  error live: the backend can pin a request to a station, not to a unit.
+The satellite basemap and OSRM require network access. The fire/model pipeline runs locally from the recorded bundle.

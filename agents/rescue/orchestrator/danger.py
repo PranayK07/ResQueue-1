@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
-from ..core.danger import assess_requests
+from ..core.danger import assess_requests, routing_forecast_current
 from ..core.geo import Grid
 from ..core.risk import compose_risks, news_context, risk_snapshot
 from ..stdb import Debouncer
@@ -66,6 +66,9 @@ class DangerEngine:
         fm = db.table("forecast_meta").one()
         if not fm or fm["weather_version"] != versions["weather"] or fm["fire_version"] != versions["fire"]:
             a.set_part("danger", "degraded", "waiting for physical forecast matching current fire/weather")
+            return
+        if not routing_forecast_current(fm, clock["sim_s"]):
+            a.set_part("danger", "degraded", "routing forecast expired; awaiting a new observation or forecast")
             return
         units = list(db.table("unit"))
         meta, pipeline = db.table("fire_risk_meta").one(), db.table("risk_pipeline").one()

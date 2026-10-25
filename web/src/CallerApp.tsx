@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { isLive } from './live/config';
+import { LiveCallerApp } from './live/LiveCallerApp';
 import { coordsPlace, reverseGeocode, type Place } from './lib/geo';
 import {
   CONSENT_MINUTES,
@@ -31,6 +33,10 @@ const MINUTE = 60_000;
 
 /** Resident flow: C01–C07. */
 export function CallerApp() {
+  return isLive ? <LiveCallerApp /> : <SimulatedCallerApp />;
+}
+
+function SimulatedCallerApp() {
   const { position, retry } = useCurrentPosition();
   const [resolved, setResolved] = useState<Place | null>(null);
   const [corrected, setCorrected] = useState<CallerLocation | null>(null);

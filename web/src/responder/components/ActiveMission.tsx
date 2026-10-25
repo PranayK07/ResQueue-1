@@ -1,13 +1,16 @@
 import { useState } from 'react';
+import { RiskSummary } from '../../components/ForecastSummary';
 import check from '../../assets/figma/responder/check.svg';
 import flag from '../../assets/figma/responder/flag.svg';
 import users from '../../assets/figma/responder/users.svg';
 import { clockHMTz, etaMinutes, formatSlack, needLines, peopleLabel, requestCode, simToMs, type QueueItem } from '../../ops/derive';
 import { useAddress } from '../../ops/hooks';
-import type { SimClock } from '../../ops/types';
+import type { SimClock, RiskCard } from '../../ops/types';
 import { DangerLevelTag } from './DangerLevelTag';
 
 interface Props {
+  risk?: RiskCard;
+  status?: string;
   item: QueueItem;
   clock: SimClock;
   nowS: number;
@@ -19,7 +22,7 @@ interface Props {
 }
 
 /** The mission this unit is committed to, with the crew's actions. */
-export function ActiveMission({ item, clock, nowS, onScene, busy, error, onComplete, onCantReach }: Props) {
+export function ActiveMission({ item, clock, nowS, onScene, busy, error, onComplete, onCantReach, risk, status }: Props) {
   const { request } = item;
   const place = useAddress(request.id, request.lat, request.lon);
   const [confirming, setConfirming] = useState(false);
@@ -27,7 +30,7 @@ export function ActiveMission({ item, clock, nowS, onScene, busy, error, onCompl
   return (
     <section className="mission" aria-label={`Active mission ${requestCode(request.id)}`}>
       <p className="mission__eyebrow">
-        ACTIVE MISSION · {item.unitCallsign} · {onScene ? 'ON SCENE' : 'EN ROUTE'}
+        ACTIVE MISSION · {item.unitCallsign} · {onScene ? 'ON SCENE' : status === 'assigned' ? 'ASSIGNED' : 'EN ROUTE'}
       </p>
       <div className="mission__identity">
         <h2 className="mono">{requestCode(request.id)}</h2>
@@ -57,6 +60,8 @@ export function ActiveMission({ item, clock, nowS, onScene, busy, error, onCompl
         </div>
       </div>
       {request.note && <p className="mission__note">“{request.note}”</p>}
+      {request.entrance && <p className="mission__note">Entrance: {request.entrance}</p>}
+      {risk && <RiskSummary card={risk} />}
       <p className="mission__eta">
         {onScene ? 'On scene' : `ETA ${etaMinutes(item.etaS, nowS)} min · arrival ${clockHMTz(simToMs(clock, item.etaS))}`}
       </p>

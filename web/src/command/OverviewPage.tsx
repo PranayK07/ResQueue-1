@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { ForecastSummary } from '../components/ForecastSummary';
+import { useLiveRows } from '../live/hooks';
+import { callWithCopy } from '../live/reducers';
 import layersIcon from '../assets/figma/command/layers.svg';
 import pauseIcon from '../assets/figma/command/pause.svg';
 import scanIcon from '../assets/figma/command/scan.svg';
@@ -15,7 +18,7 @@ import { LAYERS, type LayerName } from './mapLayers';
 import { CommandNav, SafetyFooter } from './components/CommandNav';
 import { RequestDetails } from './components/RequestDetails';
 import { UnitPanel } from './components/UnitPanel';
-import { alertStatus, bySlack, compass, commandRows, counts, type CommandRow, mph, mps, pad2, peopleNeeds, slackText, stationShort, tPlus, unitJourney } from './derive';
+import { alertStatus, bySlack, compass, commandRows, commandEta, commandReason, commandSlack, counts, type CommandRow, mph, mps, pad2, peopleNeeds, stationShort, tPlus, unitJourney } from './derive';
 
 const PAGE = 8;
 const clockHMS = (ms: number) => clockHMSTz(ms).split(' ')[0];
@@ -48,8 +51,12 @@ function gridCentre(s: CommandSnapshot) {
 
 /** Figma 3:3691 "Wildfire rescue command". */
 export function OverviewPage() {
+  const acquisitions = useLiveRows('replay_observation');
+  const [advancing, setAdvancing] = useState(false);
+  const [advanceError, setAdvanceError] = useState('');
   const { snapshot: s, source } = useCommandData();
   const nowMs = useNow(1000);
+  const [horizon, setHorizon] = useState(86400);
   const rows = useMemo(() => bySlack(commandRows(s)), [s]);
   const c = counts(s, rows);
 
@@ -208,6 +215,11 @@ export function OverviewPage() {
               ))}
             </select>
           )}
+          {replay && <button type="button" className="cbtn" disabled={advancing || !acquisitions.some(o => o.atS > s.clock.simS + 0.001)} onClick={async () => {
+            setAdvancing(true); setAdvanceError('');
+            try { await callWithCopy('advance_replay', {}); } catch (e) { setAdvanceError(e instanceof Error ? e.message : String(e)); }
+            finally { setAdvancing(false); }
+          }}>{advancing ? 'Loading observation…' : 'Next observation'}</button>}
           <button type="button" className="cbtn" onClick={() => source.setRunning(!s.clock.running)}>
             {s.clock.running ? <img src={pauseIcon} width={14} height={14} alt="" /> : <span aria-hidden>▶</span>}
             {live ? (s.clock.running ? 'Pause' : 'Resume') : s.clock.running ? 'Pause simulation' : 'Resume simulation'}
@@ -222,18 +234,19 @@ export function OverviewPage() {
       <section className="cmetrics" aria-label="Operational counts">
         <Metric value={String(c.requests)} title="Opt-in requests" sub={`${c.people} people · consented only`} />
         <Metric value={pad2(c.escalated)} tone={c.escalated ? 'red' : undefined} title="Unreachable by ground" sub="Commander review required" />
-        <Metric value={pad2(c.critical)} tone={c.critical ? 'amber' : undefined} title="Critical · 0–10 min" sub={`${c.high} high · ${c.moderate} moderate`} />
+        <Metric value={pad2(c.critical)} tone={c.critical ? 'amber' : undefined} title="Critical · 0–10 min" sub={`${c.high} high · ${c.moderate} moderate · ${c.low} low`} />
         <Metric value={`${c.unitsAvailable} / ${c.unitsTotal}`} title="Units available" sub={`${c.unitsTotal - c.unitsAvailable} busy across ${c.stations} stations`} />
         <Metric value={clockHMS(s.lastPlan.atMs)} small title="Queue recomputed" sub={`${s.lastPlan.reason} · ${ago(s.lastPlan.atMs)} ago`} />
       </section>
 
+      {advanceError && <p role="alert" className="cerror">{advanceError}</p>}
       <main className="cworkspace">
         <section className="cpanel cqueue">
           <div className="cqueue__heading">
             <div>
               <h2>Full rescue queue</h2>
               <p className="csub">
-                {c.requests} requests · {c.people} people · {c.stations} stations · manual reordering enabled
+                {c.requests} requests · {c.people} people · {c.stations} stations · LOOKAHEAD dispatch · lower slack first
               </p>
             </div>
             <div className="cqueue__tools">
@@ -305,6 +318,10 @@ export function OverviewPage() {
             </div>
           </div>
 
+          {s.requests.filter(r => r.channel === 'app').sort((a, b) => b.createdAtMs - a.createdAtMs).slice(0, 1).map(r => <div className="cescalation" role="status" key={String(r.id)}>
+            <strong>Latest caller alert · {requestCode(r.id)}</strong>
+            <button className="cbtn" onClick={() => { setStationFilter(0); setSearch(requestCode(r.id)); setPage(0); select(r.id); }}>Show request and pin</button>
+          </div>)}
           <div className="ctable__scroll">
           <table className="ctable">
             <thead>
@@ -337,7 +354,7 @@ export function OverviewPage() {
                     <td className="mono">
                       {stationShort(r.station.name)} /{' '}
                       {r.escalated || !r.unit ? (
-                        'Review'
+                        r.pending ? 'Awaiting assignment' : 'Review'
                       ) : (
                         <button
                           type="button"
@@ -352,16 +369,16 @@ export function OverviewPage() {
                         </button>
                       )}
                     </td>
-                    <td className="mono">{r.escalated ? '—' : `${Math.max(0, Math.round((r.entry.etaS - s.clock.simS) / 60))} min`}</td>
-                    <td className={`mono cslack-text cslack-text--${level}`}>{slackText(r.request.slackS)}</td>
-                    <td className="muted ctable__why">{r.entry.reason}</td>
+                    <td className="mono">{commandEta(r, s)}</td>
+                    <td className={`mono cslack-text cslack-text--${level}`}>{commandSlack(r, s)}</td>
+                    <td className="muted ctable__why">{commandReason(r, s)}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
           </div>
-          <p className="cfootnote">Slack: &lt;0 unreachable · 0–10 critical · &gt;10–30 high · &gt;30 moderate. ¹ETA = unit wait + travel, not extraction.</p>
+          <p className="cfootnote">Slack: &lt;0 unreachable · 0–10 critical · 10–30 high · 30–60 moderate · &gt;60 low. ETA = unit wait + travel, not extraction.</p>
         </section>
 
         <section className="cpicture">
@@ -426,6 +443,7 @@ export function OverviewPage() {
 
             <CommandMap
               snapshot={s}
+              horizon={horizon}
               rows={rows}
               selected={selected}
               labeled={new Set(pageRows.map(r => r.request.id))}
@@ -436,17 +454,24 @@ export function OverviewPage() {
               onSelect={select}
             />
 
+            <ForecastSummary live={live} />
+            <label className="cwind" style={{ gap: 12 }}>U-Net forecast horizon
+              <select className="cbtn" aria-label="U-Net forecast horizon" value={horizon} onChange={e => setHorizon(Number(e.target.value))}>
+                {(risk?.horizonsS ?? [21600, 43200, 86400]).map(h => <option key={h} value={h}>{h / 3600} hours after observation</option>)}
+              </select>
+            </label>
             <div className="clegend">
               <span><i className="ckey ckey--dot ckey--unreachable" />Unreachable</span>
               <span><i className="ckey ckey--dot ckey--critical" />Critical</span>
               <span><i className="ckey ckey--dot ckey--high" />High</span>
               <span><i className="ckey ckey--dot ckey--moderate" />Moderate</span>
-              <span><i className="ckey ckey--fire" />Fire perimeter</span>
-              <span><i className="ckey ckey--forecast" />Forecast +30m</span>
+              <span><i className="ckey ckey--fire" />Observed fire</span>
+              <span><i className="ckey ckey--forecast" />U-Net predicted exposure</span>
               <span><i className="ckey ckey--closed" />Closed road</span>
               <span><i className="ckey ckey--route" />Selected route</span>
             </div>
 
+            {!replay && <>
             <div className="cwind">
               <div>
                 <p className="cwind__title">Simulation wind</p>
@@ -480,6 +505,7 @@ export function OverviewPage() {
                 </p>
               </div>
             </div>
+            </>}
           </div>
 
           <div className="cside">
