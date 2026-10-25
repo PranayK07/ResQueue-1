@@ -1,17 +1,16 @@
-// What the operations screens depend on. Today both are backed by the
-// simulated world (./sim/world.ts). Going live means implementing these two
-// interfaces over a SpacetimeDB connection; no screen code changes.
+// What the operations screens depend on. Two implementations: the simulated
+// world (./sim/world.ts) and SpacetimeDB (./live/*), picked once in hooks.ts
+// from VITE_DATA_SOURCE. Screens never know which one they run on; where the
+// two differ, they ask `capabilities` (the backend has no reducer for some
+// of the simulation's commander tools) or read the optional `snapshot.live`.
 //
-// Shared setup for a SpacetimeDB implementation:
-//   1. Bindings: `spacetime generate --lang typescript --out-dir src/module_bindings --module-path ../spacetimedb`
-//   2. `conn = DbConnection.builder().withUri(...).withModuleName('wildfire-rescue').build()`
-//   3. `conn.reducers.claimOperator({ passcode, role, stationId, name })`
-//      (role 'responder' + stationId, or 'commander') so the ops_* views
-//      return the right scope.
-//   4. Subscribe; on every insert/update/delete rebuild the snapshot from the
-//      client cache (`conn.db.<table>.iter()`), converting Timestamp → ms and
-//      option → null, then notify listeners. getSnapshot must return the same
-//      object until something changes.
+// The live implementation:
+//   1. Bindings: `npm run bindings` (spacetime generate into src/module_bindings).
+//   2. One DbConnection per surface (command, responder:<unitId>, caller), each
+//      with its own saved identity; operators sign in with claim_operator.
+//   3. Subscribes to the surface's tables and views, mirrors the client cache,
+//      and rebuilds the snapshot from it (Timestamp → ms, option → null).
+//      getSnapshot returns the same object until something changes.
 
 import type { CommandSnapshot, FlagKind, MissionOutcome, PlanPolicy, PositionPin, ResponderSnapshot, Weather } from './types';
 import type { PlanPreview } from './sim/world';
@@ -22,17 +21,56 @@ interface Store<S> {
   subscribe(listener: () => void): () => void;
 }
 
+export interface ResponderCapabilities {
+  /** The crew sets the order of its own upcoming stops (SIM-ONLY: no reducer). */
+  stopOrder: boolean;
+  /** Write to the resident (message_resident; live only). */
+  messaging: boolean;
+}
+
 /**
  * Responder phone. Subscribe to: sim_clock, grid, station, unit, weather,
- * fire_cell, forecast_cell, road_closure, ops_request, ops_queue.
+ * fire_cell, forecast_cell, road_closure, ops_request, ops_queue (+ live extras).
  */
 export interface ResponderSource extends Store<ResponderSnapshot> {
+  readonly capabilities: ResponderCapabilities;
   /** complete_mission: 'rescued' closes the request; 'aborted' returns it to the queue. */
   completeMission(unitId: number, outcome: MissionOutcome): Promise<void>;
   /** SIM-ONLY: the crew sets the order of its own upcoming stops (no reducer yet). */
   setStopOrder(requestIds: bigint[]): Promise<void>;
   /** SIM-ONLY: hand the crew's stops back to the automatic order. */
   resetStopOrder(): Promise<void>;
+  /** message_resident (1..1000 chars). Rejects unless capabilities.messaging. */
+  messageResident(requestId: bigint, text: string): Promise<void>;
+}
+
+export interface CommandCapabilities {
+  /** Commit a request to one unit, reorder or release a unit's stops (SIM-ONLY: live can only pin a station). */
+  unitAssignment: boolean;
+  /** What-if ranking preview and applying policy parameters / position pins (SIM-ONLY). */
+  planPreview: boolean;
+  /** set_sim speed (live; the simulation runs at 1x). */
+  speed: boolean;
+  /** release_weather_lock: hand the wind back to the live feed (live only). */
+  releaseWind: boolean;
+  /** submit_mock_requests: simulated residents pinging for help (live only). */
+  mockPings: boolean;
+  /** message_resident (live only). */
+  messaging: boolean;
+}
+
+/** One simulated resident's help ping (submit_mock_requests). */
+export interface MockPing {
+  lat: number;
+  lon: number;
+  /** 1..50 */
+  headcount: number;
+  /** Comma list from mobility, medical, oxygen, infant, elderly, pets, language. */
+  needs: string;
+  /** <= 500 chars; kept with the request (not deleted at close), so no names or addresses. */
+  note: string;
+  /** Optional first text report for the intake agent to read ('' = none). */
+  report: string;
 }
 
 /**
@@ -40,10 +78,15 @@ export interface ResponderSource extends Store<ResponderSnapshot> {
  * ops_flag and event_log (commander scope sees all rows).
  */
 export interface CommandSource extends Store<CommandSnapshot> {
-  /** set_sim */
+  readonly capabilities: CommandCapabilities;
+  /** set_sim (keeps the current speed) */
   setRunning(running: boolean): Promise<void>;
+  /** set_sim (keeps running/paused); speed in (0, 600]. Rejects unless capabilities.speed. */
+  setSpeed(speed: number): Promise<void>;
   /** set_weather (locks the wind to manual until release_weather_lock) */
   setWeather(windSpeedMps: number, windFromDeg: number, gustMps: number): Promise<void>;
+  /** release_weather_lock. Rejects unless capabilities.releaseWind. */
+  releaseWeatherLock(): Promise<void>;
   /** override_assignment (stationId 0 unpins) */
   overrideAssignment(requestId: bigint, stationId: number, note: string): Promise<void>;
   /**
@@ -58,6 +101,10 @@ export interface CommandSource extends Store<CommandSnapshot> {
   flagRequest(requestId: bigint, kind: FlagKind, detail: string): Promise<void>;
   /** resolve_flag */
   resolveFlag(flagId: bigint, resolution: string): Promise<void>;
+  /** submit_mock_requests, 1..25 at a time. Rejects unless capabilities.mockPings. */
+  sendMockPings(pings: MockPing[]): Promise<void>;
+  /** message_resident (1..1000 chars). Rejects unless capabilities.messaging. */
+  messageResident(requestId: bigint, text: string): Promise<void>;
   /**
    * Transfer suggestions from the delegation agent. No backend table yet:
    * a live implementation would ask the delegation agent over uAgents.

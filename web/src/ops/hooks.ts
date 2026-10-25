@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { coordsPlace, reverseGeocode, type Place } from '../lib/geo';
 import { getWorld } from './sim/world';
-import type { CommandSource, ResponderSource } from './sources';
+import type { CommandCapabilities, CommandSource, ResponderCapabilities, ResponderSource } from './sources';
 
 // The one place that picks data sources. Swap these for SpacetimeDB-backed
 // implementations (see sources.ts) and every screen follows.
@@ -15,6 +15,17 @@ const roundTrip = <T>(fn: () => T) => new Promise<T>((resolve, reject) => setTim
   }
 }, 300));
 
+const notInSim = () => Promise.reject(new Error('Not available in the simulation.'));
+const SIM_RESPONDER: ResponderCapabilities = { stopOrder: true, messaging: false };
+const SIM_COMMAND: CommandCapabilities = {
+  unitAssignment: true,
+  planPreview: true,
+  speed: false,
+  releaseWind: false,
+  mockPings: false,
+  messaging: false,
+};
+
 const responders = new Map<number, ResponderSource>();
 const crew = (unitId: number) => `crew:${getWorld().commandSnapshot().units.find(u => u.id === unitId)?.callsign ?? unitId}`;
 /** The phone carried by one unit (in a live build: one operator login per device). */
@@ -24,11 +35,13 @@ export function getResponderSource(unitId: number): ResponderSource {
     const w = getWorld();
     w.claimPhone(unitId);
     src = {
+      capabilities: SIM_RESPONDER,
       getSnapshot: () => w.responderSnapshot(unitId),
       subscribe: w.subscribe,
       completeMission: (id, outcome) => roundTrip(() => w.completeMission(id, outcome)),
       setStopOrder: ids => roundTrip(() => w.setUnitOrder(unitId, ids, crew(unitId))),
       resetStopOrder: () => roundTrip(() => w.releaseUnit(unitId, crew(unitId))),
+      messageResident: notInSim,
     };
     responders.set(unitId, src);
   }
@@ -40,10 +53,15 @@ export function getCommandSource(): CommandSource {
   if (!command) {
     const w = getWorld();
     command = {
+      capabilities: SIM_COMMAND,
       getSnapshot: w.commandSnapshot,
       subscribe: w.subscribe,
       setRunning: running => roundTrip(() => w.setRunning(running)),
+      setSpeed: notInSim,
       setWeather: (s, d, g) => roundTrip(() => w.setWeather(s, d, g)),
+      releaseWeatherLock: notInSim,
+      sendMockPings: notInSim,
+      messageResident: notInSim,
       overrideAssignment: (id, sid, note) => roundTrip(() => w.overrideAssignment(id, sid, note)),
       assignToUnit: (id, unitId) => roundTrip(() => w.assignToUnit(id, unitId)),
       setUnitOrder: (unitId, ids) => roundTrip(() => w.setUnitOrder(unitId, ids)),
