@@ -1,0 +1,7 @@
+# The NIROPS data never goes in git. The notebook finds it on your machine or downloads it into data/.
+data/
+*.zip
+*.part
+*.parquet
+.ipynb_checkpoints/
+__pycache__/
