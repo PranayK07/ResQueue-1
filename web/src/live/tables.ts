@@ -144,18 +144,18 @@ export const QUERIES: { caller: QueryGroups; command: QueryGroups; responder: Qu
   responder: {
     core: [
       'sim_clock', 'grid', 'station', 'unit', 'weather', 'fire_cell', 'forecast_cell', 'road_closure', 'incident', 'agent',
-      'ops_request', 'ops_queue', 'ops_unit_route',
+      'ops_request', 'ops_queue',
     ],
-    extra: ['my_operator', 'crew_presence', 'ops_risk', 'ops_assessment', 'ops_report', 'ops_message', 'fire_risk_meta', 'fire_concern', 'risk_pipeline'],
+    extra: ['ops_unit_route', 'my_operator', 'crew_presence', 'ops_risk', 'ops_assessment', 'ops_report', 'ops_message', 'fire_risk_meta', 'fire_concern', 'risk_pipeline'],
   },
   command: {
     core: [
       'sim_clock', 'grid', 'station', 'unit', 'weather', 'fire_cell', 'forecast_cell', 'forecast_meta', 'world_version',
-      'road_closure', 'incident', 'agent', 'event_log', 'ops_request', 'ops_queue', 'ops_travel', 'ops_flag', 'ops_unit_route',
+      'road_closure', 'incident', 'agent', 'event_log', 'ops_request', 'ops_queue', 'ops_travel', 'ops_flag',
     ],
     // fire_risk_cell stays off the phones: up to 40k cells x 8 horizons.
     extra: [
-      'my_operator', 'crew_presence', 'risk_pipeline', 'replay_observation', 'fire_risk_meta', 'fire_risk_cell', 'situation', 'news_article',
+      'ops_unit_route', 'my_operator', 'crew_presence', 'risk_pipeline', 'replay_observation', 'fire_risk_meta', 'fire_risk_cell', 'situation', 'news_article',
       'ops_risk', 'ops_assessment', 'ops_report', 'ops_message',
     ],
   },
