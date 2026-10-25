@@ -19,8 +19,16 @@ function useHashRoute() {
   return hash.replace(/^#/, '') || '/';
 }
 
+const TITLES: [RegExp, string][] = [
+  [/^\/responder/, 'ResQueue · Responder'],
+  [/^\/command/, 'ResQueue · Command'],
+];
+
 export default function App() {
   const route = useHashRoute();
+  useEffect(() => {
+    document.title = TITLES.find(([re]) => re.test(route))?.[1] ?? 'ResQueue · Request help';
+  }, [route]);
   const phone = route.match(/^\/responder(?:\/(\d+))?$/);
   if (phone) {
     const unitId = phone[1] ? Number(phone[1]) : RESPONDER_ME.unitId;

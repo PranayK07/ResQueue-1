@@ -29,6 +29,10 @@ interface Store<S> {
 export interface ResponderSource extends Store<ResponderSnapshot> {
   /** complete_mission: 'rescued' closes the request; 'aborted' returns it to the queue. */
   completeMission(unitId: number, outcome: MissionOutcome): Promise<void>;
+  /** SIM-ONLY: the crew sets the order of its own upcoming stops (no reducer yet). */
+  setStopOrder(requestIds: bigint[]): Promise<void>;
+  /** SIM-ONLY: hand the crew's stops back to the automatic order. */
+  resetStopOrder(): Promise<void>;
 }
 
 /**

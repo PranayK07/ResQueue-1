@@ -1,0 +1,156 @@
+.nav-map {
+  position: absolute;
+  inset: 0;
+  background: #182522;
+}
+
+/* MapLibre chrome: scale under the top bars, attribution above the sheet. */
+.nav-map .maplibregl-ctrl-top-left {
+  top: var(--nav-top, 100px);
+}
+
+.nav-map .maplibregl-ctrl-bottom-right {
+  bottom: var(--nav-bottom, 120px);
+}
+
+.nav-map .maplibregl-ctrl-scale {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid #adb9c1;
+  color: #adb9c1;
+  font-size: 11px;
+}
+
+.nav-map .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: var(--r-panel);
+  color: var(--r-muted);
+}
+
+.nav-map .maplibregl-ctrl-attrib a {
+  color: var(--r-muted);
+}
+
+/* ─── Markers ─── */
+
+.nav-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 6px;
+  background: var(--r-panel);
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: normal;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.nav-tag img {
+  display: block;
+}
+
+.nav-tag--forecast { color: #f0be73; }
+.nav-tag--closure { border: 1px solid #ff958a; color: #ff958a; }
+
+.nav-text {
+  color: #ff958a;
+  font-size: 11px;
+  font-weight: 600;
+  text-shadow: 0 0 3px #0b0f12, 0 0 6px #0b0f12;
+  pointer-events: none;
+}
+
+.nav-unit {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.nav-unit img {
+  display: block;
+}
+
+.nav-tag--unit {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid #a7cee5;
+  color: #a7cee5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.nav-gps {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgb(66 133 244 / 0.25);
+  pointer-events: none;
+}
+
+.nav-gps__dot {
+  position: absolute;
+  inset: 5px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #4285f4;
+}
+
+.nav-dest {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  pointer-events: none;
+}
+
+.nav-dest img {
+  position: absolute;
+  display: block;
+  max-width: none;
+}
+
+.nav-dest__halo { inset: 0; }
+.nav-dest__dot { left: 9px; top: 9px; }
+
+.nav-tag--dest {
+  position: absolute;
+  top: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #29241c;
+  border: 1px solid var(--accent);
+  color: var(--r-ink);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nav-stop {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px 2px 2px;
+  background: var(--r-panel);
+  border: 1px dashed #a7cee5;
+  border-radius: 12px;
+  color: var(--r-ink);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.nav-stop__n {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: #a7cee5;
+  border-radius: 50%;
+  color: #0b0f12;
+  font-size: 10px;
+  font-weight: 700;
+}

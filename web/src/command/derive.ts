@@ -39,6 +39,16 @@ export function bySlack(rows: CommandRow[]) {
   );
 }
 
+export type AlertTone = 'red' | 'amber' | 'blue' | 'muted';
+
+/** Where an alert stands right now, for the queue's STATUS column. */
+export function alertStatus(row: CommandRow, s: CommandSnapshot): { label: string; tone: AlertTone; flagged: boolean } {
+  const flagged = s.flags.some(f => f.requestId === row.request.id && !f.resolved && f.kind !== 'unreachable');
+  if (row.escalated) return { label: 'Escalated', tone: 'red', flagged };
+  if (row.committed) return row.unit?.status === 'on_scene' ? { label: 'On scene', tone: 'amber', flagged } : { label: 'Unit en route', tone: 'blue', flagged };
+  return { label: 'Waiting', tone: 'muted', flagged }; // the planned unit is in STATION / UNIT
+}
+
 /** A unit's journey: its dispatched mission, then its planned stops in order. */
 export function unitJourney(rows: CommandRow[], unitId: number) {
   const current = rows.find(r => r.committed && r.unit?.id === unitId) ?? null;

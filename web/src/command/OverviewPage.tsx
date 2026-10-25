@@ -6,6 +6,7 @@ import slidersIcon from '../assets/figma/command/sliders-horizontal.svg';
 import triangleAlert from '../assets/figma/command/triangle-alert.svg';
 import { clockHMSTz, clockHMTz, requestCode, simNow } from '../ops/derive';
 import { useCommandData } from '../ops/hooks';
+import type { CommandSnapshot } from '../ops/types';
 import { fetchRoute, type Route } from '../ops/routing';
 import { useNow } from '../lib/useNow';
 import { CommandMap, type Journey } from './components/CommandMap';
@@ -13,7 +14,7 @@ import { LAYERS, type LayerName } from './mapLayers';
 import { CommandNav, SafetyFooter } from './components/CommandNav';
 import { RequestDetails } from './components/RequestDetails';
 import { UnitPanel } from './components/UnitPanel';
-import { bySlack, compass, commandRows, counts, mph, mps, pad2, peopleNeeds, slackText, tPlus, unitJourney } from './derive';
+import { alertStatus, bySlack, compass, commandRows, counts, type CommandRow, mph, mps, pad2, peopleNeeds, slackText, tPlus, unitJourney } from './derive';
 
 const PAGE = 8;
 const clockHMS = (ms: number) => clockHMSTz(ms).split(' ')[0];
@@ -60,7 +61,9 @@ export function OverviewPage() {
     const plan = unitJourney(rows, unit.id);
     return [...(plan.current ? [{ row: plan.current, current: true }] : []), ...plan.stops.map(row => ({ row, current: false }))].slice(0, 8);
   }, [unit, rows]);
-  const legKey = unit ? [[unit.lon, unit.lat], ...stops.map(({ row }) => [row.request.lon, row.request.lat])].map(p => p.join(',')).join(';') : '';
+  // Units move every few seconds; re-route the first leg only after ~500 m, not on every update.
+  const q = (v: number) => (Math.round(v * 200) / 200).toFixed(3);
+  const legKey = unit ? [[q(unit.lon), q(unit.lat)], ...stops.map(({ row }) => [row.request.lon, row.request.lat])].map(p => p.join(',')).join(';') : '';
   const [legs, setLegs] = useState<{ key: string; legs: [number, number][][] } | null>(null);
   useEffect(() => {
     if (!legKey) return;
@@ -113,6 +116,7 @@ export function OverviewPage() {
   const ago = (ms: number) => `${Math.max(0, Math.round((nowMs - ms) / 1000))}s`;
   const simClockMs = s.clock.lastTickMs + (simNow(s.clock, nowMs) - s.clock.simS) * 1000;
   const rankOf = (id: bigint) => rows.findIndex(r => r.request.id === id) + 1;
+
 
   return (
     <div className="cpage">
@@ -215,13 +219,6 @@ export function OverviewPage() {
             </div>
           ))}
 
-          <div className="ctiles">
-            <Tile label="TOTAL" value={String(c.requests)} sub="All requests" />
-            <Tile label="CRITICAL" value={pad2(c.critical)} sub="Slack ≤ 10 min" tone="amber" />
-            <Tile label="UNREACHABLE" value={pad2(c.escalated)} sub="Ground access blocked" tone="red" />
-            <Tile label="PEOPLE" value={String(c.people)} sub="Across all requests" />
-            <Tile label="UNITS" value={`${c.unitsAvailable} / ${c.unitsTotal}`} sub="Available / total" />
-          </div>
 
           <div className="cpager">
             <p>
@@ -240,12 +237,13 @@ export function OverviewPage() {
             </div>
           </div>
 
+          <div className="ctable__scroll">
           <table className="ctable">
             <thead>
               <tr>
                 <th>#</th>
                 <th>REQUEST</th>
-                <th>PEOPLE / NEEDS</th>
+                <th>STATUS</th>
                 <th>STATION / UNIT</th>
                 <th>ETA¹</th>
                 <th>SLACK ↑</th>
@@ -259,12 +257,15 @@ export function OverviewPage() {
                 return (
                   <tr key={String(r.request.id)} className={isSel ? 'is-selected' : ''} onClick={() => select(r.request.id)} aria-selected={isSel}>
                     <td className="mono muted">{pad2(rankOf(r.request.id))}</td>
-                    <td className="mono">
-                      <button type="button" className="ctable__link" onClick={() => select(r.request.id)}>
+                    <td>
+                      <button type="button" className="ctable__link mono" onClick={() => select(r.request.id)}>
                         {requestCode(r.request.id)}
                       </button>
+                      <p className="ctable__sub">{peopleNeeds(r.request)}</p>
                     </td>
-                    <td>{peopleNeeds(r.request)}</td>
+                    <td>
+                      <StatusPill row={r} snapshot={s} />
+                    </td>
                     <td className="mono">
                       {r.station.name.split(' ')[0]} /{' '}
                       {r.escalated || !r.unit ? (
@@ -285,12 +286,13 @@ export function OverviewPage() {
                     </td>
                     <td className="mono">{r.escalated ? '—' : `${Math.max(0, Math.round((r.entry.etaS - s.clock.simS) / 60))} min`}</td>
                     <td className={`mono cslack-text cslack-text--${level}`}>{slackText(r.request.slackS)}</td>
-                    <td className="muted">{r.entry.reason}</td>
+                    <td className="muted ctable__why">{r.entry.reason}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          </div>
           <p className="cfootnote">Slack: &lt;0 unreachable · 0–10 critical · &gt;10–30 high · &gt;30 moderate. ¹ETA = unit wait + travel, not extraction.</p>
         </section>
 
@@ -434,12 +436,12 @@ function Metric({ value, title, sub, tone, small }: { value: string; title: stri
   );
 }
 
-function Tile({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: 'red' | 'amber' }) {
+function StatusPill({ row, snapshot }: { row: CommandRow; snapshot: CommandSnapshot }) {
+  const st = alertStatus(row, snapshot);
   return (
-    <div className="ctile">
-      <p className="clabel">{label}</p>
-      <p className={`mono ctile__value${tone ? ` tone-${tone}` : ''}`}>{value}</p>
-      <p className="ctile__sub">{sub}</p>
-    </div>
+    <span className="cstatus">
+      <span className={`cstatus__pill cstatus__pill--${st.tone}`}>{st.label}</span>
+      {st.flagged && <span className="cstatus__pill cstatus__pill--red">Flagged</span>}
+    </span>
   );
 }

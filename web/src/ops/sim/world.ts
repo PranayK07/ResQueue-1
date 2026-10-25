@@ -40,6 +40,7 @@ import {
 
 const TICK_MS = 1000;
 const REPLAN_EVERY_S = 20; // agents re-plan on change; ~20 s cadence otherwise
+const POSITION_EVERY_S = 3; // unit_position stream cadence
 const FORECAST_HORIZON_S = 6 * 3600;
 const OTHER_CREW_ON_SCENE_S = 6 * 60; // simulated crews (not the demo phone) finish on their own
 const CONSENT_S = 60 * 60;
@@ -74,9 +75,10 @@ export interface World {
   /** Commit a waiting request to one unit (0 releases it to the planner). */
   assignToUnit(requestId: bigint, unitId: number): void;
   /** Visit this unit's waiting stops in this order. */
-  setUnitOrder(unitId: number, requestIds: bigint[]): void;
+  /** `actor` defaults to the commander; crews reorder their own stops from the phone. */
+  setUnitOrder(unitId: number, requestIds: bigint[], actor?: string): void;
   /** Hand all of a unit's stops back to the automatic plan. */
-  releaseUnit(unitId: number): void;
+  releaseUnit(unitId: number, actor?: string): void;
   flagRequest(requestId: bigint, kind: FlagKind, detail: string): void;
   resolveFlag(flagId: bigint, resolution: string): void;
   previewPlan(policy: PlanPolicy, weather: Pick<Weather, 'windSpeedMps' | 'windFromDeg' | 'gustMps'>, pins: PositionPin[]): PlanPreview;
@@ -152,6 +154,9 @@ export function createWorld(): World {
   const events: EventLogEntry[] = [];
   let lastPlan = { atMs: startWallMs, reason: 'Scenario loaded' };
   let sinceReplan = 0;
+  let sincePositions = 0;
+  // Where each en-route unit set off from, so it can move toward the scene (unit_position).
+  const trips = new Map<number, { lat: number; lon: number; departS: number }>();
   let nextFlagId = 1n;
   let nextEventId = 1n;
 
@@ -210,6 +215,7 @@ export function createWorld(): World {
         const r = next && requests.find(x => x.id === next.requestId);
         if (!next || !r) continue;
         commitments.set(u.id, { unitId: u.id, requestId: r.id, arriveS: simS + travelS(u, r) });
+        trips.set(u.id, { lat: u.lat, lon: u.lon, departS: simS });
         u.status = 'en_route';
         u.currentRequest = r.id;
         r.status = 'en_route';
@@ -259,6 +265,7 @@ export function createWorld(): World {
   function finish(u: Unit, outcome: MissionOutcome, actor: string) {
     const c = commitments.get(u.id);
     commitments.delete(u.id);
+    trips.delete(u.id);
     const s = STATIONS.find(x => x.id === u.stationId)!;
     u.status = 'available';
     u.currentRequest = 0n;
@@ -301,6 +308,13 @@ export function createWorld(): World {
       const c = commitments.get(u.id);
       const r = c && requests.find(x => x.id === c.requestId);
       if (!c || !r) continue;
+      const trip = trips.get(u.id);
+      if (trip && u.status === 'en_route' && simS < c.arriveS) {
+        // Station agents stream unit_position; here the unit closes in at constant speed.
+        const f = Math.min(1, (simS - trip.departS) / Math.max(1, c.arriveS - trip.departS));
+        u.lat = trip.lat + (r.lat - trip.lat) * f;
+        u.lon = trip.lon + (r.lon - trip.lon) * f;
+      }
       if (simS >= c.arriveS && u.status !== 'on_scene') {
         u.status = 'on_scene';
         u.lat = r.lat;
@@ -316,8 +330,13 @@ export function createWorld(): World {
     }
 
     sinceReplan += TICK_MS / 1000;
+    sincePositions += TICK_MS / 1000;
     if (changed) replan('Mission update');
     else if (sinceReplan >= REPLAN_EVERY_S) replan(grew ? 'Fire perimeter update' : 'Scheduled recompute');
+    else if (sincePositions >= POSITION_EVERY_S && trips.size) {
+      sincePositions = 0;
+      publish(); // position-only update
+    }
   }
 
   // ─── Snapshots ───
@@ -453,7 +472,7 @@ export function createWorld(): World {
       replan('Commander unit assignment');
     },
 
-    setUnitOrder(unitId, requestIds) {
+    setUnitOrder(unitId, requestIds, actor = COMMANDER) {
       const u = units.find(x => x.id === unitId);
       if (!u) throw new Error('Unit not found.');
       // Reuse the ground positions these stops already hold, in the new order.
@@ -468,13 +487,13 @@ export function createWorld(): World {
         const r = requests.find(x => x.id === id)!;
         r.pinnedUnitId = unitId;
         r.pinnedStationId = u.stationId;
-        pins.push({ requestId: id, position: slots[i], reason: `${u.callsign} stop order`, by: COMMANDER, atMs: now });
+        pins.push({ requestId: id, position: slots[i], reason: `${u.callsign} stop order`, by: actor, atMs: now });
       });
-      log(COMMANDER, 'override', `${u.callsign} stop order set: ${requestIds.map(code).join(' → ')}`);
-      replan('Commander unit order');
+      log(actor, 'override', `${u.callsign} stop order set: ${requestIds.map(code).join(' → ')}`);
+      replan(actor === COMMANDER ? 'Commander unit order' : `${u.callsign} reordered its stops`);
     },
 
-    releaseUnit(unitId) {
+    releaseUnit(unitId, actor = COMMANDER) {
       const u = units.find(x => x.id === unitId);
       const released = requests.filter(r => r.pinnedUnitId === unitId);
       for (const r of released) {
@@ -482,8 +501,8 @@ export function createWorld(): World {
         r.pinnedStationId = 0;
       }
       pins = pins.filter(p => !released.some(r => r.id === p.requestId));
-      log(COMMANDER, 'override', `${u?.callsign ?? 'Unit'} stops released to the automatic plan (${released.length})`);
-      replan('Commander released unit');
+      log(actor, 'override', `${u?.callsign ?? 'Unit'} stops released to the automatic plan (${released.length})`);
+      replan(actor === COMMANDER ? 'Commander released unit' : `${u?.callsign ?? 'Unit'} back on automatic order`);
     },
 
     flagRequest(requestId, kind, detail) {

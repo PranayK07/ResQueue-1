@@ -6,18 +6,12 @@ export function CommandNav() {
     <header className="cnav">
       <a className="cnav__identity" href="#/command">
         <img src={flame} width={24} height={24} alt="" />
-        Wildfire Rescue Queue
+        ResQueue
       </a>
       <nav className="cnav__destinations" aria-label="Command">
         <a className="cnav__dest cnav__dest--active" href="#/command" aria-current="page">
           Operations
         </a>
-        <span className="cnav__dest" aria-disabled="true" title="Not part of this proof of concept">
-          Stations
-        </span>
-        <span className="cnav__dest" aria-disabled="true" title="Not part of this proof of concept">
-          Scenario lab
-        </span>
       </nav>
       <div className="cnav__session">
         <a className="cnav__switch" href="#/">

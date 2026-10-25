@@ -167,12 +167,17 @@ export function plan(input: PlanInput): Plan {
   //    count waiting requests only, so a pin doesn't drift as missions finish.
   let waiting = 0;
   const pinAt = new Map(pins.filter(p => pending.some(r => r.id === p.requestId)).map(p => [p.position, p.requestId]));
+  // A unit with stops assigned to it (by command or its crew) works through
+  // those first; automatic requests go to other units until they're planned.
+  const reserved = () => new Set(pending.map(pinnedUnit).filter((u): u is Unit => !!u).map(u => u.id));
   const option = (r: PlanRequest) => {
     const sid = stationOf(r);
     let best: { unit: Unit; eta: number; wait: number; travel: number } | null = null;
     const only = pinnedUnit(r);
-    for (const u of units) {
-      if (u.stationId !== sid || r.blockedUnits.includes(u.id) || (only && u !== only)) continue;
+    const busy = only ? new Set<number>() : reserved();
+    const candidates = units.filter(u => u.stationId === sid && !r.blockedUnits.includes(u.id) && (!only || u === only));
+    const free = candidates.filter(u => !busy.has(u.id));
+    for (const u of free.length ? free : candidates) {
       const slot = freeAt.get(u.id)!;
       const travel = travelS(slot.at, r);
       const eta = slot.s + travel;

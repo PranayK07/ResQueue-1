@@ -9,7 +9,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="screen">
       <header className="identity">
         <img className="identity__mark" src={brandMark} width={15} height={20} alt="" />
-        <span className="identity__name">Wildfire Rescue Queue</span>
+        <span className="identity__name">ResQueue</span>
         <a className="badge badge--simulation identity__switch" href="#/responder">
           View responder screen
         </a>

@@ -31,7 +31,7 @@
   align-items: center;
   gap: 8px;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
 }
 
@@ -42,12 +42,12 @@
 
 .cmap__wind-dir {
   color: var(--c-muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .cmap__wind-note {
   color: var(--c-muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .cmap__zoom {
@@ -70,7 +70,7 @@
   border-radius: 4px;
   color: var(--c-ink);
   font: inherit;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -81,7 +81,7 @@
   right: 80px;
   bottom: 14px;
   color: var(--c-muted);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.02em;
   pointer-events: none;
 }
@@ -92,7 +92,7 @@
   border-bottom: 4px solid var(--c-ink);
   color: var(--c-ink);
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .cmap .maplibregl-ctrl-bottom-left {
@@ -111,7 +111,7 @@
   border-radius: 3px;
   box-shadow: 0 1px 2px rgb(32 40 45 / 0.15);
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 12px;
   line-height: normal;
   white-space: nowrap;
   cursor: pointer;
@@ -141,7 +141,7 @@
 .cmap-tag--closure {
   color: var(--c-red);
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 9px;
+  font-size: 11px;
   pointer-events: none;
 }
 
@@ -171,7 +171,7 @@
   gap: 5px;
   color: var(--c-ink);
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   text-shadow: 0 0 2px #fff, 0 0 4px #fff;
   pointer-events: none;
@@ -189,7 +189,7 @@
 }
 
 .cmap-text {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   text-shadow: 0 0 2px #fff, 0 0 4px #fff;
   white-space: nowrap;
@@ -197,7 +197,7 @@
 }
 
 .cmap-text--fire { color: #9d4d32; }
-.cmap-text--forecast { color: var(--c-amber); font-size: 9px; }
+.cmap-text--forecast { color: var(--c-amber); font-size: 11px; }
 
 /* ─── Unit journey ─── */
 
@@ -209,7 +209,7 @@
   box-shadow: 0 1px 3px rgb(32 40 45 / 0.3);
   color: #fff;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   pointer-events: none;
 }
@@ -225,7 +225,7 @@
   box-shadow: 0 1px 2px rgb(32 40 45 / 0.15);
   color: var(--c-ink);
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
   pointer-events: none;
 }
@@ -239,7 +239,7 @@
   background: #3b6c84;
   border-radius: 50%;
   color: #fff;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
 }
 

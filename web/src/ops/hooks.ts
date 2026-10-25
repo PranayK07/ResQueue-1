@@ -16,6 +16,7 @@ const roundTrip = <T>(fn: () => T) => new Promise<T>((resolve, reject) => setTim
 }, 300));
 
 const responders = new Map<number, ResponderSource>();
+const crew = (unitId: number) => `crew:${getWorld().commandSnapshot().units.find(u => u.id === unitId)?.callsign ?? unitId}`;
 /** The phone carried by one unit (in a live build: one operator login per device). */
 export function getResponderSource(unitId: number): ResponderSource {
   let src = responders.get(unitId);
@@ -26,6 +27,8 @@ export function getResponderSource(unitId: number): ResponderSource {
       getSnapshot: () => w.responderSnapshot(unitId),
       subscribe: w.subscribe,
       completeMission: (id, outcome) => roundTrip(() => w.completeMission(id, outcome)),
+      setStopOrder: ids => roundTrip(() => w.setUnitOrder(unitId, ids, crew(unitId))),
+      resetStopOrder: () => roundTrip(() => w.releaseUnit(unitId, crew(unitId))),
     };
     responders.set(unitId, src);
   }

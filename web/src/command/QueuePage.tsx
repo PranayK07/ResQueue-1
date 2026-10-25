@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import arrowLeft from '../assets/figma/command/arrow-left.svg';
 import arrowUpRight from '../assets/figma/command/arrow-up-right.svg';
 import checkCircle from '../assets/figma/command/check-circle2.svg';
@@ -7,7 +7,6 @@ import gitPullRequest from '../assets/figma/command/git-pull-request.svg';
 import gripActive from '../assets/figma/command/grip-vertical1.svg';
 import grip from '../assets/figma/command/grip-vertical.svg';
 import historyIcon from '../assets/figma/command/history.svg';
-import infoIcon from '../assets/figma/command/info.svg';
 import listRestart from '../assets/figma/command/list-restart.svg';
 import mousePointer from '../assets/figma/command/mouse-pointer2.svg';
 import plusIcon from '../assets/figma/command/plus.svg';
@@ -21,10 +20,10 @@ import triangleSmall from '../assets/figma/command/triangle-alert1.svg';
 import { clockHMSTz, clockHMTz, requestCode } from '../ops/derive';
 import { useCommandData } from '../ops/hooks';
 import type { PlanPreview } from '../ops/sim/world';
-import type { DangerLevel, PlanPolicy, PositionPin } from '../ops/types';
+import type { CommandSnapshot, DangerLevel, PlanPolicy, PositionPin } from '../ops/types';
 import { useNow } from '../lib/useNow';
 import { CommandNav, SafetyFooter } from './components/CommandNav';
-import { commandRows, counts, mph, mps, pad2, peopleNeedsLong, slackText, type CommandRow } from './derive';
+import { alertStatus, commandRows, counts, mph, mps, pad2, peopleNeedsLong, slackText, type CommandRow } from './derive';
 
 const PAGE = 7;
 const DRAFT_KEY = 'wrq.command.draft';
@@ -194,7 +193,6 @@ export function QueuePage() {
   const release = (id: bigint) => set({ pins: draft.pins.filter(([x]) => x !== String(id)) });
 
   const stationsCount = (id: number) => rows.filter(r => r.station.id === id).length;
-  const [auditOpen, setAuditOpen] = useState(false);
   const step = !dirty ? 1 : previewFresh ? 3 : 2;
 
   return (
@@ -223,10 +221,10 @@ export function QueuePage() {
             </p>
           </div>
           <div className="qheader__actions">
-            <button type="button" className="cbtn" aria-expanded={auditOpen} onClick={() => setAuditOpen(o => !o)}>
+            <a className="cbtn" href="#/command/audit">
               <img src={historyIcon} width={14} height={14} alt="" />
               View audit log
-            </button>
+            </a>
             <button
               type="button"
               className="cbtn"
@@ -264,21 +262,6 @@ export function QueuePage() {
           </p>
         </div>
       </section>
-
-      {auditOpen && (
-        <section className="qaudit" aria-label="Audit log">
-          <h2>Audit log</h2>
-          <ol>
-            {s.events.slice(0, 40).map(e => (
-              <li key={String(e.id)}>
-                <span className="mono">{clockHMSTz(e.atMs).split(' ')[0]}</span>
-                <span className="qaudit__actor">{e.actor}</span>
-                <span>{e.message}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
 
       {(dirty || applied) && (
         <div className={`qdraftbar${!dirty ? ' qdraftbar--done' : ''}`}>
@@ -408,7 +391,7 @@ export function QueuePage() {
                   <th>STATION / UNIT</th>
                   <th>ETA¹</th>
                   <th>SLACK²</th>
-                  <th>CHANGE</th>
+                  <th>STATUS</th>
                 </tr>
               </thead>
               <tbody>
@@ -428,6 +411,7 @@ export function QueuePage() {
                       algoPos={algo}
                       pinned={pinned}
                       locked={locked}
+                      snapshot={s}
                       canDrag={canDrag}
                       nowS={s.clock.simS}
                       dropBefore={dropAt === pos && dragId !== null && dragId !== id}
@@ -469,6 +453,50 @@ export function QueuePage() {
             <div className="qformula">
               <p className="mono">Slack = fire-arrival p10 − (unit wait + travel + extraction) − safety margin</p>
               <p>² &lt;0 unreachable · 0–10m critical · &gt;10–30m high · &gt;30m moderate. ¹ ETA = wait + travel, excluding extraction.</p>
+            </div>
+          </section>
+
+          <section className="cpanel qapply">
+            <div>
+              <h2>Apply changes</h2>
+              <ol className="qsteps">
+                <li className={step > 1 ? 'is-done' : 'is-current'}>{step > 1 && <img src={checkCircle} width={14} height={14} alt="" />}1 Edit draft</li>
+                <li aria-hidden>→</li>
+                <li className={step === 2 ? 'is-current' : step > 2 ? 'is-done' : ''}>{step > 2 && <img src={checkCircle} width={14} height={14} alt="" />}2 Preview &amp; review</li>
+                <li aria-hidden>→</li>
+                <li className={step === 3 ? 'is-current' : ''}>3 Apply</li>
+              </ol>
+            </div>
+            <div className="qapply__ack">
+              <label className="qcheck">
+                <input type="checkbox" checked={ack} disabled={!needsAck} onChange={e => setAck(e.target.checked)} />
+                {needsAck ? 'I have reviewed the critical delays and accept responsibility for this manual override.' : 'No critical requests are displaced by this draft.'}
+              </label>
+              <p>
+                Required: fresh ranking preview{needsReason ? ' + commander reason' : ''}
+                {needsAck ? ' + safety acknowledgement' : ''}. Applying logs the reason, parameters and overrides.
+              </p>
+              {error && <p className="cerror">{error}</p>}
+            </div>
+            <div className="qapply__actions">
+              <div>
+                <button
+                  type="button"
+                  className="cbtn"
+                  disabled={!dirty}
+                  onClick={() => {
+                    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+                    setSavedAt(Date.now());
+                  }}
+                >
+                  Save draft
+                </button>
+                <button type="button" className="cbtn cbtn--dark" disabled={!canApply} onClick={apply}>
+                  <img src={checkIcon} width={14} height={14} alt="" />
+                  {busy === 'apply' ? 'Applying…' : 'Apply to simulation'}
+                </button>
+              </div>
+              <p>{!dirty ? 'No changes to apply · live queue unchanged' : !previewFresh ? 'Generate a preview to continue' : savedAt ? `Draft saved ${clockHMTz(savedAt)}` : 'Ready to apply'}</p>
             </div>
           </section>
 
@@ -544,120 +572,81 @@ export function QueuePage() {
                 <img src={slidersIcon} width={16} height={16} alt="" />
                 Sorting parameters
               </h2>
-              <span className="cbadge cbadge--amber">EXPERIMENTAL / SIMULATED</span>
+              <span className="cbadge cbadge--amber">SIMULATED</span>
             </div>
-            <p className="csub">Set a proposed policy, then preview its queue and safety impacts. Nothing changes until the commander applies the draft.</p>
+            <p className="qparams__intro">Draft a policy, preview it, then apply. Nothing changes until you apply.</p>
+            <p className="qparams__baseline">
+              <img src={shieldCheck} width={14} height={14} alt="" />
+              Always: least slack first · unreachable requests go to escalation · {Math.round(draft.policy.marginS / 60)}-min safety margin
+            </p>
 
-            <div className="qbaseline">
-              <p className="qbaseline__title">
-                <img src={shieldCheck} width={14} height={14} alt="" />
-                Slack remains the safety baseline <span className="cbadge cbadge--muted">Fixed</span>
-              </p>
-              <p>Lowest slack first within each safety band. Unreachable requests always go to commander escalation, never into ground dispatch.</p>
-              <p className="qbaseline__row">
-                <span>Safety margin · scenario default</span>
-                <span className="mono">{Math.round(draft.policy.marginS / 60)} min · unchanged</span>
-              </p>
-            </div>
-
-            <fieldset className="qgroup">
-              <legend>
-                Prioritize farther locations
-                {draft.policy.distancePreference.enabled !== s.policy.distancePreference.enabled && (
-                  <span className="cbadge cbadge--amber">
-                    {s.policy.distancePreference.enabled ? 'On' : 'Off'} → {draft.policy.distancePreference.enabled ? 'On' : 'Off'}
-                  </span>
-                )}
-              </legend>
-              <label className="qcheck">
-                <input
-                  type="checkbox"
+            <div className="qrows">
+              <ParamRow
+                label="Prefer farther locations"
+                hint="Only breaks ties within the same safety band"
+                changed={draft.policy.distancePreference.enabled !== s.policy.distancePreference.enabled || draft.policy.distancePreference.weight !== s.policy.distancePreference.weight}
+              >
+                <Switch
+                  label="Prefer farther locations"
                   checked={draft.policy.distancePreference.enabled}
-                  onChange={e => setPolicy({ distancePreference: { enabled: e.target.checked, weight: e.target.checked ? Math.max(draft.policy.distancePreference.weight, 0.25) : 0 } })}
+                  onChange={on => setPolicy({ distancePreference: { enabled: on, weight: on ? Math.max(draft.policy.distancePreference.weight, 0.25) : 0 } })}
                 />
-                Enable distance preference within the same safety band
-              </label>
-              <select className="qselect" value={draft.basis} disabled={!draft.policy.distancePreference.enabled} onChange={e => set({ basis: e.target.value as Draft['basis'] })}>
-                <option value="road">Road distance from currently assigned station</option>
-                <option value="straight">Straight-line distance from station</option>
-              </select>
-              <label className="qslider">
-                <span>Preference weight</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={5}
-                  disabled={!draft.policy.distancePreference.enabled}
-                  value={Math.round(draft.policy.distancePreference.weight * 100)}
-                  onChange={e => setPolicy({ distancePreference: { enabled: true, weight: Number(e.target.value) / 100 } })}
-                />
-                <span className="mono tone-amber">{Math.round(draft.policy.distancePreference.weight * 100)}%</span>
-              </label>
-              <p className="csub">Farther station-to-request distance is favoured. It cannot promote a high request above a critical one automatically.</p>
-            </fieldset>
-
-            <fieldset className="qgroup">
-              <legend>Weather inputs to fire-arrival forecast</legend>
-              <div className="qfields">
-                <NumberField label="Wind speed · included" unit="mph" value={draft.windMph} min={0} max={80} onChange={v => set({ windMph: v })} hint={`Current: ${mph(s.weather.windSpeedMps)} mph`} />
-                <NumberField
-                  label="Wind from · included"
-                  unit="°"
-                  value={draft.windFromDeg}
-                  min={0}
-                  max={359}
-                  onChange={v => set({ windFromDeg: v })}
-                  hint={draft.windFromDeg === Math.round(s.weather.windFromDeg) ? 'Direction unchanged' : `Current: ${Math.round(s.weather.windFromDeg)}°`}
-                />
-                <div>
-                  <label className="qcheck">
-                    <input type="checkbox" checked={draft.policy.includeGusts} onChange={e => setPolicy({ includeGusts: e.target.checked })} />
-                    Include gusts
+              </ParamRow>
+              {draft.policy.distancePreference.enabled && (
+                <div className="qrow__more">
+                  <label className="qslider">
+                    <span>Weight</span>
+                    <input
+                      type="range"
+                      min={5}
+                      max={100}
+                      step={5}
+                      value={Math.round(draft.policy.distancePreference.weight * 100)}
+                      onChange={e => setPolicy({ distancePreference: { enabled: true, weight: Number(e.target.value) / 100 } })}
+                    />
+                    <span className="mono">{Math.round(draft.policy.distancePreference.weight * 100)}%</span>
                   </label>
-                  <NumberField label="Peak gust" unit="mph" value={draft.gustMph} min={0} max={100} disabled={!draft.policy.includeGusts} onChange={v => set({ gustMph: v })} />
+                  <select className="qselect" aria-label="Distance measured as" value={draft.basis} onChange={e => set({ basis: e.target.value as Draft['basis'] })}>
+                    <option value="road">Road distance from assigned station</option>
+                    <option value="straight">Straight-line distance from station</option>
+                  </select>
                 </div>
-                <div>
-                  <label className="qcheck">
-                    <input type="checkbox" checked={draft.policy.includeHumidity} onChange={e => setPolicy({ includeHumidity: e.target.checked })} />
-                    Include humidity
-                  </label>
-                  <NumberField
-                    label="Relative humidity"
-                    unit="%"
-                    value={draft.policy.humidityPct}
-                    min={0}
-                    max={100}
-                    disabled={!draft.policy.includeHumidity}
-                    onChange={v => setPolicy({ humidityPct: v })}
-                  />
-                </div>
-              </div>
-              <p className="qcaution">
-                <img src={infoIcon} width={14} height={14} alt="" />
-                Weather modifies fire-arrival p10, then slack is recomputed. It is not added again as a ranking score. Inputs here are synthetic scenario
-                assumptions, not a live forecast.
-              </p>
-            </fieldset>
+              )}
 
-            <fieldset className="qgroup">
-              <legend>On automatic rerank</legend>
-              <label className={`qradio${draft.policy.keepPinsOnRerank ? ' is-on' : ''}`}>
-                <input type="radio" name="rerank" checked={draft.policy.keepPinsOnRerank} onChange={() => setPolicy({ keepPinsOnRerank: true })} />
-                Keep manual overrides at their ground positions
-                {pins.size > 0 && (
-                  <span className="cbadge cbadge--amber">
-                    {pins.size} pin{pins.size === 1 ? '' : 's'}
-                  </span>
+              <p className="qrows__group">Fire forecast inputs</p>
+              <ParamRow
+                label="Wind"
+                hint={`Now ${mph(s.weather.windSpeedMps)} mph from ${Math.round(s.weather.windFromDeg)}°`}
+                changed={draft.windMph !== mph(s.weather.windSpeedMps) || draft.windFromDeg !== Math.round(s.weather.windFromDeg)}
+              >
+                <InlineNumber label="Wind speed" value={draft.windMph} unit="mph" min={0} max={80} onChange={v => set({ windMph: v })} />
+                <InlineNumber label="Wind from" value={draft.windFromDeg} unit="° from" min={0} max={359} onChange={v => set({ windFromDeg: v })} />
+              </ParamRow>
+              <ParamRow label="Gusts" changed={draft.policy.includeGusts !== s.policy.includeGusts || (draft.policy.includeGusts && draft.gustMph !== mph(s.weather.gustMps))}>
+                {draft.policy.includeGusts && <InlineNumber label="Peak gust" value={draft.gustMph} unit="mph" min={0} max={100} onChange={v => set({ gustMph: v })} />}
+                <Switch label="Include gusts" checked={draft.policy.includeGusts} onChange={on => setPolicy({ includeGusts: on })} />
+              </ParamRow>
+              <ParamRow label="Humidity" changed={draft.policy.includeHumidity !== s.policy.includeHumidity || (draft.policy.includeHumidity && draft.policy.humidityPct !== s.policy.humidityPct)}>
+                {draft.policy.includeHumidity && (
+                  <InlineNumber label="Relative humidity" value={draft.policy.humidityPct} unit="%" min={0} max={100} onChange={v => setPolicy({ humidityPct: v })} />
                 )}
-              </label>
-              <label className={`qradio${!draft.policy.keepPinsOnRerank ? ' is-on' : ''}`}>
-                <input type="radio" name="rerank" checked={!draft.policy.keepPinsOnRerank} onChange={() => setPolicy({ keepPinsOnRerank: false })} />
-                Release overrides and use the new automatic order
-              </label>
-              <p className="csub">Kept pins are revalidated after rerank. New unreachable requests leave the ground queue; critical delays require renewed review.</p>
-            </fieldset>
+                <Switch label="Include humidity" checked={draft.policy.includeHumidity} onChange={on => setPolicy({ includeHumidity: on })} />
+              </ParamRow>
 
+              <p className="qrows__group">When the queue reranks</p>
+              <ParamRow label="Manual overrides" hint={pins.size ? `${pins.size} pinned in this draft` : undefined} changed={draft.policy.keepPinsOnRerank !== s.policy.keepPinsOnRerank}>
+                <span className="qseg" role="group" aria-label="Manual overrides on rerank">
+                  <button type="button" aria-pressed={draft.policy.keepPinsOnRerank} className={draft.policy.keepPinsOnRerank ? 'is-on' : ''} onClick={() => setPolicy({ keepPinsOnRerank: true })}>
+                    Keep
+                  </button>
+                  <button type="button" aria-pressed={!draft.policy.keepPinsOnRerank} className={!draft.policy.keepPinsOnRerank ? 'is-on' : ''} onClick={() => setPolicy({ keepPinsOnRerank: false })}>
+                    Release
+                  </button>
+                </span>
+              </ParamRow>
+            </div>
+
+            <p className="qparams__foot">Weather changes the fire-arrival forecast; slack is then recomputed. Inputs are synthetic, not a live forecast.</p>
             <div className="qparams__actions">
               <button
                 type="button"
@@ -666,7 +655,7 @@ export function QueuePage() {
                   setDraft(d => ({ ...d, policy: { ...s.policy, distancePreference: { enabled: false, weight: 0 }, includeGusts: false, includeHumidity: false, humidityPct: 25, keepPinsOnRerank: true }, windMph: mph(s.weather.windSpeedMps), windFromDeg: Math.round(s.weather.windFromDeg), gustMph: mph(s.weather.gustMps) }))
                 }
               >
-                Reset to scenario defaults
+                Reset to defaults
               </button>
               <button type="button" className="cbtn cbtn--dark" disabled={!dirty || busy !== null} onClick={generatePreview}>
                 <img src={refreshIcon} width={14} height={14} alt="" />
@@ -694,50 +683,6 @@ export function QueuePage() {
         </div>
       </main>
 
-      <section className="qapply">
-        <div>
-          <h2>Review before applying</h2>
-          <ol className="qsteps">
-            <li className={step > 1 ? 'is-done' : 'is-current'}>{step > 1 && <img src={checkCircle} width={14} height={14} alt="" />}1 Edit draft</li>
-            <li aria-hidden>→</li>
-            <li className={step === 2 ? 'is-current' : step > 2 ? 'is-done' : ''}>{step > 2 && <img src={checkCircle} width={14} height={14} alt="" />}2 Preview &amp; review</li>
-            <li aria-hidden>→</li>
-            <li className={step === 3 ? 'is-current' : ''}>3 Apply</li>
-          </ol>
-        </div>
-        <div className="qapply__ack">
-          <label className="qcheck">
-            <input type="checkbox" checked={ack} disabled={!needsAck} onChange={e => setAck(e.target.checked)} />
-            {needsAck ? 'I have reviewed the critical delays and accept responsibility for this manual override.' : 'No critical requests are displaced by this draft.'}
-          </label>
-          <p>
-            Required: fresh ranking preview{needsReason ? ' + commander reason' : ''}
-            {needsAck ? ' + safety acknowledgement' : ''}. Applying logs the reason, parameters and overrides.
-          </p>
-          {error && <p className="cerror">{error}</p>}
-        </div>
-        <div className="qapply__actions">
-          <div>
-            <button
-              type="button"
-              className="cbtn"
-              disabled={!dirty}
-              onClick={() => {
-                localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-                setSavedAt(Date.now());
-              }}
-            >
-              Save draft
-            </button>
-            <button type="button" className="cbtn cbtn--dark" disabled={!canApply} onClick={apply}>
-              <img src={checkIcon} width={14} height={14} alt="" />
-              {busy === 'apply' ? 'Applying…' : 'Apply to simulation'}
-            </button>
-          </div>
-          <p>{!dirty ? 'No changes to apply · live queue unchanged' : !previewFresh ? 'Generate a preview to continue' : savedAt ? `Draft saved ${clockHMTz(savedAt)}` : 'Ready to apply'}</p>
-        </div>
-      </section>
-
       <SafetyFooter snapshotLabel={`SNAPSHOT ${clockHMSTz(s.updatedAtMs)}`} />
     </div>
   );
@@ -750,6 +695,7 @@ interface RowProps {
   algoPos: number;
   pinned: boolean;
   locked: boolean;
+  snapshot: CommandSnapshot;
   canDrag: boolean;
   nowS: number;
   dropBefore: boolean;
@@ -765,6 +711,7 @@ function Row(p: RowProps) {
   const { row: r, draftPos, algoPos, pinned, locked } = p;
   const level = r.request.level;
   const shift = draftPos - algoPos;
+  const status = alertStatus(r, p.snapshot);
   return (
     <>
       {p.dropBefore && (
@@ -836,50 +783,66 @@ function Row(p: RowProps) {
           <p className={`qlevel qlevel--${level}`}>{level.toUpperCase()}</p>
         </td>
         <td>
-          {locked ? (
-            <span className="muted">{r.unit?.status === 'on_scene' ? 'On scene · locked' : 'En route · locked'}</span>
-          ) : pinned ? (
-            <>
-              <p className="tone-amber qmanual">
-                MANUAL · {algoPos} → {draftPos}
-              </p>
+          <span className="cstatus">
+            <span className={`cstatus__pill cstatus__pill--${pinned ? 'amber' : status.tone}`}>{pinned ? 'Manual pin' : status.label}</span>
+            {status.flagged && <span className="cstatus__pill cstatus__pill--red">Flagged</span>}
+          </span>
+          {pinned ? (
+            <p className="qchange">
+              <span className="mono tone-amber">
+                {algoPos} → {draftPos}
+              </span>{' '}
+              ·{' '}
               <button type="button" className="qlink" onClick={p.onRelease}>
-                Release override
+                Release
               </button>
-            </>
-          ) : shift > 0 ? (
-            <span className="tone-red">
-              ↓ {shift} ground position{shift === 1 ? '' : 's'}
-            </span>
-          ) : shift < 0 ? (
-            <span className="tone-green">
-              ↑ {-shift} ground position{shift === -1 ? '' : 's'}
-            </span>
-          ) : (
-            <span className="muted">Unchanged</span>
-          )}
+            </p>
+          ) : shift !== 0 && !locked ? (
+            <p className={`qchange ${shift > 0 ? 'tone-red' : 'tone-green'}`}>
+              {shift > 0 ? '↓' : '↑'} {Math.abs(shift)} position{Math.abs(shift) === 1 ? '' : 's'} in draft
+            </p>
+          ) : null}
         </td>
       </tr>
     </>
   );
 }
 
-function NumberField(props: { label: string; unit: string; value: number; min: number; max: number; hint?: string; disabled?: boolean; onChange: (v: number) => void }) {
+function ParamRow({ label, hint, changed, children }: { label: string; hint?: string; changed?: boolean; children: ReactNode }) {
   return (
-    <label className="qnumber">
-      <span>{props.label}</span>
-      <span className="qnumber__input">
-        <input
-          type="number"
-          min={props.min}
-          max={props.max}
-          value={props.value}
-          disabled={props.disabled}
-          onChange={e => props.onChange(Math.min(props.max, Math.max(props.min, Number(e.target.value) || 0)))}
-        />
-        <span>{props.unit}</span>
-      </span>
-      {props.hint && <span className="qnumber__hint">{props.hint}</span>}
+    <div className={`qrow${changed ? ' is-changed' : ''}`}>
+      <div className="qrow__label">
+        <p>
+          {label}
+          {changed && <span className="qrow__dot" title="Changed in this draft" />}
+        </p>
+        {hint && <p className="qrow__hint">{hint}</p>}
+      </div>
+      <div className="qrow__control">{children}</div>
+    </div>
+  );
+}
+
+function Switch({ label, checked, onChange }: { label: string; checked: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} aria-label={label} className={`qswitch${checked ? ' is-on' : ''}`} onClick={() => onChange(!checked)}>
+      <span />
+    </button>
+  );
+}
+
+function InlineNumber(props: { label: string; unit: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
+  return (
+    <label className="qnum">
+      <input
+        type="number"
+        aria-label={props.label}
+        min={props.min}
+        max={props.max}
+        value={props.value}
+        onChange={e => props.onChange(Math.min(props.max, Math.max(props.min, Number(e.target.value) || 0)))}
+      />
+      <span>{props.unit}</span>
     </label>
   );
 }
