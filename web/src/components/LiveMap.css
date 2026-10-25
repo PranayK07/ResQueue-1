@@ -1,0 +1,86 @@
+.live-map {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+  overflow: hidden;
+  background: var(--map-ground);
+  border-radius: 8px;
+}
+
+.live-map__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.live-map__context,
+.live-map__disclaimer {
+  position: absolute;
+  left: 8px;
+  color: var(--text-muted);
+  line-height: normal;
+  pointer-events: none;
+}
+
+.live-map__context {
+  top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.live-map__disclaimer {
+  bottom: 16px;
+  font-size: 10px;
+}
+
+.live-map__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  background: rgb(233 235 221 / 0.85);
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ─── Pin marker (Figma: Entrance vicinity / Entrance pin / Pin center) ─── */
+
+.pin {
+  position: relative;
+  width: 58px;
+  height: 58px;
+}
+
+.pin img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  pointer-events: none;
+}
+
+.pin__vicinity {
+  left: 0;
+  top: 0;
+}
+
+.pin__body {
+  left: 14px;
+  top: 3.2px;
+}
+
+.pin__center {
+  left: 24px;
+  top: 13.2px;
+}
+
+.maplibregl-marker.maplibregl-marker-draggable {
+  cursor: grab;
+}
+
+.live-map .maplibregl-ctrl-attrib {
+  font-size: 10px;
+}

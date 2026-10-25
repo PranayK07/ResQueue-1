@@ -1,0 +1,49 @@
+.suggestions {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 6px 16px rgb(32 40 45 / 0.12);
+}
+
+.suggestions button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestions button:hover,
+.suggestions button:focus-visible {
+  background: var(--surface);
+  outline: none;
+}
+
+.suggestions__street {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.suggestions__area,
+.suggestions__empty {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.suggestions__empty {
+  padding: 8px 12px;
+}

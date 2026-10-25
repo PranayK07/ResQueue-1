@@ -76,6 +76,7 @@ agents/rescue/mesh.py         roster: names, ports, seed-derived addresses, loca
 agents/scenarios/             demo worlds (synthetic)
 agents/scripts/seed_scenario.py
 scripts/dev.sh                start DB -> publish -> seed -> run all agents
+web/                          frontend (Vite + React + TS): cd web && npm install && npm run dev
 ```
 
 ### Status
@@ -90,7 +91,7 @@ scripts/dev.sh                start DB -> publish -> seed -> run all agents
 | `hazard` agent (fire + weather + forecast) | **done**: simulated fire spread every tick (NASA FIRMS detections with `FIRE_SOURCE=firms`, untested without a key); live NWS wind that defers to the commander's manual wind; ensemble arrival forecast; answers the commander's `HazardReportRequest` |
 | `commander` agent (ASI:One) | working: pools the hazard agent's fire + weather report (one uAgents round trip) with queue state; login, status, fire, weather, wind, release wind, pause/resume, pin/unpin |
 | `danger`, `delegation`, `station` | **stubs**: subscribe and react; the TODO in each file says what to build (core math is already in `rescue/core`) |
-| Frontend | not started; generate bindings with `spacetime generate --lang typescript --out-dir <web>/src/module_bindings --module-path spacetimedb` |
+| Frontend (`web/`, Vite + React) | **Caller** (`#/`, C01–C07): live geolocation, MapLibre map, Photon address search; sending simulated in `web/src/lib/simulatedDispatch.ts`. **Responder phone** (`#/responder[/<unitId>]`) and **incident command** (`#/command`, `#/command/queue`; Units tab shows each unit's route and lets command reorder/reassign its stops): built from Figma and running on one shared simulated world (`web/src/ops/sim/`: fire spread, slack + least-slack-first planner, dispatch) that emits the same rows as the SpacetimeDB tables/views. To go live, implement `ResponderSource` / `CommandSource` in `web/src/ops/sources.ts` and swap them in `web/src/ops/hooks.ts`. Queue-position pins, unit assignments and policy parameters have no reducer yet. |
 
 ## Quick start
 

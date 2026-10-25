@@ -1,0 +1,510 @@
+/* Responder phone: dark, high-contrast field UI. */
+
+.rapp {
+  --r-bg: #0b0f12;
+  --r-panel: #12181d;
+  --r-raised: #1b232a;
+  --r-line: #34414a;
+  --r-ink: #f4f6f7;
+  --r-muted: #adb9c1;
+  --r-red: #ff958a;
+  --r-amber: #f0be73;
+  --r-active-bg: #29241c;
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 390px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--r-bg);
+  color: var(--r-ink);
+}
+
+.rapp p,
+.rapp h1 {
+  margin: 0;
+}
+
+.rapp :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.rapp__panes {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ─── Last-updated bar ─── */
+
+.rbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px;
+  background: var(--r-panel);
+  border-bottom: 1px solid var(--r-line);
+  white-space: nowrap;
+}
+
+.rbar__updated {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+
+.rbar__right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rbar__sim {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rbar__switch {
+  padding: 4px 7px;
+  border: 1px solid var(--r-line);
+  border-radius: 4px;
+  color: var(--r-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rbar__switch:hover {
+  color: var(--r-ink);
+  border-color: var(--r-muted);
+}
+
+/* ─── Station queue ─── */
+
+.queue {
+  display: flex;
+  flex: 0 0 50%;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+  background: var(--r-bg);
+  border-left: 1px solid var(--r-line);
+}
+
+.queue__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.queue__heading h1 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.queue__heading p {
+  color: var(--r-muted);
+  font-size: 12px;
+}
+
+.queue__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 8px 8px;
+}
+
+.queue__empty {
+  padding: 10px;
+  border: 1px dashed var(--r-line);
+  border-radius: 4px;
+  color: var(--r-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.queue__rank-label {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  color: var(--r-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.queue__more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 44px;
+  background: none;
+  border: none;
+  color: var(--r-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ─── Request card ─── */
+
+.rcard {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  padding: 10px;
+  background: var(--r-panel);
+  border: 1px solid var(--r-line);
+  border-radius: 4px;
+  color: var(--r-ink);
+  font: inherit;
+  line-height: normal;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rcard:hover {
+  border-color: var(--r-muted);
+}
+
+.rcard--active {
+  background: var(--r-active-bg);
+  border: 2px solid var(--accent);
+}
+
+.rcard--active:hover {
+  border-color: var(--accent);
+}
+
+.rcard__eyebrow {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rcard__identity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rcard__identity img {
+  display: block;
+}
+
+.rcard__code,
+.rcard__slack,
+.detail__code,
+.slack-box__value {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+}
+
+.rcard__code {
+  font-size: 18px;
+}
+
+.rcard__clock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rcard__clock-label {
+  color: var(--r-muted);
+  font-size: 11px;
+}
+
+.rcard__slack {
+  font-size: 24px;
+  white-space: nowrap;
+}
+
+.rcard__people {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.rcard__eta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.rcard__eta span {
+  color: var(--r-muted);
+}
+
+.rcard__note {
+  color: var(--accent);
+  font-size: 11px;
+}
+
+/* Level colours apply to the slack readout too. */
+.rcard--critical .rcard__slack,
+.rcard--unreachable .rcard__slack { color: var(--r-red); }
+.rcard--high .rcard__slack { color: var(--r-amber); }
+.rcard--moderate .rcard__slack,
+.rcard--unknown .rcard__slack { color: var(--r-ink); }
+
+.level {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.level img {
+  display: block;
+}
+
+.level--critical,
+.level--unreachable { color: var(--r-red); }
+.level--high { color: var(--r-amber); }
+.level--moderate,
+.level--unknown { color: var(--r-muted); }
+
+/* ─── Mission detail ─── */
+
+.detail {
+  display: flex;
+  flex: 0 0 50%;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+  background: var(--r-panel);
+  border-left: 1px solid var(--r-line);
+}
+
+.detail__back {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 5px;
+  height: 48px;
+  padding: 0 10px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--r-line);
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.detail__back img {
+  display: block;
+}
+
+.detail__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+}
+
+.detail__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail__eyebrow {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.detail__code {
+  font-size: 24px;
+  line-height: normal;
+}
+
+.detail__destination {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail__street {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.detail__area {
+  color: var(--r-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.detail__people {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.detail__headcount {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.detail__headcount img {
+  display: block;
+}
+
+.detail__need {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.detail__note {
+  color: var(--r-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.detail__eta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.detail__eta-value {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.detail__eta-time {
+  color: var(--r-muted);
+  font-size: 12px;
+}
+
+.slack-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid var(--r-line);
+  border-radius: 4px;
+  background: var(--r-raised);
+}
+
+.slack-box--critical,
+.slack-box--unreachable {
+  background: #281e1c;
+  border-color: #66433c;
+}
+
+.slack-box--high {
+  background: #29241c;
+  border-color: #5c4a2c;
+}
+
+.slack-box__label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.slack-box__value {
+  font-size: 28px;
+  white-space: nowrap;
+}
+
+.slack-box--critical .slack-box__label,
+.slack-box--critical .slack-box__value,
+.slack-box--unreachable .slack-box__label,
+.slack-box--unreachable .slack-box__value { color: var(--r-red); }
+.slack-box--high .slack-box__label,
+.slack-box--high .slack-box__value { color: var(--r-amber); }
+
+.slack-box__hint {
+  color: var(--r-muted);
+  font-size: 11px;
+}
+
+.detail__reason {
+  color: var(--r-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.detail__divider {
+  height: 1px;
+  background: var(--r-line);
+}
+
+.detail__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.detail__error {
+  color: var(--r-red);
+  font-size: 12px;
+}
+
+.raction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 44px;
+  background: var(--r-raised);
+  border: 1px solid var(--r-line);
+  border-radius: 4px;
+  color: var(--r-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.raction img {
+  display: block;
+}
+
+.raction--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--r-bg);
+}
+
+.raction--danger {
+  border-color: var(--r-red);
+  color: var(--r-red);
+}
+
+.raction:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
