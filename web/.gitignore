@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env.local
+.env.*.local
+# Playwright output
+test-results/
+playwright-report/
+blob-report/
+tests/__screens__/

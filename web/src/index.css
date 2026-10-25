@@ -1,0 +1,140 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/geist-mono";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Spec tokens (frontend-spec section 2), mapped into shadcn's theme below.
+ * The app is dark only. One naming clash: the spec's --muted (#8A93A3) is a
+ * text color, which shadcn calls --muted-foreground; shadcn's --muted is a
+ * surface. --guide is for the guide layer and focus rings only, never data.
+ */
+:root {
+  color-scheme: dark;
+
+  --bg: #050607;
+  --surface: #0c0e11;
+  --surface-2: #13161b;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #f2f4f7;
+  --muted-foreground: #8a93a3;
+  --guide: #7ab1fe;
+  --lvl-unreachable: #c084fc;
+  --lvl-critical: #ff5533;
+  --lvl-high: #ff9f1c;
+  --lvl-moderate: #f2c94c;
+  --lvl-unknown: #6b7280;
+  --ok: #3dd68c;
+
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface-2);
+  --popover-foreground: var(--text);
+  --primary: var(--text);
+  --primary-foreground: var(--bg);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface-2);
+  --accent: #1a1e25;
+  --accent-foreground: var(--text);
+  --destructive: #ff5533;
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: var(--guide);
+  --radius: 12px;
+}
+
+@theme inline {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-guide: var(--guide);
+  --color-ok: var(--ok);
+  --color-lvl-unreachable: var(--lvl-unreachable);
+  --color-lvl-critical: var(--lvl-critical);
+  --color-lvl-high: var(--lvl-high);
+  --color-lvl-moderate: var(--lvl-moderate);
+  --color-lvl-unknown: var(--lvl-unknown);
+
+  /* rounded-frame for big product frames, rounded-card for cards. */
+  --radius-frame: 20px;
+  --radius-card: 12px;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Small uppercase section label ("STATION LINES", "EVENT LOG"). */
+@utility label-caps {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Mono tag naming a UI part (guide anchors, ids, callsigns). */
+@utility mono-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    background-color: var(--bg);
+  }
+  body {
+    @apply min-h-dvh bg-background text-foreground antialiased;
+  }
+}
+
+/* Nothing glides or pulses for people who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
