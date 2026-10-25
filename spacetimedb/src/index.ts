@@ -17,6 +17,7 @@ import {
   type ViewCtx,
 } from 'spacetimedb/server';
 import spacetimedb, {
+  AssessmentInput,
   DangerInput,
   FireCellInput,
   NewsInput,
@@ -29,7 +30,10 @@ import spacetimedb, {
   UnitInput,
   UnreachableInput,
   consentTimer,
+  fieldReport,
   helpRequest,
+  reportAssessment,
+  requestMessage,
   simTickTimer,
   queueEntry,
   travelEstimate,
@@ -49,7 +53,7 @@ const NEWS_KEEP = 300;
 const SITUATION_KEEP = 2000;
 const EVENT_LOG_KEEP = 400n;
 const MIN_CONSENT_MIN = 15;
-const MAX_CONSENT_MIN = 240;
+const MAX_CONSENT_MIN = 24 * 60; // a request (and the location it shares) lives at most 24 h unless extended; "I'm safe" deletes it at once
 const LOCKED_EXTENSION_MICROS = 15n * 60n * 1_000_000n;
 
 const AGENT_ROLES = [
@@ -173,6 +177,10 @@ function closeRequest(ctx: Ctx, r: Request, status: string, actor: string, why: 
   for (const f of [...ctx.db.flag.requestId.filter(r.id)]) {
     if (!f.resolved) ctx.db.flag.id.update({ ...f, resolved: true, resolution: `request ${status}` });
   }
+  // What the resident sent (photos, voice, text) goes with the location.
+  for (const rep of [...ctx.db.fieldReport.requestId.filter(r.id)]) ctx.db.fieldReport.id.delete(rep.id);
+  for (const m of [...ctx.db.requestMessage.requestId.filter(r.id)]) ctx.db.requestMessage.id.delete(m.id);
+  ctx.db.reportAssessment.requestId.delete(r.id);
   ctx.db.helpRequest.id.update({
     ...r,
     status,
@@ -640,7 +648,7 @@ export const clear_incident = spacetimedb.reducer(ctx => {
 export const record_situation = spacetimedb.reducer(
   { s: SituationInput },
   (ctx, { s }) => {
-    requireAgent(ctx, 'delegation');
+    requireAgent(ctx, 'commander', 'delegation');
     const row = ctx.db.situation.insert({ id: 0n, at: ctx.timestamp, ...s, summary: s.summary.slice(0, 1500), stationsJson: s.stationsJson.slice(0, 2000), staleReasons: s.staleReasons.slice(0, 300) });
     if (row.id > BigInt(SITUATION_KEEP)) ctx.db.situation.id.delete(row.id - BigInt(SITUATION_KEEP));
   }
@@ -701,19 +709,120 @@ export const extend_consent = spacetimedb.reducer(
   }
 );
 
+// ─── Field reports (resident -> intake agent -> commander) ──────────────────
+
+const REPORT_KINDS = ['text', 'voice', 'image', 'video'];
+
+/** A signed-in human who may talk to this request's resident: a responder of the station whose queue holds it,
+ *  or the incident commander. Never an agent: this is a person-to-person conversation. */
+function requireResponder(ctx: Ctx, requestId: bigint) {
+  const op = ctx.db.operator.identity.find(ctx.sender);
+  const q = ctx.db.queueEntry.requestId.find(requestId);
+  const ok = op && (op.role === 'commander' || (op.role === 'responder' && q !== null && q !== undefined && q.stationId === op.stationId));
+  if (!op || !ok) throw new SenderError("requires a signed-in responder of the request's station (or the incident commander)");
+  return { op, actor: `${op.role}:${op.name}` };
+}
+const MAX_REPORTS_PER_REQUEST = 30;
+
+/** A resident adds context to their request: a message, a voice transcript, a photo or a video
+ *  (URL + sampled frames). Called by the resident's own app (their request), or by the intake agent
+ *  for an ASI:One user (`externalRef` must match). It is stored for the intake agent to analyze and the
+ *  console to show; nothing here changes danger or queues. */
+export const submit_report = spacetimedb.reducer(
+  { requestId: t.u64(), externalRef: t.string(), kind: t.string(), text: t.string(), mediaUrl: t.string(), frameUrls: t.string() },
+  (ctx, a) => {
+    const r = requireRequest(ctx, a.requestId);
+    if (!r.resident.isEqual(ctx.sender) || r.externalRef !== a.externalRef) throw new SenderError('not your request');
+    if (!isActive(r)) throw new SenderError('request is closed');
+    if (!REPORT_KINDS.includes(a.kind)) throw new SenderError(`kind must be ${REPORT_KINDS.join('|')}`);
+    if (a.text.length > 4000) throw new SenderError('text too long (max 4000 chars)');
+    for (const u of [a.mediaUrl, ...a.frameUrls.split('\n')].filter(Boolean)) {
+      if (!u.startsWith('https://') || u.length > 1000) throw new SenderError('media must be https URLs');
+    }
+    if (a.frameUrls.split('\n').filter(Boolean).length > 8) throw new SenderError('at most 8 video frames');
+    if (!a.text.trim() && !a.mediaUrl && !a.frameUrls) throw new SenderError('empty report');
+    if ([...ctx.db.fieldReport.requestId.filter(r.id)].length >= MAX_REPORTS_PER_REQUEST) throw new SenderError('too many reports on this request');
+    ctx.db.fieldReport.insert({
+      id: 0n, requestId: r.id, kind: a.kind, text: a.text, mediaUrl: a.mediaUrl, frameUrls: a.frameUrls, createdAt: ctx.timestamp,
+    });
+    log(ctx, 'resident', 'report_new', `Request #${r.id}: new ${a.kind} report`, r.id);
+  }
+);
+
+/** Record the intake agent's reading of a request's reports (upsert). The intake agent sends its reading
+ *  to the commander as an agent message; the commander, which orchestrates the subagents, records it here. */
+export const publish_assessment = spacetimedb.reducer(
+  { a: AssessmentInput },
+  (ctx, { a }) => {
+    const ag = requireAgent(ctx, 'commander');
+    const r = ctx.db.helpRequest.id.find(a.requestId);
+    if (!r || !isActive(r)) return;
+    const prev = ctx.db.reportAssessment.requestId.find(r.id);
+    const row = {
+      ...a,
+      needs: cleanNeeds(a.needs),
+      people: Math.min(a.people, 50),
+      fireDistanceM: Number.isFinite(a.fireDistanceM) ? a.fireDistanceM : -1,
+      confidence: Math.max(0, Math.min(1, a.confidence)),
+      urgency: Math.max(0, Math.min(1, a.urgency)),
+      roadNote: a.roadNote.slice(0, 300),
+      summary: a.summary.slice(0, 500),
+      residentReply: a.residentReply.slice(0, 500),
+      analyzer: a.analyzer.slice(0, 80),
+      updatedAt: ctx.timestamp,
+    };
+    if (prev) ctx.db.reportAssessment.requestId.update(row);
+    else ctx.db.reportAssessment.insert(row);
+    bump(ctx, 'requests');
+    const claims = [a.trapped && 'TRAPPED', a.injured && 'injured', a.fireSeen && 'fire seen', a.roadBlocked && 'road blocked']
+      .filter(Boolean).join(', ');
+    log(ctx, `${ag.role}:${ag.name}`, 'assessed', `Request #${r.id} assessed (${a.analyzer})${claims ? `: ${claims}` : ''}`, r.id);
+  }
+);
+
+/** A responder (or the commander) writes to the resident, e.g. to check what they reported. The resident sees it
+ *  in their app (ops_message) or in ASI:One (the intake agent relays it). */
+export const message_resident = spacetimedb.reducer(
+  { requestId: t.u64(), text: t.string() },
+  (ctx, { requestId, text }) => {
+    const r = requireRequest(ctx, requestId);
+    const { op, actor } = requireResponder(ctx, requestId);
+    if (!isActive(r)) throw new SenderError('request is closed');
+    if (!text.trim() || text.length > 1000) throw new SenderError('message must be 1..1000 chars');
+    ctx.db.requestMessage.insert({ id: 0n, requestId, from: op.role, author: op.name, text: text.trim(), createdAt: ctx.timestamp });
+    log(ctx, actor, 'message_sent', `Request #${requestId}: ${op.role} messaged the resident`, requestId);
+  }
+);
+
+/** The resident answers. Their answer also goes in as a text report, so the intake agent re-reads the whole
+ *  picture with it (it is still text: a responder's confirmation outranks it). */
+export const reply_to_responder = spacetimedb.reducer(
+  { requestId: t.u64(), externalRef: t.string(), text: t.string() },
+  (ctx, { requestId, externalRef, text }) => {
+    const r = requireRequest(ctx, requestId);
+    if (!r.resident.isEqual(ctx.sender) || r.externalRef !== externalRef) throw new SenderError('not your request');
+    if (!isActive(r)) throw new SenderError('request is closed');
+    if (!text.trim() || text.length > 1000) throw new SenderError('message must be 1..1000 chars');
+    if ([...ctx.db.requestMessage.requestId.filter(requestId)].length >= 200) throw new SenderError('too many messages on this request');
+    ctx.db.requestMessage.insert({ id: 0n, requestId, from: 'resident', author: '', text: text.trim(), createdAt: ctx.timestamp });
+    ctx.db.fieldReport.insert({ id: 0n, requestId, kind: 'text', text: text.trim(), mediaUrl: '', frameUrls: '', createdAt: ctx.timestamp });
+    log(ctx, 'resident', 'message_reply', `Request #${requestId}: resident replied to responders`, requestId);
+  }
+);
+
 // ─── Danger agent ───────────────────────────────────────────────────────────
 
 export const publish_danger = spacetimedb.reducer(
   { assessments: t.array(DangerInput), travel: t.array(TravelInput) },
   (ctx, { assessments, travel }) => {
-    const ag = requireAgent(ctx, 'danger');
+    const ag = requireAgent(ctx, 'commander', 'danger');
     const version = bump(ctx, 'danger');
     for (const d of assessments) {
       if (!LEVELS.includes(d.level)) throw new SenderError(`bad level ${d.level}`);
       const r = ctx.db.helpRequest.id.find(d.requestId);
       if (!r || !isActive(r)) continue;
       if (d.level !== r.level && (d.level === 'critical' || d.level === 'unreachable')) {
-        log(ctx, `danger:${ag.name}`, 'level', `Request #${r.id} is now ${d.level.toUpperCase()} (slack ${(d.slackS / 60).toFixed(0)} min)`, r.id);
+        log(ctx, `${ag.role}:${ag.name}`, 'level', `Request #${r.id} is now ${d.level.toUpperCase()} (slack ${(d.slackS / 60).toFixed(0)} min)`, r.id);
       }
       ctx.db.helpRequest.id.update({
         ...r, level: d.level, slackS: d.slackS, fireEtaS: d.fireEtaS, extractS: d.extractS,
@@ -736,8 +845,8 @@ export const publish_danger = spacetimedb.reducer(
 export const publish_plan = spacetimedb.reducer(
   { policy: t.string(), entries: t.array(PlanEntryInput), unreachable: t.array(UnreachableInput) },
   (ctx, { policy, entries, unreachable }) => {
-    const ag = requireAgent(ctx, 'delegation');
-    const actor = `delegation:${ag.name}`;
+    const ag = requireAgent(ctx, 'commander', 'delegation');
+    const actor = `${ag.role}:${ag.name}`;
     const planVersion = bump(ctx, 'plan');
     const planned = new Set<bigint>();
 
@@ -937,13 +1046,14 @@ export const resolve_flag = spacetimedb.reducer(
 type Scope = { kind: 'all' } | { kind: 'station'; stationId: number } | { kind: 'owner' } | { kind: 'none' };
 
 /** Least privilege: data feeds see no people; a station sees only its own
- *  queue; the intake agent sees only what it submitted; command sees all. */
+ *  queue; command (the commander agent, which runs danger + planning) sees all.
+ *  The intake agent also sees all requests: it reads every resident's reports
+ *  to analyze them, whichever channel (app or ASI:One) they came in on. */
 function scopeFor(ctx: VCtx): Scope {
   const a = ctx.db.agent.identity.find(ctx.sender);
   if (a) {
     if (a.role === 'station') return { kind: 'station', stationId: a.stationId };
-    if (a.role === 'intake') return { kind: 'owner' };
-    if (['danger', 'delegation', 'commander', 'scenario'].includes(a.role)) return { kind: 'all' };
+    if (['danger', 'delegation', 'commander', 'scenario', 'intake'].includes(a.role)) return { kind: 'all' };
     return { kind: 'none' };
   }
   const op = ctx.db.operator.identity.find(ctx.sender);
@@ -1009,6 +1119,46 @@ export const ops_flag = spacetimedb.view(
   ctx => (scopeFor(ctx).kind === 'all' ? [...ctx.db.flag.iter()] : [])
 );
 
+/** Reports / assessments for the requests a viewer may see (command and intake: all; a station:
+ *  the requests in its queue; a resident: their own). Feeds the firefighter console. */
+function visibleRequestIds(ctx: VCtx): Set<bigint> | 'all' {
+  const s = scopeFor(ctx);
+  if (s.kind === 'all') return 'all';
+  if (s.kind === 'station') return new Set([...ctx.db.queueEntry.stationId.filter(s.stationId)].map(q => q.requestId));
+  return new Set([...ctx.db.helpRequest.resident.filter(ctx.sender)].map(r => r.id));
+}
+
+export const ops_report = spacetimedb.view(
+  { name: 'ops_report', public: true },
+  t.array(fieldReport.rowType),
+  ctx => {
+    const ids = visibleRequestIds(ctx);
+    if (ids === 'all') return [...ctx.db.fieldReport.iter()];
+    return [...ids].flatMap(id => [...ctx.db.fieldReport.requestId.filter(id)]);
+  }
+);
+
+export const ops_assessment = spacetimedb.view(
+  { name: 'ops_assessment', public: true },
+  t.array(reportAssessment.rowType),
+  ctx => {
+    const ids = visibleRequestIds(ctx);
+    if (ids === 'all') return [...ctx.db.reportAssessment.iter()];
+    return [...ids].map(id => ctx.db.reportAssessment.requestId.find(id)).filter(a => a !== null && a !== undefined);
+  }
+);
+
+/** The responder <-> resident conversation: command and intake see all; a station its queue's; a resident their own. */
+export const ops_message = spacetimedb.view(
+  { name: 'ops_message', public: true },
+  t.array(requestMessage.rowType),
+  ctx => {
+    const ids = visibleRequestIds(ctx);
+    if (ids === 'all') return [...ctx.db.requestMessage.iter()];
+    return [...ids].flatMap(id => [...ctx.db.requestMessage.requestId.filter(id)]);
+  }
+);
+
 /** What a resident's phone shows: only their own request(s), with a coarse
  *  reason, never the scoring formula or anyone else's data. */
 const ResidentCard = t.row('ResidentCardRow', {
@@ -1024,6 +1174,7 @@ const ResidentCard = t.row('ResidentCardRow', {
   needs: t.string(),
   consentExpiresAt: t.timestamp(),
   createdAt: t.timestamp(),
+  intakeReply: t.string(), // the intake agent's answer to what the resident sent ('' = nothing sent / not read yet)
 });
 
 export const my_requests = spacetimedb.view(
@@ -1056,6 +1207,7 @@ export const my_requests = spacetimedb.view(
         needs: r.needs,
         consentExpiresAt: r.consentExpiresAt,
         createdAt: r.createdAt,
+        intakeReply: ctx.db.reportAssessment.requestId.find(r.id)?.residentReply ?? '',
       });
     }
     return out;

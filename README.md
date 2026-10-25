@@ -22,7 +22,7 @@ see the same live state through SpacetimeDB.
           │                                     (residents, commander)
           ▼                                              │
  ┌───────────────────────── Fetch.ai agent mesh (uAgents) ──────────────────────────┐
- │ hazard · news · danger · delegation · station-1..3 · intake · commander            │
+ │ commander (head: reports → danger → planner/RL) · hazard · news · intake            │
  └───────────────▲──────────────────────────────────────────────┬───────────────────┘
       subscribe  │ live row deltas (WebSocket)                  │ reducer calls (validated, atomic)
                  │                                              ▼
@@ -30,7 +30,8 @@ see the same live state through SpacetimeDB.
  │ SpacetimeDB module (spacetimedb/src): shared world state + rules                 │
  │  public:  sim_clock · grid · weather · fire_cell · forecast_cell · station ·      │
  │           unit · road_closure · world_version · event_log · agent · news_article│
- │  private: help_request · queue_entry · travel_estimate · flag                    │
+ │  private: help_request · queue_entry · travel_estimate · flag · field_report ·   │
+ │           report_assessment                                                      │
  │  views:   my_requests (resident) · ops_* (role-scoped: command/station/intake)   │
  │  timers:  sim_tick (1 s) · expire_consent (per request)                          │
  └─────────────────────────────────────────────────────────────────────────────────┘
@@ -41,19 +42,21 @@ see the same live state through SpacetimeDB.
 **Why SpacetimeDB is load-bearing:**
 - Agents never call each other to share state. Each agent subscribes to the
   tables it needs and reacts when a transaction commits. The chain runs wind
-  change → forecast → danger → delegation → every screen, all through the DB.
+  change → forecast → commander (danger → plan) → every screen, all through the DB;
+  a resident's photo → intake → commander → queue, the same way.
 - Every write is a reducer. That lets the database enforce the invariants no agent
   can bypass: a commander pin beats the policy, a committed unit can't be
   reassigned, and one active request per person.
 - Privacy is enforced at row level with per-sender views:
   - Residents see only their own card.
   - A station sees only its own queue.
-  - The intake agent sees only what it filed.
+  - The intake agent sees requests and their reports (it reads them all), nothing else.
   - Data-feed agents see no people at all.
 - Consent expiry is a scheduled reducer. Location is deleted in the same
   transaction that closes a request.
 
-**Why Fetch.ai is load-bearing:** each agent owns one job and has its own
+**Why Fetch.ai is load-bearing:** one head agent (`commander`) orchestrates three subagents, each
+with one data source: `hazard` (fire + weather), `news` (X via Bright Data), `intake` (residents). Each
 identity and role in the DB. The ASI:One agents (`intake`, `commander`) run the
 primary workflows entirely in chat over the Agent Chat Protocol, using
 Interactive Cards. Direct uAgents messages (`rescue/messages.py`) carry anything
@@ -71,7 +74,10 @@ agents/rescue/core/           pure models shared with the RL simulator
     routing.py                time-dependent travel times (road "closes" before the fire gets there)
     slack.py                  slack formula, levels, extraction time, vulnerability weight
     policy.py                 Policy interface + B0/B1 baselines + Lookahead placeholder
-agents/rescue/agents/         one module per agent (base.py = registration/subscription/heartbeat)
+agents/rescue/agents/         one module per agent: commander, hazard, news, intake (base.py = registration/subscription/heartbeat)
+agents/rescue/orchestrator/   the commander's engines: reports.py (weigh residents' claims), danger.py, planner.py (Situation + policy)
+agents/rescue/intake/         analysis.py: residents' text / voice / photos / video frames -> claims (Qwen3-VL on Hugging Face, keyword fallback)
+    core/reports.py           how far a resident's claims may move danger and queues (credibility, corroboration, plausibility)
 agents/rescue/hazard/         the hazard agent's engines: fire.py, weather.py, forecast.py
 agents/rescue/data/           external feeds: nws.py (wind), firms.py (NASA satellite fire detections), brightdata.py (X posts scraper)
 agents/rescue/news/           sources.py: trusted X accounts near the incident; signals.py: evacuations, closures, shelters, containment, acres, relevance
@@ -91,7 +97,7 @@ scripts/dev.sh                start DB -> publish -> seed -> run all agents
 | Python client (subscribe/replica/reconnect, reducer calls) | done, tested |
 | Agent base (register, subscribe, heartbeat, status protocol, local resolver) | done, tested |
 | `forecast` agent | **done**: re-forecasts on wind/fire change (~0.1 s) |
-| `intake` agent (ASI:One) | working: form card → submit → status → "I'm safe"; proactive updates |
+| `intake` agent (resident-facing) | **done**: reads every ping and its reports (text, voice transcript, photos, video frames) into an `Assessment` it sends the commander (uAgents, acknowledged and re-sent until it is), using an open vision-language model on Hugging Face (`Qwen/Qwen3-VL-30B-A3B-Instruct` by default; keyword fallback offline). Its ASI:One chat is a test harness. Vision path verified against a stub, not yet against the live router |
 | `hazard` agent (fire + weather + forecast) | **done**: simulated fire spread every tick (NASA FIRMS detections with `FIRE_SOURCE=firms`, untested without a key); live NWS wind that defers to the commander's manual wind; ensemble arrival forecast; answers the commander's `HazardReportRequest` |
 | `commander` agent (ASI:One) | working: pools the hazard agent's fire + weather report and the news agent's headlines with queue state; `news`, `refresh news`, `track <x.com post>`, `ping <lat> <lon> [place]`, `window <from> <to>` / `window live`; login, status, fire, weather, wind, release wind, pause/resume, pin/unpin |
 | `news` agent (Bright Data X) | **done**: follows trusted wildfire accounts on X near the incident (`news_sources.json`) through Bright Data's X Posts scraper (or replays `fixtures/`), scores relevance (incident name/places, recency, account trust and locality), extracts evacuations/closures/shelters & relief/containment/acres, stores in `news_article`; answers `NewsReportRequest` / `NewsRefreshRequest` / `NewsTrackRequest`. Real API untested without a key (mock-tested: `scripts/test_news.py`) |
@@ -114,7 +120,7 @@ MAILBOX_AGENTS=none scripts/dev.sh reset   # everything local, fresh data
 
 That starts SpacetimeDB on `127.0.0.1:3000`, publishes the module, loads
 `agents/scenarios/paradise_demo.json`, starts the sim clock at 30x, and launches
-all 9 agents. Useful commands:
+all 4 agents (commander, hazard, news, intake). Useful commands:
 
 ```bash
 spacetime sql --server local wildfire-rescue "SELECT name, role, status, detail FROM agent"
@@ -228,19 +234,42 @@ submitting.
 ## Data flow to the head agent
 
 ```
- hazard agent (fire + weather + forecast) ──FireReport/WeatherReport──┐
-                                                                      ├─▶ delegation (head) ──▶ Situation ──▶ SpacetimeDB `situation` table
- news agent (Bright Data → news_article)  ──NewsReport────────────────┘            │                             (typed columns, newest 2000 rows)
-                                                                                   └─▶ self.latest ─▶ dispatch policy (RL workstream)
- commander (ASI:One console) asks the same two agents on demand, only to show a human the picture
+ hazard agent (fire + weather + forecast) ──HazardReport (uAgents)──┐
+ news agent (X via Bright Data)           ──NewsReport (uAgents)────┼─▶ commander (head) ──▶ Situation ──▶ `situation` table
+ intake agent (resident ping + text /     ──Assessment (uAgents) ────┘        │      (records it: report_assessment)
+   voice / photo / video → claims)                                           ├─ reports engine: credibility, corroboration, plausibility
+                                                                             ├─ danger engine: slack per request (+ accepted report adjustments)
+                                                                             └─ planner: PlanInput ─▶ dispatch policy (heuristic / RL) ─▶ publish_plan
 ```
+
+**What a resident's report can change.** Intake turns what they sent into claims; the commander decides how much of it
+counts (`rescue/core/reports.py`):
+
+- About their own party (people, needs, injured, trapped): applied right away, at the same trust as the request form,
+  which already lets anyone tick "medical". This adds no new way to jump the queue.
+- About the world (fire seen nearby, road blocked): this would push their own request up, so it has to earn a credibility
+  score. The score is built from the analyzer's confidence, whether the photo or video actually shows the claim, agreement
+  with the fire model and weather at the resident's own location (burning cells within a wind-dependent spotting radius,
+  the forecast arrival there), and other residents reporting the same thing nearby.
+  Text gets a higher bar than pictures: words alone never move the automatic order, unless two other residents nearby
+  report the same thing.
+  - Score of 0.6 or more: the fire ETA moves earlier (never later), and a blocked road adds on-scene time. Slack, the
+    danger level and every policy follow.
+  - Lower: recorded, and shown to responders next to the raw reports. There is no review queue: responders always see the
+    original text, photos and video, and decide for themselves. The agent only orders attention.
+  - Responders can write to a resident (`message_resident`) and read their answers (`reply_to_responder`, which also
+    feeds the report). The intake agent relays this to ASI:One residents. The backend supports it; whether the frontend
+    exposes it is up to you.
+- Station choice is never taken from a report. Routing gives each request a travel time per station, and the policy
+  (heuristic or RL) picks the station.
 
 ### How context reaches the RL policy
 
-- **Live (inference):** the policy runs *inside* the delegation agent's Python process: the RL teammate implements
+- **Live (inference):** the policy runs *inside* the commander agent's Python process: the RL teammate implements
   `RLPolicy.plan` in `agents/rescue/rl_policy.py` and runs with `POLICY=rl` (see `docs/RL_INTEGRATION.md`). It receives one typed
   object, `core.policy.PlanInput`: the requests, units and stations plus `situation`, the head agent's `Situation` (fire, wind,
-  news, with data freshness). `situation.feature_vector()` is a fixed 24-number encoding (`FEATURE_NAMES`, `FEATURE_VERSION`); it
+  news, field-report counts, with data freshness). `situation.feature_vector()` is a fixed 28-number encoding (`FEATURE_NAMES`,
+  `FEATURE_VERSION` 3); each request also carries `credibility`, `reported_urgency`, `trapped`, `injured` from its reports. It
   is a starting point: change it, bump the version, and store the version with any trained model.
 - **Log / dataset:** every `Situation` the head agent records lands in the `situation` table. Export it with
   `agents/scripts/export_situations.py [--features]` (JSONL; empty-world rows dropped).
@@ -250,7 +279,7 @@ submitting.
   The Fetch agents and the RL model are ordinary Python processes (your laptop now, a small VM later) that connect to it.
 
 The subagents answer with typed uAgents messages (`rescue/messages.py`), not text. Only the head agent writes `situation`
-(`record_situation` is delegation-only). The RL workstream can export that table as training / evaluation data, or build the
+(`record_situation` is commander-only). The RL workstream can export that table as training / evaluation data, or build the
 same `Situation` from the simulator. Live data does not train anything by itself: training happens offline in the simulator.
 
 ## Checking the orchestration layer
@@ -263,6 +292,18 @@ Verifies from the database's own contents that every agent is online and heart-b
 situations (so its messages to the hazard and news agents work), that what it recorded matches the real fire / weather / news
 tables, and that the log has no empty-world rows. Live test: tell the commander `wind 15 from 0` in ASI:One; within about a
 minute a new `situation` row appears with the new wind and `red_flag` set.
+
+Field reports end to end (plays the resident app: ping, then a report; prints the intake reply and the queue placement):
+
+```bash
+cd agents && ../venv/bin/python scripts/send_report.py 39.765 -121.60 --resident alice --people 3 \
+    --text "flames about 200 feet behind the house, tree down across the road, we can't get out"
+../venv/bin/python scripts/test_reports.py       # offline checks: weighing, plausibility, danger adjust, hold, features
+```
+
+Then write to the resident as a responder (`scripts/message_resident.py --station 1 --message <id> "..."`), answer as the
+resident (`send_report.py --resident alice --reply "..."`), and ask the commander `reports` in ASI:One to see what was
+applied.
 
 Message handlers wait for the agent's world to finish loading (`MeshAgent.when_ready`); the head agent also refuses to record a
 report whose weather source is `none`. Before this fix a restart could log a fire-0 row.

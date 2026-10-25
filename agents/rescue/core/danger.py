@@ -3,6 +3,9 @@ and the resulting slack and level. Pure numpy over the same grid / forecast / ro
 uses, so the RL simulator can call it directly.
 
     slack = fire_eta - (now + travel + extract) - margin        (core.slack)
+
+`adjust` carries what the commander accepted from residents' field reports (core.reports): a fire ETA that
+can only move earlier, and extra on-scene time for a blocked road.
 """
 from __future__ import annotations
 
@@ -12,12 +15,30 @@ from typing import Iterable
 import numpy as np
 
 from .geo import Grid
+from .reports import NEAR_FIRE_M, LocalHazard
 from .routing import GridRouter, RoadParams, blocked_mask
 from .slack import extract_time_s, level_for, slack_s
 
 # Must match the hazard agent's forecast horizon: a cell missing from the forecast is "not reached within it".
 FORECAST_HORIZON_S = 3 * 3600.0
 UNREACHABLE_S = 1e9  # JSON-safe stand-in for "no safe ground route"
+
+
+def local_hazard(grid: Grid, now_s: float, lat: float, lon: float, forecast: dict[int, float], burning: set[int],
+                 spot_radius_m: float = NEAR_FIRE_M) -> LocalHazard:
+    """The hazard model's view at one point: forecast fire arrival, distance to the nearest burning cell, and the
+    wind-dependent spotting radius (core.reports.spot_radius_m)."""
+    cid = grid.locate(lat, lon)
+    eta = now_s if cid is not None and cid in burning else forecast.get(cid, math.inf) if cid is not None else math.inf
+    if burning:
+        centers = np.array([grid.center(b) for b in burning])
+        lat0 = math.radians(lat)
+        dy = (centers[:, 0] - lat) * 111_320.0
+        dx = (centers[:, 1] - lon) * 111_320.0 * math.cos(lat0)
+        nearest = float(np.sqrt(dx * dx + dy * dy).min())
+    else:
+        nearest = math.inf
+    return LocalHazard(now_s=now_s, fire_eta_s=eta, nearest_burning_m=nearest, spot_radius_m=spot_radius_m)
 
 
 def assess_requests(
@@ -29,6 +50,7 @@ def assess_requests(
     burning: set[int],
     closures: list[tuple[float, float, float, float]],
     params: RoadParams = RoadParams(),
+    adjust: dict[int, tuple[float | None, float]] | None = None,  # request_id -> (fire ETA hint, extra on-scene s)
 ) -> tuple[list[dict], list[dict]]:
     """Returns (assessments, travel) shaped for the `publish_danger` reducer (snake_case keys)."""
     fire_early = np.full((grid.rows, grid.cols), np.inf)
@@ -52,7 +74,10 @@ def assess_requests(
             ok = math.isfinite(t)
             best = min(best, t if ok else UNREACHABLE_S)
             travel.append({"request_id": rid, "station_id": sid, "travel_s": round(t, 1) if ok else UNREACHABLE_S, "reachable": ok})
-        extract = extract_time_s(headcount, needs)
+        hint, extra = (adjust or {}).get(rid, (None, 0.0))
+        if hint is not None:
+            fire_eta = min(fire_eta, hint)
+        extract = extract_time_s(headcount, needs) + extra
         slack = slack_s(fire_eta, now_s, 0.0, best, extract)
         assessments.append({"request_id": rid, "level": level_for(slack), "slack_s": round(slack, 1),
                             "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1)})

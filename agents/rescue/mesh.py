@@ -44,13 +44,8 @@ class AgentSpec:
 ROSTER: list[AgentSpec] = [
     AgentSpec("hazard", "hazard", 0, description="Owns the hazard picture: fire perimeter (NASA FIRMS / simulated spread), live NWS wind, and the ensemble fire-arrival forecast."),
     AgentSpec("news", "news", 1, description="Follows trusted wildfire accounts on X near the incident (fire agencies, sheriffs, NWS, Caltrans, Red Cross) via Bright Data and extracts evacuation orders, road closures, shelters, containment and acreage for the commander."),
-    AgentSpec("danger", "danger", 3, description="Time-dependent routing + slack scoring for every help request."),
-    AgentSpec("delegation", "delegation", 4, description="Builds per-station rescue queues with the learned/heuristic policy."),
-    AgentSpec("station-1", "station", 5, station_id=1, description="Station 1 dispatcher: runs its units' missions."),
-    AgentSpec("station-2", "station", 6, station_id=2, description="Station 2 dispatcher: runs its units' missions."),
-    AgentSpec("station-3", "station", 7, station_id=3, description="Station 3 dispatcher: runs its units' missions."),
-    AgentSpec("intake", "intake", 8, description="ASI:One resident help desk: request rescue, check queue status, mark safe."),
-    AgentSpec("commander", "commander", 9, description="ASI:One incident-commander console: situation, escalations, overrides."),
+    AgentSpec("intake", "intake", 8, description="Resident-facing: takes help pings and what residents send (text, voice, photos, video), reads them into structured claims (trapped, injured, fire nearby, road blocked) for the commander."),
+    AgentSpec("commander", "commander", 9, description="Head agent: orchestrates the hazard, news and intake agents, scores danger and builds the per-station rescue queues (heuristic or RL policy); incident-command console in ASI:One."),
 ]
 BY_NAME = {a.name: a for a in ROSTER}
 

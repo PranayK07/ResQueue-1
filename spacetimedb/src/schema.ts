@@ -262,6 +262,11 @@ export const situation = table(
     newsAgeMin: t.f64().default(-1),
     dataFresh: t.bool().default(true), // false = see staleReasons
     staleReasons: t.string().default(''),
+    // Field reports from residents (intake agent), as weighed by the commander. Counts only, no resident data.
+    reportsActive: t.u32().default(0), // active requests with an intake assessment
+    reportsFireCredible: t.u32().default(0), // fire sightings credible enough to change the fire ETA
+    reportsRoadBlocks: t.u32().default(0), // credible blocked-road reports (became road closures)
+    reportsTrapped: t.u32().default(0), // requests reporting people trapped
   }
 );
 
@@ -386,6 +391,65 @@ export const consentTimer = table(
   }
 );
 
+/** The conversation between a request's responders and the resident: a responder asks ("is the road
+ *  really blocked?", "can you send a photo?"), the resident answers. Human to human; agents only carry it
+ *  (the intake agent relays it to ASI:One residents). A resident's answer is also stored as a text field
+ *  report, so the assessment is re-read with it. Deleted with the request. */
+export const requestMessage = table(
+  { name: 'request_message' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    requestId: t.u64().index('btree'),
+    from: t.string(), // responder | commander | resident
+    author: t.string(), // display name for the console ('' for the resident)
+    text: t.string(),
+    createdAt: t.timestamp(),
+  }
+);
+
+/** What a resident sent after pinging for help: text, a voice transcript, a photo, or a video (its URL plus
+ *  still frames the frontend sampled from it). Media live in object storage; only URLs are stored here.
+ *  Raw input for the intake agent and the firefighter console; it never reaches the queue directly. */
+export const fieldReport = table(
+  { name: 'field_report' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    requestId: t.u64().index('btree'),
+    kind: t.string(), // text | voice | image | video
+    text: t.string(), // the message, or the voice transcript
+    mediaUrl: t.string(), // image / video / audio URL ('' = none), for the console to render
+    frameUrls: t.string(), // video only: newline-separated still frames, what the analysis looks at
+    createdAt: t.timestamp(),
+  }
+);
+
+/** The intake agent's reading of everything a request sent (one row per request, replaced on every new
+ *  report). Claims, not facts: the commander weighs them (credibility, corroboration, the hazard data at the
+ *  resident's location) before any of it touches danger or queues. Responders see it next to the raw reports. */
+export const reportAssessment = table(
+  { name: 'report_assessment' },
+  {
+    requestId: t.u64().primaryKey(),
+    reportCount: t.u32(),
+    people: t.u32(), // 0 = not stated
+    needs: t.string(), // comma list, same vocabulary as help_request.needs
+    injured: t.bool(),
+    trapped: t.bool(),
+    fireSeen: t.bool(),
+    fireDistanceM: t.f64(), // < 0 = unknown
+    smoke: t.bool(),
+    roadBlocked: t.bool(),
+    roadNote: t.string(),
+    mediaSupports: t.bool(), // the photos / frames themselves show the fire or blocked road
+    confidence: t.f32(), // analyzer's confidence the claims are genuine and consistent, 0..1
+    urgency: t.f32(), // analyzer's read of how urgent this is, 0..1
+    summary: t.string(), // one line for the firefighter console
+    residentReply: t.string(), // what the resident is told back
+    analyzer: t.string(), // model id, or 'keywords' / 'form'
+    updatedAt: t.timestamp(),
+  }
+);
+
 /** Public activity feed. Never contains location or names; safe to show
  *  on a big screen. Trimmed to the most recent EVENT_LOG_KEEP rows. */
 export const eventLog = table(
@@ -484,6 +548,30 @@ export const SituationInput = t.object('SituationInput', {
   newsAgeMin: t.f64(),
   dataFresh: t.bool(),
   staleReasons: t.string(),
+  reportsActive: t.u32(),
+  reportsFireCredible: t.u32(),
+  reportsRoadBlocks: t.u32(),
+  reportsTrapped: t.u32(),
+});
+
+export const AssessmentInput = t.object('AssessmentInput', {
+  requestId: t.u64(),
+  reportCount: t.u32(),
+  people: t.u32(),
+  needs: t.string(),
+  injured: t.bool(),
+  trapped: t.bool(),
+  fireSeen: t.bool(),
+  fireDistanceM: t.f64(),
+  smoke: t.bool(),
+  roadBlocked: t.bool(),
+  roadNote: t.string(),
+  mediaSupports: t.bool(),
+  confidence: t.f32(),
+  urgency: t.f32(),
+  summary: t.string(),
+  residentReply: t.string(),
+  analyzer: t.string(),
 });
 
 export const NewsInput = t.object('NewsInput', {
@@ -545,6 +633,9 @@ const spacetimedb = schema(
     travelEstimate,
     flag,
     consentTimer,
+    fieldReport,
+    requestMessage,
+    reportAssessment,
     eventLog,
   },
   {

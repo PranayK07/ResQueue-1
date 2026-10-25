@@ -55,6 +55,8 @@ class MeshAgent:
         self.ready = asyncio.Event()
         self.status = "starting"
         self.detail = ""
+        self.parts: dict[str, tuple[str, str]] = {}
+        self._ask_locks: dict[str, asyncio.Lock] = {}
 
         status = Protocol(name="mesh-status", version="0.1.0")
 
@@ -105,12 +107,20 @@ class MeshAgent:
     def set_status(self, status: str, detail: str = "") -> None:
         self.status, self.detail = status, detail
 
+    def set_part(self, part: str, status: str, detail: str) -> None:
+        """Agents made of engines report each engine's health; the agent's status is the worst of them."""
+        self.parts[part] = (status, detail)
+        bad = [s for s, _ in self.parts.values() if s == "degraded"]
+        self.set_status("degraded" if bad else "online", " | ".join(f"{p}: {d}" for p, (_, d) in sorted(self.parts.items())))
+
     async def ask(self, ctx: Context, agent: str, req: Model, resp_type: type[Model], timeout: int = ASK_TIMEOUT_S) -> Model | None:
         """Ask another mesh agent a question and wait for its typed reply (None if it doesn't answer).
-        Never send two concurrent requests to the SAME agent: uAgents keys pending replies by
-        (sender, destination, session), so they collide. Different agents in parallel are fine."""
+        uAgents keys pending replies by (sender, destination, session), so two concurrent requests to the SAME
+        agent collide: they are serialized here. Different agents in parallel are fine."""
+        lock = self._ask_locks.setdefault(agent, asyncio.Lock())
         try:
-            reply, status = await ctx.send_and_receive(address_of(agent), req, response_type=resp_type, timeout=timeout)
+            async with lock:
+                reply, status = await ctx.send_and_receive(address_of(agent), req, response_type=resp_type, timeout=timeout)
         except Exception as e:  # noqa: BLE001
             ctx.logger.warning(f"asking {agent} failed: {e}")
             return None

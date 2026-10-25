@@ -2,7 +2,7 @@
 
 This is THE interface between the live system and the RL work:
 
-* the delegation agent builds a `PlanInput` from SpacetimeDB and calls
+* the commander agent builds a `PlanInput` from SpacetimeDB and calls
   `policy.plan(inp)`; the returned `Plan` is published atomically;
 * the Gym environment should build the same `PlanInput` from its simulator
   and score plans with `evaluate()`, so training and the live demo optimise
@@ -46,6 +46,13 @@ class RequestState:
     pinned_station: int = 0
     current_station: int = 0  # station whose queue it is in now (0 = none)
     created_s: float = 0.0
+    # From the resident's field reports, as weighed by the commander (core/reports.py). headcount, needs,
+    # fire_eta_s and extract_s above already include what was accepted; these are extra features.
+    credibility: float = 0.0  # 0..1, how far the reports' claims about the world are trusted (0 = none / no reports)
+    reported_urgency: float = 0.0  # analyzer urgency x credibility, 0..1
+    trapped: bool = False
+    injured: bool = False
+    report_note: str = ""  # e.g. "credible fire sighting ~300 m away; people trapped"
 
     @property
     def weight(self) -> float:
@@ -180,6 +187,8 @@ def _finalise(policy: str, inp: PlanInput, order: list[tuple[RequestState, int, 
             resident += f" {inp.stations[s]} can reach you sooner than the nearest station."
         if r.pinned_station:
             why.append("pinned by commander")
+        if r.report_note:
+            why.append(f"resident reports: {r.report_note}")
         slack = _slack(r, arrive, inp.margin_s)
         resident += " Fire risk at your location is " + ("very high." if slack < 600 else "high." if slack < 1800 else "moderate.")
         plan.entries.append(Assignment(

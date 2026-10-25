@@ -34,7 +34,6 @@ class HazardAgent(MeshAgent):
 
     def __init__(self) -> None:
         super().__init__("hazard")
-        self.parts: dict[str, tuple[str, str]] = {}
         self.fire = FireEngine(self)
         self.weather = WeatherEngine(self)
         self.forecast = ForecastEngine(self)
@@ -71,12 +70,6 @@ class HazardAgent(MeshAgent):
         await self.forecast.on_ready(ctx)
         self.ready.set()  # world loaded; the first NWS poll below is a network call and must not delay answers
         await self.weather.on_ready(ctx)
-
-    def set_part(self, part: str, status: str, detail: str) -> None:
-        """Engines report their own health; the agent's status is the worst of them."""
-        self.parts[part] = (status, detail)
-        bad = [s for s, _ in self.parts.values() if s == "degraded"]
-        self.set_status("degraded" if bad else "online", " | ".join(f"{p}: {d}" for p, (_, d) in sorted(self.parts.items())))
 
 
 if __name__ == "__main__":

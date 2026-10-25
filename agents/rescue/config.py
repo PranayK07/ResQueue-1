@@ -57,11 +57,20 @@ class Settings:
     weather_source: str = _env("WEATHER_SOURCE", "nws")
     weather_poll_s: float = float(_env("WEATHER_POLL_S", "300"))
 
-    # Delegation (head) agent: how often it pools the hazard + news reports into a situation.
-    # Dispatch policy the delegation (head) agent runs: nearest | greedy | lookahead | learned.
-    # nearest | greedy | lookahead: heuristic placeholders. rl: the RL component, rescue/rl_policy.py.
+    # Commander (head) agent: the dispatch policy it runs, and how often it pools hazard + news + field reports
+    # into a situation. nearest | greedy | lookahead: heuristic placeholders. rl: the RL component, rescue/rl_policy.py.
     policy: str = _env("POLICY", "lookahead")
     situation_period_s: float = float(_env("SITUATION_PERIOD_S", "30"))
+
+    # Intake agent: how residents' text / voice transcripts / photos / video frames are read.
+    #   hf       = an open vision-language model on Hugging Face via Inference Providers (needs HF_TOKEN)
+    #   keywords = text only, offline (also the fallback when a model call fails)
+    hf_token: str = _env("HF_TOKEN")
+    intake_analyzer: str = _env("INTAKE_ANALYZER", "hf" if _env("HF_TOKEN") else "keywords")
+    intake_model: str = _env("INTAKE_MODEL", "Qwen/Qwen3-VL-30B-A3B-Instruct")
+    intake_concurrency: int = int(_env("INTAKE_CONCURRENCY", "4"))
+    # The commander holds a new request out of the queue until its reports are read, for at most this long.
+    intake_grace_s: float = float(_env("INTAKE_GRACE_S", "20"))
 
     # News agent: trusted wildfire accounts on X, read through Bright Data's X Posts scraper. "file" replays
     # NEWS_FIXTURE (free), "brightdata" runs the scraper (billed per post returned), "off" disables it.

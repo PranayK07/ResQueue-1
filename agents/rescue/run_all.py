@@ -2,7 +2,7 @@
 never takes down the others). Ctrl-C stops everything.
 
     python -m rescue.run_all                 # all agents
-    python -m rescue.run_all forecast intake # just these
+    python -m rescue.run_all hazard intake   # just these
 """
 from __future__ import annotations
 
@@ -17,11 +17,6 @@ from .mesh import ROSTER
 MODULES = {
     "hazard": ["rescue.agents.hazard"],
     "news": ["rescue.agents.news"],
-    "danger": ["rescue.agents.danger"],
-    "delegation": ["rescue.agents.delegation"],
-    "station-1": ["rescue.agents.station", "1"],
-    "station-2": ["rescue.agents.station", "2"],
-    "station-3": ["rescue.agents.station", "3"],
     "intake": ["rescue.agents.intake"],
     "commander": ["rescue.agents.commander"],
 }
