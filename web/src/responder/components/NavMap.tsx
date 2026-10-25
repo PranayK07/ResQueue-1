@@ -1,3 +1,5 @@
+import { vehiclePositionAt } from '../../ops/vehicleMotion';
+import { simNow } from '../../ops/derive';
 import type { FeatureCollection } from 'geojson';
 import { satelliteStyle } from '../../lib/mapStyle';
 import { EXPOSURE_COLOR, learnedConcern } from '../../ops/learnedForecast';
@@ -221,6 +223,21 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
   }, [padding.top, padding.bottom]);
 
   // Following: keep the vehicle in view as it moves.
+  const movingRef = useRef({ snapshot, gps, position, positionLabel });
+  useEffect(() => { movingRef.current = { snapshot, gps, position, positionLabel }; }, [snapshot, gps, position, positionLabel]);
+  useEffect(() => {
+    if (!ready) return;
+    let frame: number;
+    const animate = () => {
+      const state = movingRef.current;
+      const unit = state.snapshot.units.find(u => u.id === state.snapshot.me.unitId);
+      if (!state.gps && state.position && unit && state.positionLabel === unit.callsign) markersRef.current.me?.setLngLat(vehiclePositionAt(unit, simNow(state.snapshot.clock)));
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [ready]);
+
   const posKey = position ? position.map(v => v.toFixed(5)).join(',') : '';
   useEffect(() => {
     const map = mapRef.current;

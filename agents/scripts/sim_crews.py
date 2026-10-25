@@ -40,8 +40,8 @@ from rescue.core.slack import extract_time_s  # noqa: E402
 from rescue.stdb import Debouncer, ReducerError, SpacetimeClient  # noqa: E402
 
 NAME = "sim-crews"
-TABLES = ["sim_clock", "grid", "station", "unit", "ops_queue", "ops_request", "ops_travel"]
-WATCH = ["sim_clock", "unit", "ops_queue", "crew_presence"]
+TABLES = ["sim_clock", "grid", "station", "unit", "ops_queue", "ops_request", "ops_travel", "ops_risk", "fire_cell", "road_closure"]
+WATCH = ["sim_clock", "unit", "ops_queue", "ops_risk", "crew_presence"]
 SAFETY_S = 2.0  # step at least this often, even when no update arrives
 HEARTBEAT_S = 10.0  # as the mesh agents; the console calls an agent stale after 45 s
 CREWED_S = 45.0  # a responder phone heartbeats about every 20 s while it shows its unit
@@ -205,6 +205,8 @@ class Crews:
             return Move([], f"waiting for request #{rid} to reach the replica")
         if status == "assigned" and req:
             travel = self.travel(u, req, q, st, now)
+            if travel >= NO_ROUTE_S:
+                return Move([], "waiting for a reachable ground route")
             arrive = now + travel
             free = arrive + self.dwell(req) + travel  # back at the station, as the planner's timeline assumes
             return Move([("unit_en_route", uid, float(arrive), float(free))],
@@ -218,15 +220,23 @@ class Crews:
             calls = [] if there else [("unit_position", uid, float(req["lat"]), float(req["lon"]))]
             return Move(calls + [("unit_on_scene", uid)], f"on scene at #{rid}")
         if status == "on_scene" and req:
-            if uid in crewed:
+            if uid in crewed and getattr(self.a, "manual_phones", False):
                 return Move([], f"on scene at #{rid}: its responder phone decides when it is done")
             done = (q["eta_s"] if q else first) + self.dwell(req)
             if now < done:
                 return Move([], f"on scene at #{rid}, done in {mins(done - now)}")
+            following = self.continuation(u, now, stations)
+            if following:
+                next_id, assessment, drive = following
+                return Move([('continue_unit_mission', uid, next_id, assessment, drive)], f'rescued #{rid}; continuing to #{next_id}')
             return Move([("complete_mission", uid, "rescued")], f"rescued #{rid}, driving back")
         home = st is not None and haversine_m(u["lat"], u["lon"], st["lat"], st["lon"]) < AT_STATION_M
         back = [("unit_available", uid, float(st["lat"]), float(st["lon"]))] if st else []
         if status == "returning" and st and not rid:
+            following = self.continuation(u, now, stations)
+            if following:
+                next_id, assessment, drive = following
+                return Move([('continue_unit_mission', uid, next_id, assessment, drive)], f'redirecting to unserved caller #{next_id}')
             # A unit still at home ("can't reach" before it left) is back in service now: free_at_s counts the
             # whole mission it never drove.
             if not home and 0 < now < u["free_at_s"]:
@@ -237,16 +247,39 @@ class Crews:
             return Move(back, f"released, back at {st['name']}")
         return Move([], LABELS.get(status, status))
 
+    def continuation(self, u, now, stations):
+        from rescue.core.continuation import next_request
+        from rescue.core.assistance import position_along
+        from rescue.core.geo import Grid
+        db = self.db
+        at = {**u}
+        route_table = db.tables.get('ops_unit_route')
+        route = route_table.get(u['id']) if route_table else None
+        if route and route.get('status', 'ready') == 'ready' and route.get('points') and u['status'] == 'returning':
+            at.update(position_along(route['points'], (now-route['depart_s'])/max(1,route['arrive_s']-route['depart_s'])))
+        elif u['status'] == 'returning' and stations.get(u['station_id']):
+            home = stations[u['station_id']]
+            f = max(0,min(1,(now-u.get('leg_depart_s',now))/max(1,u['free_at_s']-u.get('leg_depart_s',now))))
+            at.update(lat=u['lat']+(home['lat']-u['lat'])*f, lon=u['lon']+(home['lon']-u['lon'])*f)
+        closures=[(c.get('lat1',c.get('lat_1')),c.get('lon1',c.get('lon_1')),c.get('lat2',c.get('lat_2')),c.get('lon2',c.get('lon_2')))
+                  for c in db.table('road_closure') if c['active']]
+        return next_request(at, now, list(db.table('ops_request')), list(db.table('unit')), list(db.table('ops_risk')),
+                            Grid.from_row(db.table('grid').one()), {c['cell_id'] for c in db.table('fire_cell')}, closures)
+
     def travel(self, u: dict, req: dict, q: dict | None, st: dict | None, now: float) -> float:
-        """Station -> request in sim seconds: the danger engine's route, else the plan's ETA, else a straight line."""
-        tr = self.db.table("ops_travel").get(req["id"] * 1024 + u["station_id"])
-        if tr and tr["reachable"] and 0 <= tr["travel_s"] < NO_ROUTE_S:
-            return float(tr["travel_s"])
-        if q and q["eta_s"] - now < NO_ROUTE_S:
-            return max(60.0, q["eta_s"] - now)
-        if st:
-            return haversine_m(st["lat"], st["lon"], req["lat"], req["lon"]) * DETOUR / ROAD_MPS
-        return 600.0
+        """Use the caller's current response estimate or a route from this truck's actual position."""
+        card = self.db.table("ops_risk").get(req["id"])
+        risk = card.get("assessment") if card and card.get("current") else None
+        if risk and risk["reachable"] and risk.get("unit_id", u["id"]) == u["id"] and 0 < risk["travel_s"] < NO_ROUTE_S:
+            return float(risk["travel_s"])
+        from rescue.core.assistance import response_options
+        from rescue.core.geo import Grid
+        closures = [(c.get("lat1",c.get("lat_1")), c.get("lon1",c.get("lon_1")),
+                     c.get("lat2",c.get("lat_2")), c.get("lon2",c.get("lon_2")))
+                    for c in self.db.table("road_closure") if c["active"]]
+        option = response_options(Grid.from_row(self.db.table("grid").one()), now, [req], [u], [],
+                                  burning={c["cell_id"] for c in self.db.table("fire_cell")}, closures=closures)[req["id"]]
+        return max(1.0, option["travel_s"]) if option else NO_ROUTE_S
 
     def dwell(self, req: dict) -> float:
         if self.a.dwell_s is not None:
@@ -322,6 +355,7 @@ async def main() -> None:
                     help="on-scene time in sim seconds for every mission (default: each request's extract time)")
     ap.add_argument("--once", action="store_true",
                     help="one step, print every unit's state, then exit (debugging; stop the running driver first)")
+    ap.add_argument("--manual-phones", action="store_true", help="leave completion to an open responder phone (default: automatic)")
     a = ap.parse_args()
     if a.dwell_s is not None and not 0 <= a.dwell_s < 1e7:
         ap.error("--dwell-s must be a number of sim seconds, 0 or more")

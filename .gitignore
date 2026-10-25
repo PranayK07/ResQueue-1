@@ -11,6 +11,9 @@ spacetimedb/dist/
 .DS_Store
 agents/news_archive/
 agents/exports/
+# Local browser verification artifacts.
+/.playwright-cli/
+/output/playwright/
 # Agent-isolated historical data, native weights and transient experiment logs.
 /data/
 .venv-forecast/

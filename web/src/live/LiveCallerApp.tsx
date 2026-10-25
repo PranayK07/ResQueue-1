@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { LiveMap } from '../components/LiveMap';
+import { IncidentAreaWarning } from '../components/IncidentAreaWarning';
 import { OptionalDetailsForm } from '../components/OptionalDetailsForm';
 import { AppShell, Button, Heading, LocationBlock, Note, Panel, SafetyNotice, ScreenSection, StatusNotice } from '../components/ui';
-import { demoLocation } from '../lib/demo';
+import { defaultIncidentLocation, insideIncidentArea, validIncidentArea } from '../lib/incidentArea';
 import { coordsPlace } from '../lib/geo';
 import { CONSENT_MINUTES, EMPTY_DETAILS, NEED_LABELS, clock, newRequest, type CallerLocation, type Details, type Need, type HelpRequest } from '../lib/request';
-import { useCurrentPosition, type PositionState } from '../lib/useCurrentPosition';
+import type { PositionState } from '../lib/useCurrentPosition';
 import { simNow, simToMs } from '../ops/derive';
 import { CorrectLocationScreen } from '../screens/CorrectLocationScreen';
 import { RequestHelpScreen } from '../screens/RequestHelpScreen';
 import { SendingScreen } from '../screens/SendingScreen';
 import { UpdateLocationScreen } from '../screens/UpdateLocationScreen';
-import { DEMO_MODE } from './config';
 import { connection } from './connection';
 import { errorCopy } from './errors';
 import { SurfaceContext, useConnection, useLiveClock, useLiveRows } from './hooks';
@@ -42,13 +42,13 @@ function CallerFlow() {
   const fires = useLiveRows('fire_cell');
   const clocks = useLiveRows('sim_clock');
   const liveClock = useLiveClock();
-  // Disabling this hook prevents both the permission prompt and getCurrentPosition in the demo.
-  const device = useCurrentPosition(!DEMO_MODE);
   const [seed] = useState(() => Math.random());
   const [placedAt] = useState(() => Date.now());
   const scenario = clocks[0]?.scenario;
-  const [placed, setPlaced] = useState<{ scenario: string; location: CallerLocation } | null>(null);
-  const [corrected, setCorrected] = useState<CallerLocation | null>(null);
+  const area = validIncidentArea(grids[0]) ? grids[0] : null;
+  const incidentKey = area ? [scenario, area.originLat, area.originLon, area.rows, area.cols, area.cellSizeM].join(':') : null;
+  const [placed, setPlaced] = useState<{ key: string; location: CallerLocation } | null>(null);
+  const [corrected, setCorrected] = useState<{ key: string; location: CallerLocation } | null>(null);
   const [details, setDetails] = useState<Details>(EMPTY_DETAILS);
   const [overlay, setOverlay] = useState<'correct' | 'update' | null>(null);
   const [dismissed, setDismissed] = useState<Set<bigint>>(() => new Set());
@@ -58,17 +58,19 @@ function CallerFlow() {
   const [editing, setEditing] = useState(false);
   const [edit, setEdit] = useState<Details>(EMPTY_DETAILS);
 
-  // Adjust once when a newly loaded incident first supplies its perimeter.
-  if (DEMO_MODE && scenario && placed?.scenario !== scenario && grids[0] && fires.length) {
-    const point = demoLocation(grids[0], fires, seed);
-    if (point) setPlaced({ scenario, location: point });
+  // Default from the loaded incident in every live environment, independently of local demo flags.
+  if (incidentKey && placed?.key !== incidentKey && area) {
+    const point = defaultIncidentLocation(area, fires, seed);
+    if (point) setPlaced({ key: incidentKey, location: point });
   }
 
-  const position: PositionState = DEMO_MODE
-    ? placed ? { status: 'found', lat: placed.location.lat, lon: placed.location.lon, accuracyM: 0, fixedAt: placedAt } : { status: 'locating' }
-    : device.position;
-  const detected: CallerLocation | null = position.status === 'found' ? { ...coordsPlace(position.lat, position.lon), entrance: '' } : null;
-  const location = corrected ?? placed?.location ?? detected;
+  const startingLocation = placed?.key === incidentKey ? placed.location : null;
+  const correctedLocation = corrected?.key === incidentKey ? corrected.location : null;
+  const position: PositionState = startingLocation
+    ? { status: 'found', source: 'incident', lat: startingLocation.lat, lon: startingLocation.lon, accuracyM: 0, fixedAt: placedAt }
+    : { status: 'locating', source: 'incident' };
+  const location = correctedLocation ?? startingLocation;
+  const locationInArea = !!location && insideIncidentArea(area, location);
   const card = [...rows].sort((a, b) => tsToMs(b.createdAt) - tsToMs(a.createdAt)).find(r => ACTIVE.has(r.status))
     ?? [...rows].sort((a, b) => tsToMs(b.createdAt) - tsToMs(a.createdAt)).find(r => !dismissed.has(r.requestId));
 
@@ -80,7 +82,7 @@ function CallerFlow() {
   }
 
   async function send() {
-    if (!location || !conn.canCall || busy) return;
+    if (!location || !locationInArea || !conn.canCall || busy) return;
     setPending(newRequest(location, details));
     await run(() => callWithCopy('submit_app_request', { lat: location.lat, lon: location.lon, entrance: location.entrance,
       headcount: details.headcount, needs: details.needs.join(','), note: details.note, consentMinutes: CONSENT_MINUTES }));
@@ -99,10 +101,10 @@ function CallerFlow() {
     const local: HelpRequest = { token: `live:${card.requestId}`, number: String(card.requestId), location: confirmedLocation,
       details: currentDetails, phase: 'assigned', createdAt: tsToMs(card.createdAt), receivedAt: tsToMs(card.createdAt),
       updatedAt: tsToMs(card.updatedAt), arrivalAt: null, sharedUntil: tsToMs(card.consentExpiresAt), dispatch: null, locationUpdatedAt: null };
-    if (active && overlay === 'update') return <UpdateLocationScreen request={local} onKeep={() => setOverlay(null)} onSend={async next => {
+    if (active && overlay === 'update') return <UpdateLocationScreen key={`${incidentKey}:${card.requestId}`} incidentArea={area} request={local} onKeep={() => setOverlay(null)} onSend={async next => {
       await callWithCopy('update_my_request', { requestId: card.requestId, lat: next.lat, lon: next.lon, entrance: next.entrance,
         headcount: card.headcount, needs: card.needs, note: card.note });
-      setCorrected(next); setOverlay(null);
+      if (incidentKey) setCorrected({ key: incidentKey, location: next }); setOverlay(null);
     }} />;
     const eta = liveClock && card.etaS !== undefined ? Math.max(0, Math.ceil((card.etaS - simNow(liveClock)) / 60)) : null;
     return <AppShell responderUnitId={card.unitId}>
@@ -147,8 +149,9 @@ function CallerFlow() {
     </AppShell>;
   }
   if (pending && busy) return <SendingScreen request={pending} />;
-  if (overlay === 'correct') return <CorrectLocationScreen position={position} initial={location} onConfirm={next => { setCorrected(next); setOverlay(null); }} />;
-  return <RequestHelpScreen position={position} location={location} corrected={!!corrected} details={details} onDetailsChange={setDetails}
-    onRetryLocate={DEMO_MODE ? () => {} : device.retry} onAdjustLocation={() => setOverlay('correct')} onSend={send}
-    canSend={conn.surface === 'caller' && conn.ready && conn.canCall && !busy} allowMedia={false} notice={<>{connectionNotice}{errorNotice}</>} />;
+  if (overlay === 'correct') return <CorrectLocationScreen key={incidentKey} incidentArea={area} position={position} initial={location} onConfirm={next => { if (incidentKey) setCorrected({ key: incidentKey, location: next }); setOverlay(null); }} />;
+  return <RequestHelpScreen position={position} location={location} corrected={!!correctedLocation} details={details} onDetailsChange={setDetails}
+    onRetryLocate={() => {}} onAdjustLocation={() => setOverlay('correct')} onSend={send}
+    canSend={conn.surface === 'caller' && conn.ready && conn.canCall && !busy && locationInArea} allowMedia={false}
+    notice={<>{connectionNotice}{errorNotice}<IncidentAreaWarning area={area} point={location} /></>} />;
 }

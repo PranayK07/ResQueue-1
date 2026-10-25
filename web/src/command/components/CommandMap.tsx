@@ -1,3 +1,5 @@
+import { vehiclePositionAt, vehicleStatus } from '../../ops/vehicleMotion';
+import { simNow } from '../../ops/derive';
 import type { FeatureCollection } from 'geojson';
 import { satelliteStyle } from '../../lib/mapStyle';
 import { EXPOSURE_COLOR, learnedConcern } from '../../ops/learnedForecast';
@@ -227,9 +229,9 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
         want[`req-${r.request.id}`] = { at: [r.request.lon, r.request.lat], html: requestCode(r.request.id), className: `cmap-tag cmap-tag--${level}`, anchor: 'left', offset: [8, 0] };
       }
     }
+    for (const u of snapshot.units) want[`truck-${u.id}`] = { at: [u.lon, u.lat], html: `<span aria-hidden>🚒</span><span>${u.callsign}</span><small>${vehicleStatus(u, snapshot.clock.simS)}</small>`, className: 'cmap-truck', anchor: 'center' };
     if (journey) {
-      const u = journey.unit;
-      want.unit = { at: [u.lon, u.lat], html: u.callsign, className: 'cmap-unit', anchor: 'center' };
+
       journey.stops.forEach(({ row, current }, i) => {
         const eta = clockHM(simToMs(snapshot.clock, row.entry.etaS));
         want[`stop-${i}`] = {
@@ -248,15 +250,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
         className: 'cmap-selected',
         anchor: 'center',
       };
-      if (route && route.coords.length > 1 && selected.unit && visible.has('Selected route')) {
-        want.travel = {
-          at: route.coords[Math.floor(route.coords.length / 2)],
-          html: `${selected.unit.callsign} · ${Math.round(selected.entry.travelS / 60)} min travel`,
-          className: 'cmap-tag cmap-tag--route',
-          anchor: 'left',
-          offset: [10, 0],
-        };
-      }
+
     }
     if (visible.has('Closed roads')) {
       for (const c of closures.filter(x => x.active)) {
@@ -283,7 +277,35 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
       if (node.innerHTML !== spec.html) node.innerHTML = spec.html;
       if (node.className.split(' maplibregl')[0] !== spec.className) node.className = `${spec.className} ${node.className.split(' ').filter(c => c.startsWith('maplibregl')).join(' ')}`;
     }
-  }, [ready, snapshot.stations, snapshot.clock, rows, labeled, selected, route, closures, fireAt, forecastAt, visible, journey]);
+  }, [ready, snapshot.stations, snapshot.units, snapshot.clock, rows, labeled, selected, route, closures, fireAt, forecastAt, visible, journey]);
+
+  const motionRef = useRef(snapshot);
+  useEffect(() => { motionRef.current = snapshot; }, [snapshot]);
+  useEffect(() => {
+    if (!ready) return;
+    let frame: number;
+    const animate = () => {
+      const state = motionRef.current;
+      const now = simNow(state.clock);
+      for (const unit of state.units) {
+        const marker = markersRef.current[`truck-${unit.id}`];
+        if (!marker) continue;
+        const point = vehiclePositionAt(unit, now);
+        marker.setLngLat(point);
+        const node = marker.getElement();
+        node.dataset.unitId = String(unit.id);
+        node.dataset.longitude = point[0].toFixed(6);
+        node.dataset.latitude = point[1].toFixed(6);
+        const label = node.querySelector('small');
+        const status = vehicleStatus(unit, now);
+        if (label && label.textContent !== status) label.textContent = status;
+        node.title = `${unit.callsign}: ${status}`;
+      }
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [ready]);
 
   // ─── Framing ───
   function fitIncident() {

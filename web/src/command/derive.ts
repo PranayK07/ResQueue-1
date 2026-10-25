@@ -158,7 +158,7 @@ export function commandReason(row: CommandRow, s: CommandSnapshot) {
 export function commandEta(row: CommandRow, s: CommandSnapshot) {
   const risk = s.live?.risks.get(row.request.id);
   if (row.unit?.status === 'on_scene') return 'On scene';
-  if (row.pending || row.escalated || (risk && (!risk.current || !risk.reachable))) return '—';
+  if (row.pending || row.escalated || (risk?.current && !risk.reachable)) return '—';
   if (row.entry.etaS <= s.clock.simS) return row.unit?.status === 'assigned' ? 'Not departed' : row.unit?.status === 'en_route' ? 'ETA overdue' : 'Replanning';
   return `${Math.ceil((row.entry.etaS - s.clock.simS) / 60)} min`;
 }
@@ -178,11 +178,11 @@ export function stationUnit(row: CommandRow) {
 export function slackBreakdown(row: CommandRow, s: CommandSnapshot, marginS: number) {
   const { request: r, entry } = row;
   const risk = s.live?.risks.get(r.id);
-  if (r.fireEtaS === null || (risk && (!risk.current || !risk.reachable))) return null;
+  if (r.fireEtaS === null || (risk?.current && !risk.reachable)) return null;
   const now = s.clock.simS;
   const toFire = Math.round((r.fireEtaS - now) / 60);
-  const wait = Math.round(entry.waitS / 60);
-  const travel = Math.round(entry.travelS / 60);
+  const wait = Math.round((risk?.current ? risk.waitS ?? 0 : entry.waitS) / 60);
+  const travel = Math.round((risk?.current ? risk.travelS ?? 0 : entry.travelS) / 60);
   const extract = Math.round(r.extractS / 60);
   const margin = Math.round(marginS / 60);
   return {

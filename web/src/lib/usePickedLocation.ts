@@ -12,7 +12,7 @@ export function usePickedLocation(initial: CallerLocation | null) {
   const entrance = location?.entrance ?? '';
 
   /** Drop the pin at a coordinate and look up its address. */
-  function pick(lat: number, lon: number): Promise<Place> {
+  function pick(lat: number, lon: number): Promise<Place | null> {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
@@ -22,10 +22,10 @@ export function usePickedLocation(initial: CallerLocation | null) {
       .catch(() => coordsPlace(lat, lon))
       .then(place => {
         if (!ctrl.signal.aborted) {
-          setLocation({ ...place, entrance });
+          setLocation(current => ({ ...place, entrance: current?.entrance ?? entrance }));
           setLookingUp(false);
         }
-        return place;
+        return ctrl.signal.aborted ? null : place;
       });
   }
 

@@ -1,30 +1,34 @@
 import { useState } from 'react';
 import { LiveMap } from '../components/LiveMap';
+import { IncidentAreaWarning } from '../components/IncidentAreaWarning';
 import { AppShell, ScreenSection, Button, Eyebrow, Heading, LocationBlock, Note, Panel, SafetyNotice, StatusNotice, TextField } from '../components/ui';
 import { ticket, type CallerLocation, type HelpRequest } from '../lib/request';
 import { usePickedLocation } from '../lib/usePickedLocation';
 import { errorCopy } from '../live/errors';
+import { defaultIncidentLocation, insideIncidentArea, type IncidentArea } from '../lib/incidentArea';
 import './screens.css';
 
 interface Props {
   request: HelpRequest;
+  incidentArea?: IncidentArea | null;
   /** Resolves once the system confirms the update; rejects if it couldn't be sent. */
   onSend: (location: CallerLocation) => Promise<void>;
   onKeep: () => void;
 }
 
 /** C07 · Caller · Update shared location (Figma 71:13524). */
-export function UpdateLocationScreen({ request, onSend, onKeep }: Props) {
+export function UpdateLocationScreen({ request, incidentArea, onSend, onKeep }: Props) {
   const shared = request.location;
-  const { location, lookingUp, pick, setEntrance } = usePickedLocation(shared);
+  const { location, lookingUp, pick, choose, setEntrance } = usePickedLocation(shared);
   const [sending, setSending] = useState(false);
   const [failure, setFailure] = useState('');
 
   const moved = !!location && (location.lat !== shared.lat || location.lon !== shared.lon);
   const changed = !!location && (moved || location.entrance !== shared.entrance);
+  const inside = incidentArea === undefined || (!!location && insideIncidentArea(incidentArea, location));
 
   async function send() {
-    if (!location) return;
+    if (!location || !inside) return;
     setSending(true);
     setFailure('');
     try {
@@ -47,6 +51,10 @@ export function UpdateLocationScreen({ request, onSend, onKeep }: Props) {
         </Panel>
 
         <LiveMap point={location} height={150} editable onPick={(lat, lon) => pick(lat, lon)} />
+        <IncidentAreaWarning area={incidentArea} point={location} onReturn={() => {
+          const point = insideIncidentArea(incidentArea, shared) ? shared : defaultIncidentLocation(incidentArea, []);
+          if (point) choose(point);
+        }} />
         {moved && location && (
           <div className="stack-5">
             <Eyebrow>Proposed pin</Eyebrow>
@@ -89,7 +97,7 @@ export function UpdateLocationScreen({ request, onSend, onKeep }: Props) {
           </StatusNotice>
         )}
 
-        <Button variant="primary" disabled={!changed || sending || lookingUp} onClick={send}>
+        <Button variant="primary" disabled={!changed || sending || lookingUp || !inside} onClick={send}>
           {sending ? 'Sending update…' : 'Send updated location'}
         </Button>
         <Button onClick={onKeep} disabled={sending}>

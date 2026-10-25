@@ -43,6 +43,7 @@ import ClearIncidentReducer from "./clear_incident_reducer";
 import ClearNewsFocusReducer from "./clear_news_focus_reducer";
 import CloseMyRequestReducer from "./close_my_request_reducer";
 import CompleteMissionReducer from "./complete_mission_reducer";
+import ContinueUnitMissionReducer from "./continue_unit_mission_reducer";
 import CrewHeartbeatReducer from "./crew_heartbeat_reducer";
 import DeclineMissionReducer from "./decline_mission_reducer";
 import ExtendConsentReducer from "./extend_consent_reducer";
@@ -460,6 +461,7 @@ const reducersSchema = __reducers(
   __reducerSchema("clear_news_focus", ClearNewsFocusReducer),
   __reducerSchema("close_my_request", CloseMyRequestReducer),
   __reducerSchema("complete_mission", CompleteMissionReducer),
+  __reducerSchema("continue_unit_mission", ContinueUnitMissionReducer),
   __reducerSchema("crew_heartbeat", CrewHeartbeatReducer),
   __reducerSchema("decline_mission", DeclineMissionReducer),
   __reducerSchema("extend_consent", ExtendConsentReducer),

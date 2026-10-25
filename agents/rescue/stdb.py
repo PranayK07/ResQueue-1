@@ -141,6 +141,9 @@ class SpacetimeClient:
         self._ws_task: asyncio.Task | None = None
         self._ready = asyncio.Event()
         self._closing = False
+        self._registration: tuple[Any, ...] | None = None
+        self._registration_lock = asyncio.Lock()
+        self._registration_version = 0
 
     # ── auth ────────────────────────────────────────────────────────────────
 
@@ -167,14 +170,37 @@ class SpacetimeClient:
 
     # ── writes & ad-hoc reads ───────────────────────────────────────────────
 
-    async def call(self, reducer: str, *args: Any, timeout: float | None = None) -> None:
-        """Invoke a reducer. Raises ReducerError if the module rejects it.
-        `timeout` overrides the default 15 s for bulk calls (e.g. forecasts)."""
+    async def _invoke(self, reducer: str, args: tuple, timeout: float | None = None) -> None:
         url = f"{self.http}/v1/database/{self.db}/call/{reducer}"
         r = await (await self._client()).post(url, json=list(args), headers=await self._headers(),
                                               **({"timeout": timeout} if timeout else {}))
         if r.status_code >= 400:
             raise ReducerError(reducer, r.status_code, r.text.strip()[:500])
+
+    async def _restore_registration(self, version: int) -> None:
+        # Several engines can notice the same reset. Restore this principal once,
+        # using only the role and join key it successfully registered with before.
+        async with self._registration_lock:
+            if self._registration and version == self._registration_version:
+                await self._invoke("register_agent", self._registration)
+                self._registration_version += 1
+                log.info("[%s] restored agent registration on %s", self.name, self.db)
+
+    async def call(self, reducer: str, *args: Any, timeout: float | None = None) -> None:
+        """Invoke a reducer; recover a lost agent registration once, preserving its role."""
+        version = self._registration_version
+        try:
+            await self._invoke(reducer, args, timeout)
+        except ReducerError as error:
+            lost_role = any(message in error.message for message in
+                            ("not a registered agent", "requires commander", "requires agent role:"))
+            if reducer == "register_agent" or not self._registration or not lost_role:
+                raise
+            await self._restore_registration(version)
+            await self._invoke(reducer, args, timeout)  # one retry; permission failures still surface
+        if reducer == "register_agent":
+            self._registration = args
+            self._registration_version += 1
 
     async def try_call(self, reducer: str, *args: Any) -> bool:
         try:
@@ -210,10 +236,11 @@ class SpacetimeClient:
         (or every transaction if None). Also fires once after each (re)sync."""
         self._listeners.append((frozenset(tables) if tables is not None else None, cb))
 
-    async def connect(self, queries: list[str], timeout: float = 15.0) -> None:
+    async def connect(self, queries: list[str], timeout: float = 30.0) -> None:
         self._queries = queries
-        await self._load_schemas()
-        self._ws_task = asyncio.create_task(self._ws_loop(), name=f"stdb-ws-{self.name}")
+        if self._ws_task is None or self._ws_task.done():
+            await self._load_schemas()
+            self._ws_task = asyncio.create_task(self._ws_loop(), name=f"stdb-ws-{self.name}")
         await asyncio.wait_for(self._ready.wait(), timeout)
 
     async def close(self) -> None:
@@ -248,6 +275,7 @@ class SpacetimeClient:
                     max_size=None,
                     ping_interval=20,
                 ) as ws:
+                    await self._restore_registration(self._registration_version)
                     await ws.send(json.dumps({"Subscribe": {"query_strings": self._queries, "request_id": 1}}))
                     backoff = 0.5
                     async for raw in ws:

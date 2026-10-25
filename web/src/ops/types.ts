@@ -57,6 +57,7 @@ export interface Unit {
   freeAtS: number;
   /** LIVE-ONLY: when the unit row was last written (epoch ms, server time). */
   updatedAtMs?: number;
+  departS?: number;
   /**
    * LIVE-ONLY: the leg the unit is driving (en_route: to the scene; returning: back to its station). Units are
    * written only at lifecycle steps, never while moving, so `lat`/`lon` above are already interpolated along

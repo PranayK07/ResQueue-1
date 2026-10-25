@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export type PositionState =
+export type PositionState = (
   | { status: 'locating' }
   | { status: 'found'; lat: number; lon: number; accuracyM: number; fixedAt: number }
-  | { status: 'denied' | 'unavailable'; message: string };
+  | { status: 'denied' | 'unavailable'; message: string }
+) & { source?: 'device' | 'incident' };
 
 /** One-shot high-accuracy browser geolocation, with a retry. */
 export function useCurrentPosition(enabled = true) {

@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 
 from ..core.danger import assess_requests, routing_forecast_current
 from ..core.geo import Grid
+from ..core.assistance import response_options
 from ..core.risk import compose_risks, news_context, risk_snapshot
 from ..stdb import Debouncer
 from ..planning import risk_to_reducer_args
@@ -85,8 +86,12 @@ class DangerEngine:
         assessments, travel = await asyncio.to_thread(
             assess_requests, grid, clock["sim_s"], points, stations, forecast, burning, closures, adjust=adjust)
 
+        responses = await asyncio.to_thread(response_options, grid, clock['sim_s'], reqs, units, travel,
+                                            list(db.table('ops_queue')),
+                                            list(db.table('ops_unit_route')) if 'ops_unit_route' in db.tables else [],
+                                            burning, closures)
         risks = await asyncio.to_thread(compose_risks, snapshot, reqs, assessments, travel, units, weighed,
-                                        meta=meta, cells=list(db.table("fire_risk_cell")), pipeline=pipeline,
+                                        meta=meta, cells=list(db.table("fire_risk_cell")), pipeline=pipeline, responses=responses,
                                         context=news_context(a.planner.latest))
         sigs = {r["request_id"]: r["assessment_id"] for r in risks}
         changed = [r for r in risks if self._published.get(r["request_id"]) != sigs[r["request_id"]]]

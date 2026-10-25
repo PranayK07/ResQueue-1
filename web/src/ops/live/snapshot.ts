@@ -149,6 +149,7 @@ const toUnit = perRow(
     currentRequest: r.currentRequest,
     freeAtS: r.freeAtS,
     updatedAtMs: tsToMs(r.updatedAt),
+    departS: r.legDepartS,
     trip: null,
   })
 );
@@ -440,7 +441,7 @@ function buildQueue({ queueRows, units, requests, stations, travel, risks, flags
   for (const r of requests) {
     if (queued.has(r.id)) continue;
     const flag = unreachable.get(r.id);
-    const stationId = flag || r.level === 'unreachable' ? escalationStation(r, stationById, travel) : null;
+    const stationId = r.level === 'unreachable' ? escalationStation(r, stationById, travel) : null;
     if (stationId === null) {
       pending.push(r);
       continue;
@@ -499,6 +500,7 @@ function unitMover() {
 
   /** Sim second the unit row was written, from server times only (no device clock skew). */
   const departOf = (u: Unit, m: Motion) => {
+    if (u.departS !== undefined) return u.departS;
     const key = `${u.updatedAtMs}|${u.status}`;
     const hit = departs.get(u.id);
     if (hit && hit.key === key) return hit.departS;

@@ -20,7 +20,10 @@ import {
   submitHelpRequest,
   uploadMedia,
 } from './lib/simulatedDispatch';
-import { useCurrentPosition } from './lib/useCurrentPosition';
+import type { PositionState } from './lib/useCurrentPosition';
+import { defaultIncidentLocation, insideIncidentArea } from './lib/incidentArea';
+import { IncidentAreaWarning } from './components/IncidentAreaWarning';
+import { getWorld } from './ops/sim/world';
 import { AssignedScreen } from './screens/AssignedScreen';
 import { CorrectLocationScreen } from './screens/CorrectLocationScreen';
 import { EnRouteScreen } from './screens/EnRouteScreen';
@@ -37,7 +40,12 @@ export function CallerApp() {
 }
 
 function SimulatedCallerApp() {
-  const { position, retry } = useCurrentPosition();
+  const [incident] = useState(() => getWorld().commandSnapshot());
+  const [starting] = useState(() => defaultIncidentLocation(incident.grid, incident.fireCells));
+  const [fixedAt] = useState(() => Date.now());
+  const position: PositionState = starting
+    ? { status: 'found', source: 'incident', lat: starting.lat, lon: starting.lon, accuracyM: 0, fixedAt }
+    : { status: 'locating', source: 'incident' };
   const [resolved, setResolved] = useState<Place | null>(null);
   const [corrected, setCorrected] = useState<CallerLocation | null>(null);
   const [details, setDetails] = useState<Details>(EMPTY_DETAILS);
@@ -167,7 +175,7 @@ function SimulatedCallerApp() {
   // ─── Screens ───
   if (request) {
     if (overlay === 'update') {
-      return <UpdateLocationScreen request={request} onSend={sendUpdatedLocation} onKeep={() => setOverlay(null)} />;
+      return <UpdateLocationScreen incidentArea={incident.grid} request={request} onSend={sendUpdatedLocation} onKeep={() => setOverlay(null)} />;
     }
     switch (request.phase) {
       case 'sending':
@@ -204,6 +212,7 @@ function SimulatedCallerApp() {
   if (overlay === 'correct') {
     return (
       <CorrectLocationScreen
+        incidentArea={incident.grid}
         position={position}
         initial={location}
         onConfirm={l => {
@@ -221,13 +230,15 @@ function SimulatedCallerApp() {
       corrected={corrected !== null}
       details={details}
       onDetailsChange={setDetails}
-      onRetryLocate={retry}
+      onRetryLocate={() => {}}
       onAdjustLocation={() => setOverlay('correct')}
       onSend={() => {
-        if (!location) return;
+        if (!location || !insideIncidentArea(incident.grid, location)) return;
         // TODO(backend): submit_help_request({ lat, lon, headcount, needs, note, consentMinutes: CONSENT_MINUTES }).
         setRequest(newRequest(location, details));
       }}
+      canSend={!!location && insideIncidentArea(incident.grid, location)}
+      notice={<IncidentAreaWarning area={incident.grid} point={location} />}
     />
   );
 }

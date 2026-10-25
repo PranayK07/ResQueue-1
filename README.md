@@ -363,4 +363,4 @@ report whose weather source is `none`. Before this fix a restart could log a fir
 
 The commander's read-only commands (`status`, `signal`, `reports`, `fire`, `weather`, `news`, `help`) need no login.
 Control commands (`wind`, `pause`, `resume`, `pin`, `unpin`, `refresh news`, `incident`, `ping`, `window`) need
-`login ka9Nrv0euv`, the operator passcode for this demo deployment.
+`login <operator passcode from .env>`, the operator passcode for this demo deployment.

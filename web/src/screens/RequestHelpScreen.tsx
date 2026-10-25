@@ -29,14 +29,15 @@ export function RequestHelpScreen(props: Props) {
     () => details.note !== '' || details.needs.length > 0 || details.media.length > 0 || details.headcount !== 1
   );
   const failed = !location && (position.status === 'denied' || position.status === 'unavailable');
+  const incidentDefault = position.source === 'incident';
 
   const shown: CallerLocation = location ?? {
     lat: 0,
     lon: 0,
     houseNumber: '',
     entrance: '',
-    street: failed ? 'Location not available' : 'Finding your location…',
-    area: failed ? 'Use Adjust location to enter an address.' : 'Allow location access if your browser asks.',
+    street: failed ? 'Location not available' : incidentDefault ? 'Loading incident location…' : 'Finding your location…',
+    area: failed ? 'Use Adjust location to enter an address.' : incidentDefault ? 'Waiting for the incident map.' : 'Allow location access if your browser asks.',
   };
 
   return (
@@ -49,10 +50,10 @@ export function RequestHelpScreen(props: Props) {
         </div>
 
         <div aria-live="polite">
-          <LocationBlock label={`${corrected ? 'Corrected location' : 'Current location'} · local preview`} location={shown} />
+          <LocationBlock label={`${corrected ? 'Corrected location' : incidentDefault ? 'Starting location' : 'Current location'} · local preview`} location={shown} />
         </div>
 
-        <LiveMap point={location} height={160}>
+        {!location && incidentDefault ? <div className="live-map" style={{ height: 160 }} role="status"><div className="live-map__overlay">Loading incident map…</div></div> : <LiveMap point={location} height={160}>
           {!location &&
             (failed ? (
               <>
@@ -64,9 +65,9 @@ export function RequestHelpScreen(props: Props) {
             ) : (
               'Finding your location…'
             ))}
-        </LiveMap>
+        </LiveMap>}
 
-        <Button onClick={onAdjustLocation}>Adjust location</Button>
+        <Button disabled={incidentDefault && !location} onClick={onAdjustLocation}>Adjust location</Button>
 
         <Note>▣ Only on this device · Not yet shared</Note>
       </ScreenSection>

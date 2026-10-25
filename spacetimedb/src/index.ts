@@ -150,6 +150,17 @@ function requireUnit(ctx: Ctx, unitId: number) {
   return u;
 }
 
+function vehiclePosition(ctx: Ctx, u: ReturnType<typeof requireUnit>) {
+  const now = simNow(ctx);
+  const q = u.currentRequest ? ctx.db.queueEntry.requestId.find(u.currentRequest) : null;
+  const target = u.currentRequest ? ctx.db.helpRequest.id.find(u.currentRequest) : ctx.db.station.id.find(u.stationId);
+  if (!target || !['en_route', 'returning'].includes(u.status)) return { lat: u.lat, lon: u.lon };
+  const end = u.currentRequest ? q?.etaS : u.freeAtS;
+  if (end === undefined) return { lat: u.lat, lon: u.lon };
+  const f = Math.max(0, Math.min(1, (now - u.legDepartS) / Math.max(1, end - u.legDepartS)));
+  return { lat: u.lat + (target.lat - u.lat) * f, lon: u.lon + (target.lon - u.lon) * f };
+}
+
 function cleanNeeds(needs: string): string {
   return needs
     .split(',')
@@ -172,12 +183,22 @@ function insideGrid(ctx: Ctx, lat: number, lon: number): boolean {
   return lat >= g.originLat && lat <= g.originLat + dLat && lon >= g.originLon && lon <= g.originLon + dLon;
 }
 
+/** Start the return leg at the current scene/road position and the current replay time. */
+function returningUnit(ctx: Ctx, u: ReturnType<typeof requireUnit>) {
+  const position = vehiclePosition(ctx, u), home = ctx.db.station.id.find(u.stationId);
+  const dy = home ? (home.lat - position.lat) * 111_320 : 0;
+  const dx = home ? (home.lon - position.lon) * 111_320 * Math.cos(position.lat * Math.PI / 180) : 0;
+  const now = simNow(ctx);
+  return { ...u, ...position, status: 'returning', currentRequest: 0n,
+    legDepartS: now, freeAtS: now + Math.hypot(dx, dy) * 1.35 / 12, updatedAt: ctx.timestamp };
+}
+
 /** Free the unit (if any), drop the queue entry, purge location. */
 function closeRequest(ctx: Ctx, r: Request, status: string, actor: string, why: string) {
   if (!isActive(r)) return;
   for (const u of ctx.db.unit.iter()) {
     if (u.currentRequest === r.id) {
-      ctx.db.unit.id.update({ ...u, status: 'available', currentRequest: 0n, updatedAt: ctx.timestamp });
+      ctx.db.unit.id.update(returningUnit(ctx, u));
       log(ctx, actor, 'unit_released', `${u.callsign} released: request #${r.id} ${status}`, r.id);
     }
   }
@@ -398,7 +419,7 @@ export const load_scenario = spacetimedb.reducer(
       const s = ctx.db.station.id.find(u.stationId);
       if (!s) throw new SenderError(`unit ${u.callsign}: station ${u.stationId} not found`);
       ctx.db.unit.insert({
-        ...u, status: 'available', lat: s.lat, lon: s.lon, currentRequest: 0n, freeAtS: 0, updatedAt: ctx.timestamp,
+        ...u, status: 'available', lat: s.lat, lon: s.lon, currentRequest: 0n, freeAtS: 0, legDepartS: 0, updatedAt: ctx.timestamp,
       });
     }
     const c = ctx.db.simClock.id.find(0)!;
@@ -1183,7 +1204,7 @@ export const unit_en_route = spacetimedb.reducer(
     const actor = requireStationActor(ctx, u.stationId);
     if (u.status !== 'assigned' || u.currentRequest === 0n) throw new SenderError(`${u.callsign} has no pending assignment`);
     const r = requireRequest(ctx, u.currentRequest);
-    ctx.db.unit.id.update({ ...u, status: 'en_route', freeAtS, updatedAt: ctx.timestamp });
+    ctx.db.unit.id.update({ ...u, status: 'en_route', freeAtS, legDepartS: simNow(ctx), updatedAt: ctx.timestamp });
     ctx.db.helpRequest.id.update({ ...r, status: 'en_route', updatedAt: ctx.timestamp });
     const q = ctx.db.queueEntry.requestId.find(r.id);
     if (q) ctx.db.queueEntry.requestId.update({ ...q, unitId, etaS: arriveAtS, updatedAt: ctx.timestamp });
@@ -1222,7 +1243,9 @@ export const unit_on_scene = spacetimedb.reducer({ unitId: t.u32() }, (ctx, { un
   const u = requireUnit(ctx, unitId);
   const actor = requireStationActor(ctx, u.stationId);
   const r = requireRequest(ctx, u.currentRequest);
-  ctx.db.unit.id.update({ ...u, status: 'on_scene', updatedAt: ctx.timestamp });
+  const q = ctx.db.queueEntry.requestId.find(r.id);
+  if (q) ctx.db.queueEntry.requestId.update({ ...q, etaS: simNow(ctx), updatedAt: ctx.timestamp });
+  ctx.db.unit.id.update({ ...u, lat: r.lat, lon: r.lon, status: 'on_scene', updatedAt: ctx.timestamp });
   ctx.db.helpRequest.id.update({ ...r, status: 'on_scene', updatedAt: ctx.timestamp });
   const slack = r.fireEtaS !== undefined ? (r.fireEtaS - simNow(ctx)) / 60 : undefined;
   log(ctx, actor, 'on_scene', `${u.callsign} on scene at request #${r.id}${slack !== undefined ? ` (${slack.toFixed(0)} min before fire)` : ''}`, r.id);
@@ -1235,7 +1258,7 @@ export const complete_mission = spacetimedb.reducer(
     const u = requireUnit(ctx, unitId);
     const actor = requireStationActor(ctx, u.stationId);
     const r = requireRequest(ctx, u.currentRequest);
-    ctx.db.unit.id.update({ ...u, status: 'returning', currentRequest: 0n, updatedAt: ctx.timestamp });
+    ctx.db.unit.id.update(returningUnit(ctx, u));
     if (outcome === 'aborted') {
       ctx.db.helpRequest.id.update({ ...r, status: 'queued', updatedAt: ctx.timestamp });
       const q = ctx.db.queueEntry.requestId.find(r.id);
@@ -1247,13 +1270,51 @@ export const complete_mission = spacetimedb.reducer(
   }
 );
 
+/** Finish a rescue and claim an unserved next caller atomically; a returning truck can also be redirected. */
+export const continue_unit_mission = spacetimedb.reducer({
+  unitId: t.u32(), requestId: t.u64(), assessmentId: t.string(), travelS: t.f64(),
+}, (ctx, a) => {
+  const u = requireUnit(ctx, a.unitId);
+  const actor = requireStationActor(ctx, u.stationId);
+  const now = simNow(ctx);
+  if (!['on_scene', 'returning', 'available'].includes(u.status)) throw new SenderError('unit is already committed to another approach');
+  const next = requireRequest(ctx, a.requestId);
+  if (!isActive(next) || isLocked(next) || next.locationPurged
+      || [...ctx.db.unit.iter()].some(other => other.currentRequest === next.id)) throw new SenderError('caller is already attended or closed');
+  if (next.headcount > u.capacity || (next.pinnedStationId && next.pinnedStationId !== u.stationId)) throw new SenderError('unit capacity or commander station pin prevents continuation');
+  const risk = ctx.db.requestRisk.requestId.find(next.id);
+  if (!risk || risk.assessmentId !== a.assessmentId || !riskCard(ctx, risk).current || !risk.reachable)
+    throw new SenderError('fresh reachable risk assessment required');
+  if (!Number.isFinite(a.travelS) || a.travelS <= 0 || a.travelS >= 86400
+      || now + a.travelS + next.extractS + 300 > next.fireEtaS!) throw new SenderError('insufficient modeled rescue window');
+  const position = vehiclePosition(ctx, u);
+  if (u.status === 'on_scene') {
+    const current = requireRequest(ctx, u.currentRequest);
+    const currentQueue = ctx.db.queueEntry.requestId.find(current.id);
+    if (!currentQueue || now < currentQueue.etaS + current.extractS) throw new SenderError('extraction is still in progress');
+    closeRequest(ctx, current, 'rescued', actor, `${u.callsign} completed extraction before its next mission`);
+  } else if (u.currentRequest !== 0n) throw new SenderError('unit still has another caller');
+
+  ctx.db.unit.id.update({ ...u, ...position, status: 'assigned', currentRequest: next.id,
+    freeAtS: now + a.travelS * 2 + next.extractS, legDepartS: 0, updatedAt: ctx.timestamp });
+  ctx.db.helpRequest.id.update({ ...next, status: 'assigned', updatedAt: ctx.timestamp });
+  const previous = ctx.db.queueEntry.requestId.find(next.id);
+  const planVersion = bump(ctx, 'plan');
+  const entry = { requestId: next.id, stationId: u.stationId, unitId: u.id, rank: previous?.rank || 1,
+    etaS: now + a.travelS, reason: `LOOKAHEAD continuation: ${u.callsign} is nearby; slack ${risk.slackS.toFixed(0)} s`,
+    residentReason: `${u.callsign} is preparing to respond from its current location.`,
+    policy: 'lookahead', planVersion, updatedAt: ctx.timestamp };
+  if (previous) ctx.db.queueEntry.requestId.update(entry); else ctx.db.queueEntry.insert(entry);
+  log(ctx, actor, 'mission_continued', `${u.callsign} continues to request #${next.id}`, next.id);
+});
+
 export const unit_available = spacetimedb.reducer(
   { unitId: t.u32(), lat: t.f64(), lon: t.f64() },
   (ctx, { unitId, lat, lon }) => {
     const u = requireUnit(ctx, unitId);
     requireStationActor(ctx, u.stationId);
     if (u.currentRequest !== 0n) throw new SenderError(`${u.callsign} is still on request #${u.currentRequest}`);
-    ctx.db.unit.id.update({ ...u, status: 'available', lat, lon, freeAtS: simNow(ctx), updatedAt: ctx.timestamp });
+    ctx.db.unit.id.update({ ...u, status: 'available', lat, lon, freeAtS: simNow(ctx), legDepartS: 0, updatedAt: ctx.timestamp });
   }
 );
 
@@ -1471,12 +1532,18 @@ function visibleRequestIds(ctx: VCtx): Set<bigint> | 'all' {
 const RiskAssessmentCard = t.object('RiskAssessmentCard', {
   assessment: requestRisk.rowType, current: t.bool(), staleReason: t.string(),
 });
-function riskCard(ctx: VCtx, r: NonNullable<ReturnType<VCtx['db']['requestRisk']['requestId']['find']>>) {
+function riskCard(ctx: Ctx | VCtx, r: NonNullable<ReturnType<VCtx['db']['requestRisk']['requestId']['find']>>) {
   const v = ctx.db.worldVersion.id.find(0)!;
   const c = ctx.db.simClock.id.find(0)!;
   const routing = ctx.db.forecastMeta.id.find(0);
   const routingExpired = !routing || c.simS >= routing.computedAtS + routing.horizonS;
-  const current = !routingExpired && r.scenario === c.scenario && r.weatherVersion === v.weather && r.fireVersion === v.fire
+  const request = ctx.db.helpRequest.id.find(r.requestId);
+  const grid = ctx.db.grid.id.find(0)!;
+  const row = request ? Math.floor((request.lat - grid.originLat) * 111_320 / grid.cellSizeM) : -1;
+  const col = request ? Math.floor((request.lon - grid.originLon) * 111_320 * Math.cos(grid.originLat * Math.PI / 180) / grid.cellSizeM) : -1;
+  const observed = row >= 0 && row < grid.rows && col >= 0 && col < grid.cols && !!ctx.db.fireCell.cellId.find(row * grid.cols + col);
+  const timingUnconfirmed = !observed && r.fireEtaS <= c.simS;
+  const current = !routingExpired && !timingUnconfirmed && r.scenario === c.scenario && r.weatherVersion === v.weather && r.fireVersion === v.fire
     && r.roadsVersion === v.roads && r.requestsVersion === v.requests && r.forecastVersion === v.forecast
     && r.unitsStamp === unitsStamp(ctx)
     && r.riskUpdatedAt === (ctx.db.fireRiskMeta.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n)
@@ -1484,6 +1551,7 @@ function riskCard(ctx: VCtx, r: NonNullable<ReturnType<VCtx['db']['requestRisk']
     && (r.horizonsS.length === 0 || ctx.db.fireRiskMeta.id.find(0)!.issueS + r.horizonsS[r.horizonsS.length - 1] > c.simS);
   return { assessment: r, current, staleReason: current ? '' : routingExpired
     ? 'Routing forecast expired; a new observation or routing forecast is required.'
+    : timingUnconfirmed ? 'Previous fire-arrival estimate elapsed at an unobserved location; refreshed timing is required.'
     : 'Inputs changed or forecast expired; reassessment pending' };
 }
 /** Same role boundary as raw reports. Residents receive only their own request. */

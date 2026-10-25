@@ -1,5 +1,19 @@
 /* Screen-level layout for the caller flow; primitives live in components/ui.css. */
 
+.incident-area-return {
+  align-self: flex-start;
+  min-height: 44px;
+  margin-top: 10px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .stack-5,
 .stack-8,
 .stack-9,

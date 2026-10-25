@@ -67,7 +67,7 @@ Every write goes through a validated SpacetimeDB reducer. The database, not any 
 
 ## Try it in ASI:One
 
-No login is needed for `status`, `signal`, `reports`, `fire`, `weather`, `news` and `help`. Commands that change the simulation (`wind`, `pause`, `pin`, `refresh news`) need `login ka9Nrv0euv` (the demo's operator passcode).
+No login is needed for `status`, `signal`, `reports`, `fire`, `weather`, `news` and `help`. Commands that change the simulation (`wind`, `pause`, `pin`, `refresh news`) need `login <operator passcode from .env>` (the demo's operator passcode).
 
 ```
 status

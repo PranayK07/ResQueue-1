@@ -110,11 +110,11 @@ export function OverviewPage() {
   }, [legKey]);
   const journeyLegs = legs?.key === legKey ? legs.legs : null;
   const journey = useMemo<Journey | null>(() => (unit ? { unit, stops, legs: journeyLegs } : null), [unit, stops, journeyLegs]);
-  const escalations = s.flags.filter(f => !f.resolved && f.kind === 'unreachable' && rows.some(r => r.request.id === f.requestId));
+  const escalations = s.flags.filter(f => !f.resolved && f.kind === 'unreachable' && rows.some(r => r.request.id === f.requestId && r.escalated));
 
   // ─── Route for the selected request ───
   const [route, setRoute] = useState<{ key: string; route: Route } | null>(null);
-  const routeKey = selected?.unit && !selected.escalated ? [selected.unit.lon, selected.unit.lat, selected.request.lon, selected.request.lat].join(',') : '';
+  const routeKey = selected?.unit && !selected.escalated ? [selected.unit.trip?.fromLon ?? selected.unit.lon, selected.unit.trip?.fromLat ?? selected.unit.lat, selected.request.lon, selected.request.lat].join(',') : '';
   useEffect(() => {
     if (!routeKey) return;
     let live = true;
@@ -378,7 +378,7 @@ export function OverviewPage() {
             </tbody>
           </table>
           </div>
-          <p className="cfootnote">Slack: &lt;0 unreachable · 0–10 critical · 10–30 high · 30–60 moderate · &gt;60 low. ETA = unit wait + travel, not extraction.</p>
+          <p className="cfootnote">Slack: &lt;10 min critical (including negative margins) · 10–30 high · 30–60 moderate · &gt;60 low. Ground reachability is assessed separately. ETA = unit wait + travel, not extraction.</p>
         </section>
 
         <section className="cpicture">

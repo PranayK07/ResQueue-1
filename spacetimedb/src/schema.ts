@@ -100,6 +100,7 @@ export const unit = table(
     currentRequest: t.u64(), // 0 = none
     freeAtS: t.f64(), // sim second the unit is expected to be free again
     updatedAt: t.timestamp(),
+    legDepartS: t.f64().default(0),
   }
 );
 

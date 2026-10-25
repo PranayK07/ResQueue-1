@@ -39,8 +39,6 @@ def slack_s(fire_eta_s: float, now_s: float, wait_s: float, travel_s: float, ext
 
 
 def level_for(slack: float) -> str:
-    if slack < 0:
-        return "unreachable"
     if slack < 600:
         return "critical"
     if slack < 1800:

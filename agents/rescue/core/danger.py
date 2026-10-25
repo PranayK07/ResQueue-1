@@ -100,7 +100,7 @@ def assess_requests(
                 else:
                     route_reason = ("No grid path through the observed fire and active road closures."
                                     if closures else "No grid path through the observed fire.")
-        assessments.append({"request_id": rid, "level": level_for(slack), "slack_s": round(slack, 1),
-                            "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1),
+        assessments.append({"request_id": rid, "level": "unreachable" if cid in burning or best == UNREACHABLE_S else level_for(slack), "slack_s": round(slack, 1),
+                            "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1), "observed_fire": cid in burning,
                             "route_reason": route_reason})
     return assessments, travel

@@ -709,6 +709,7 @@ export const Unit = __t.object("Unit", {
   currentRequest: __t.u64(),
   freeAtS: __t.f64(),
   updatedAt: __t.timestamp(),
+  legDepartS: __t.f64(),
 });
 export type Unit = __Infer<typeof Unit>;
 

@@ -34,7 +34,7 @@ NEWS_SOURCE=off
 INTAKE_ANALYZER=keywords
 MAILBOX_AGENTS=none
 DEMO_PROFILE=hackathon
-SIM_CREWS=0
+SIM_CREWS=1
 SIM_SPEED=60
 ```
 
@@ -45,7 +45,7 @@ VITE_DATA_SOURCE=live
 VITE_DEMO_MODE=true
 ```
 
-This disables caller/responder geolocation requests and places each caller near the acquired fire. The caller sees a normal location preview without fire layers. Leave `VITE_DEMO_MODE=false` for device GPS outside this demo.
+Callers always start within the loaded incident area without requesting device GPS, including when the demo flag is false. The caller sees a normal location preview without fire layers. Moving a pin or choosing an address outside the incident area shows a warning and prevents confirming/sending that location, with a button to return to the incident. `VITE_DEMO_MODE=true` also hides the responder phone's GPS option; set it to false when you want to offer responder GPS.
 
 ## Start
 
@@ -80,10 +80,12 @@ The operator name is a display label attached to actions in the audit log. Use s
 
 - U-Net probabilities describe exposure at hour-scale horizons. The existing physical ensemble and grid router supply short-horizon fire/travel estimates used in slack. LOOKAHEAD consumes the complete assessment; no RL dispatch checkpoint is involved. Do not describe approximate slack as measured historical rescue timing.
 - Road directions use OSRM when available. They are ordinary road directions; no fire-safe road-routing guarantee is made. A timed-out road request shows an explicit direct-route fallback.
-- `SIM_CREWS=0` keeps missions under manual control. Use `SIM_CREWS=1` only if you want the synthetic crew driver to execute missions automatically.
+- `SIM_CREWS=1` executes missions automatically: travel, extraction, then a feasible unserved caller or a return to station. Use `SIM_CREWS=0` for manual crew control. The standalone crew driver accepts `--manual-phones` to let an open responder phone control completion. Truck markers and their labels follow the replay clock; pausing the replay pauses movement.
 - A pending/error forecast shows its pipeline state and does not paint a fallback as learned exposure. Check bundle/checkpoint paths and `FIRE_FORECAST_BACKEND=learned`.
 - “Reassessing location risk” means an input version changed; the previous card is marked stale until the commander publishes a matching assessment.
 - A destination outside the red perimeter may still fail the routing model's five-minute fire-clearance requirement. This does not establish a road closure: the safety router uses a grid approximation. The separate physical forecast is valid for three hours from its acquired perimeter. After that, assessments are marked “Reassessing” with an explicit expired-routing explanation until a fresh observation/forecast is available; old deadlines are not treated as current route blocks. Agent restarts preserve the historical acquisition time.
 - Running `scripts/dev.sh` again replaces the selected scenario and restores the three-call, paused opening. `scripts/dev.sh db` only republishes code. Use `reset` only when you intend to delete that selected database's data.
 
 The satellite basemap and OSRM require network access. The fire/model pipeline runs locally from the recorded bundle.
+
+If SpacetimeDB repeatedly logs `not a registered agent` or `requires agent role`, verify the database target first: the sprite preview on 5173 uses the local `wildfire-arizona-a66a` database, while the separate Maincloud stack uses its own database. The Python client now restores a previously successful registration after reconnecting or after a reducer detects a lost role. It retries once with the same role and join key; invalid credentials and real permission failures still surface. Restart agents after updating their Python code, without running the seeder or deleting incident data. Older log entries remain visible after recovery.
