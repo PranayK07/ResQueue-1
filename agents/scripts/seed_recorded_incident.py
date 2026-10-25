@@ -19,11 +19,15 @@ from rescue.forecast_ml.recorded import RecordedIncident  # noqa: E402
 from rescue.stdb import SpacetimeClient  # noqa: E402
 
 
-async def seed(path, run=False, speed=30.0, no_residents=False):
+async def seed(path, run=False, speed=30.0, no_residents=False, demo=False):
     path = Path(path).expanduser()
     path = path if path.is_absolute() else REPO_ROOT / path
     source = RecordedIncident.load(path)
     manifest = json.loads(Path(path).read_text())
+    if demo:
+        from rescue.demo import demo_fixture
+        stations, units, residents = await demo_fixture(source, manifest)
+        manifest = {**manifest, 'stations': stations, 'units': units, 'residents': residents}
     g = source.routing_grid
     db = SpacetimeClient("recorded-scenario")
     try:
@@ -46,11 +50,11 @@ async def seed(path, run=False, speed=30.0, no_residents=False):
         await db.call(
             "set_incident",
             source.source_id,
-            source.scenario,
+            'Arizona wildfire · July 2020',
             int(source.start_utc_s * 1e6),
             int(source.start_utc_s * 1e6),
             int(source.times_s[-1] * 1e6),
-            "Recorded fire",
+            "Northern Arizona · NIROPS aerial infrared perimeters",
             "",
             "",
         )
@@ -64,7 +68,7 @@ async def seed(path, run=False, speed=30.0, no_residents=False):
                     r["lon"],
                     r["headcount"],
                     r["needs"],
-                    "Synthetic recorded-fire demo",
+                    r.get('note', 'Recorded-fire response exercise'),
                     120,
                 )
         if run:
@@ -80,5 +84,6 @@ if __name__ == "__main__":
     parser.add_argument("--run", action="store_true")
     parser.add_argument("--speed", type=float, default=30.0)
     parser.add_argument("--no-residents", action="store_true")
+    parser.add_argument("--demo", action="store_true", help="three road-access requests chosen from current model/urgency inputs")
     args = parser.parse_args()
-    asyncio.run(seed(args.manifest, args.run, args.speed, args.no_residents))
+    asyncio.run(seed(args.manifest, args.run, args.speed, args.no_residents, args.demo))

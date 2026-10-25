@@ -659,9 +659,9 @@ input.cbtn {
 .ckey--critical { background: var(--c-red); }
 .ckey--high { background: var(--c-amber); }
 .ckey--moderate { background: #79816f; }
-.ckey--fire { width: 15px; height: 9px; background: #d99a7c; border: 1px solid #9d4d32; }
-.ckey--forecast { width: 15px; height: 9px; background: #f1d7a4; border: 1px dashed var(--c-amber); }
-.ckey--closed { width: 15px; height: 3px; background: var(--c-red); }
+.ckey--fire { width: 15px; height: 9px; background: #ec2917; border: 1px solid #a9160b; }
+.ckey--forecast { width: 28px; height: 9px; background: linear-gradient(90deg, #ff8522, #f2e535); }
+.ckey--closed { width: 18px; height: 5px; border: 1px solid #bcbcbc; background: repeating-linear-gradient(90deg, #c61e2e 0 4px, white 4px 8px); }
 .ckey--route { width: 15px; height: 3px; background: #2d5b73; }
 
 .cwind {
@@ -1994,3 +1994,6 @@ input.cbtn {
   grid-template-columns: 70px 110px 1fr;
 }
 
+
+.cbadge--low, .qlevel--low { color: #276447; background: #e4f2e9; }
+.cslack-text--low { color: #276447; }

@@ -24,4 +24,9 @@ export default __t.row({
   consentExpiresAt: __t.timestamp().name("consent_expires_at"),
   createdAt: __t.timestamp().name("created_at"),
   intakeReply: __t.string().name("intake_reply"),
+  lat: __t.f64(),
+  lon: __t.f64(),
+  note: __t.string(),
+  entrance: __t.string(),
+  updatedAt: __t.timestamp().name("updated_at"),
 });

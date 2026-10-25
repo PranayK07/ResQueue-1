@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { DEMO_MODE } from '../live/config';
+import { ForecastSummary } from '../components/ForecastSummary';
 import layersIcon from '../assets/figma/command/layers.svg';
 import pauseIcon from '../assets/figma/command/pause.svg';
 import scanIcon from '../assets/figma/command/scan.svg';
@@ -15,7 +17,7 @@ import { LAYERS, type LayerName } from './mapLayers';
 import { CommandNav, SafetyFooter } from './components/CommandNav';
 import { RequestDetails } from './components/RequestDetails';
 import { UnitPanel } from './components/UnitPanel';
-import { alertStatus, bySlack, compass, commandRows, counts, type CommandRow, mph, mps, pad2, peopleNeeds, slackText, stationShort, tPlus, unitJourney } from './derive';
+import { alertStatus, bySlack, compass, commandRows, commandEta, commandReason, commandSlack, counts, type CommandRow, mph, mps, pad2, peopleNeeds, stationShort, tPlus, unitJourney } from './derive';
 
 const PAGE = 8;
 const clockHMS = (ms: number) => clockHMSTz(ms).split(' ')[0];
@@ -50,6 +52,7 @@ function gridCentre(s: CommandSnapshot) {
 export function OverviewPage() {
   const { snapshot: s, source } = useCommandData();
   const nowMs = useNow(1000);
+  const [horizon, setHorizon] = useState(86400);
   const rows = useMemo(() => bySlack(commandRows(s)), [s]);
   const c = counts(s, rows);
 
@@ -101,9 +104,13 @@ export function OverviewPage() {
       live = false;
     };
   }, [legKey]);
-  const journeyLegs = legs?.key === legKey ? legs.legs : null;
+  const journeyLegs = useMemo(() => {
+    const calculated = legs?.key === legKey ? legs.legs : null;
+    if (!calculated) return null;
+    return unit?.trip?.route && stops[0]?.current ? [unit.trip.route.coords, ...calculated.slice(1)] : calculated;
+  }, [legs, legKey, unit, stops]);
   const journey = useMemo<Journey | null>(() => (unit ? { unit, stops, legs: journeyLegs } : null), [unit, stops, journeyLegs]);
-  const escalations = s.flags.filter(f => !f.resolved && f.kind === 'unreachable' && rows.some(r => r.request.id === f.requestId));
+  const escalations = s.flags.filter(f => !f.resolved && f.kind === 'unreachable' && rows.some(r => r.request.id === f.requestId && r.escalated));
 
   // ─── Route for the selected request ───
   const [route, setRoute] = useState<{ key: string; route: Route } | null>(null);
@@ -222,7 +229,7 @@ export function OverviewPage() {
       <section className="cmetrics" aria-label="Operational counts">
         <Metric value={String(c.requests)} title="Opt-in requests" sub={`${c.people} people · consented only`} />
         <Metric value={pad2(c.escalated)} tone={c.escalated ? 'red' : undefined} title="Unreachable by ground" sub="Commander review required" />
-        <Metric value={pad2(c.critical)} tone={c.critical ? 'amber' : undefined} title="Critical · 0–10 min" sub={`${c.high} high · ${c.moderate} moderate`} />
+        <Metric value={pad2(c.critical)} tone={c.critical ? 'amber' : undefined} title="Critical · 0–10 min" sub={`${c.high} high · ${c.moderate} moderate · ${c.low} low`} />
         <Metric value={`${c.unitsAvailable} / ${c.unitsTotal}`} title="Units available" sub={`${c.unitsTotal - c.unitsAvailable} busy across ${c.stations} stations`} />
         <Metric value={clockHMS(s.lastPlan.atMs)} small title="Queue recomputed" sub={`${s.lastPlan.reason} · ${ago(s.lastPlan.atMs)} ago`} />
       </section>
@@ -233,7 +240,7 @@ export function OverviewPage() {
             <div>
               <h2>Full rescue queue</h2>
               <p className="csub">
-                {c.requests} requests · {c.people} people · {c.stations} stations · manual reordering enabled
+                {c.requests} requests · {c.people} people · {c.stations} stations · LOOKAHEAD dispatch · lower slack first
               </p>
             </div>
             <div className="cqueue__tools">
@@ -305,6 +312,10 @@ export function OverviewPage() {
             </div>
           </div>
 
+          {s.requests.filter(r => r.channel === 'app').sort((a, b) => b.createdAtMs - a.createdAtMs).slice(0, 1).map(r => <div className="cescalation" role="status" key={String(r.id)}>
+            <strong>Latest caller alert · {requestCode(r.id)}</strong>
+            <button className="cbtn" onClick={() => { setStationFilter(0); setSearch(requestCode(r.id)); setPage(0); select(r.id); }}>Show request and pin</button>
+          </div>)}
           <div className="ctable__scroll">
           <table className="ctable">
             <thead>
@@ -337,7 +348,7 @@ export function OverviewPage() {
                     <td className="mono">
                       {stationShort(r.station.name)} /{' '}
                       {r.escalated || !r.unit ? (
-                        'Review'
+                        r.pending ? 'Awaiting assignment' : 'Review'
                       ) : (
                         <button
                           type="button"
@@ -352,16 +363,16 @@ export function OverviewPage() {
                         </button>
                       )}
                     </td>
-                    <td className="mono">{r.escalated ? '—' : `${Math.max(0, Math.round((r.entry.etaS - s.clock.simS) / 60))} min`}</td>
-                    <td className={`mono cslack-text cslack-text--${level}`}>{slackText(r.request.slackS)}</td>
-                    <td className="muted ctable__why">{r.entry.reason}</td>
+                    <td className="mono">{commandEta(r, s)}</td>
+                    <td className={`mono cslack-text cslack-text--${level}`}>{commandSlack(r, s)}</td>
+                    <td className="muted ctable__why">{commandReason(r, s)}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
           </div>
-          <p className="cfootnote">Slack: &lt;0 unreachable · 0–10 critical · &gt;10–30 high · &gt;30 moderate. ¹ETA = unit wait + travel, not extraction.</p>
+          <p className="cfootnote">Slack: &lt;10 min critical · 10–30 high · 30–60 moderate · &gt;60 low. Ground reachability is assessed separately. ¹ETA = unit wait + travel, not extraction.</p>
         </section>
 
         <section className="cpicture">
@@ -397,7 +408,7 @@ export function OverviewPage() {
                     </div>
                   )}
                 </div>
-                {source.capabilities.mockPings && (
+                {source.capabilities.mockPings && !DEMO_MODE && (
                   <>
                     <select
                       className="cbtn"
@@ -426,27 +437,32 @@ export function OverviewPage() {
 
             <CommandMap
               snapshot={s}
+              horizon={horizon}
               rows={rows}
               selected={selected}
               labeled={new Set(pageRows.map(r => r.request.id))}
-              route={route?.key === routeKey ? route.route : null}
+              route={selected?.unit?.trip?.route ?? (route?.key === routeKey ? route.route : null)}
               visible={visible}
               fitSignal={fitSignal}
               journey={journey}
               onSelect={select}
             />
 
+            <ForecastSummary live={live} />
+            <label className="cwind" style={{ gap: 12 }}>U-Net forecast horizon
+              <select className="cbtn" aria-label="U-Net forecast horizon" value={horizon} onChange={e => setHorizon(Number(e.target.value))}>
+                {(risk?.horizonsS ?? [21600, 43200, 86400]).map(h => <option key={h} value={h}>{h / 3600} hours after observation</option>)}
+              </select>
+            </label>
             <div className="clegend">
-              <span><i className="ckey ckey--dot ckey--unreachable" />Unreachable</span>
-              <span><i className="ckey ckey--dot ckey--critical" />Critical</span>
-              <span><i className="ckey ckey--dot ckey--high" />High</span>
-              <span><i className="ckey ckey--dot ckey--moderate" />Moderate</span>
-              <span><i className="ckey ckey--fire" />Fire perimeter</span>
-              <span><i className="ckey ckey--forecast" />Forecast +30m</span>
-              <span><i className="ckey ckey--closed" />Closed road</span>
+              <span><b style={{ color: "#ad1522" }}>!</b> Less slack → <b style={{ color: "#c7a700" }}>!</b> More slack</span>
+              <span><i className="ckey ckey--fire" />Observed fire</span>
+              <span><i className="ckey ckey--forecast" />U-Net predicted exposure</span>
+              <span title="Demo closures inferred where recorded fire intersects OSM roads"><i className="ckey ckey--closed" />Fire-affected road · closed</span>
               <span><i className="ckey ckey--route" />Selected route</span>
             </div>
 
+            {!replay && <>
             <div className="cwind">
               <div>
                 <p className="cwind__title">Simulation wind</p>
@@ -480,6 +496,7 @@ export function OverviewPage() {
                 </p>
               </div>
             </div>
+            </>}
           </div>
 
           <div className="cside">

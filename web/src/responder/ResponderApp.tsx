@@ -1,5 +1,9 @@
 import '@fontsource/ibm-plex-mono/600.css';
 import { useEffect, useRef, useState } from 'react';
+import { ForecastSummary, RiskSummary } from '../components/ForecastSummary';
+import { DEMO_MODE } from '../live/config';
+import { callWithCopy } from '../live/reducers';
+import { useMediaQuery } from '../lib/useMediaQuery';
 import { useNow } from '../lib/useNow';
 import { useWatchPosition } from '../lib/useWatchPosition';
 import { activeMission, clockHM, etaMinutes, formatSlack, queueItems, requestCode, simNow, simToMs, type QueueItem } from '../ops/derive';
@@ -20,7 +24,7 @@ const OFF_ROUTE_M = 80; // GPS further than this from the line → re-route
 const REROUTE_MIN_GAP_MS = 15_000;
 const FAR_FROM_INCIDENT_M = 50_000;
 
-/** Responder phone: full-screen map, queue drop-down, swipe-up directions. */
+/** Responsive responder workspace: mobile overlays become a desktop side pane. */
 export function ResponderApp({ unitId }: { unitId: number }) {
   const { snapshot: s, source } = useResponderData(unitId);
   const nowMs = useNow(1000);
@@ -40,10 +44,13 @@ export function ResponderApp({ unitId }: { unitId: number }) {
   const [sheetH, setSheetH] = useState(SHEET_PEEK);
   const [previewId, setPreviewId] = useState<bigint | null>(null);
   const [useGps, setUseGps] = useState(false);
-  const [follow, setFollow] = useState(true);
+  const [follow, setFollow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [appH, setAppH] = useState(() => window.innerHeight);
+  // Keep this breakpoint in sync with responder.css.
+  const desktop = useMediaQuery('(min-width: 1000px)');
+  const mapBottom = desktop ? 0 : sheetH;
   useEffect(() => {
     const onResize = () => setAppH(window.innerHeight);
     window.addEventListener('resize', onResize);
@@ -80,7 +87,7 @@ export function ResponderApp({ unitId }: { unitId: number }) {
     positionRef.current = position;
   });
   const hasOrigin = !!(chainOrigin ?? position);
-  const routeKey = target && hasOrigin ? `${target.request.id}:${chainOrigin ? chainOrigin.join(',') : useGps ? 'gps' : 'unit'}:${reroute}` : '';
+  const routeKey = target && hasOrigin ? `${target.request.id}:${target.request.lat}:${target.request.lon}:${s.closures.filter(c => c.active).map(c => c.id).join(',')}:${chainOrigin ? chainOrigin.join(',') : useGps ? 'gps' : 'unit'}:${reroute}` : '';
   const destLon = target?.request.lon;
   const destLat = target?.request.lat;
   useEffect(() => {
@@ -95,9 +102,9 @@ export function ResponderApp({ unitId }: { unitId: number }) {
     // routeKey encodes the target and origin choice; the live origin is read once, at that moment.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeKey]);
-  const currentRoute = route?.key === routeKey ? route.route : null;
+  const currentRoute = target === active && !useGps && me?.trip?.route ? me.trip.route : route?.key === routeKey ? route.route : null;
 
-  const progress = currentRoute ? progressAlong(currentRoute, live && position ? position : currentRoute.coords[0]) : null;
+  const progress = currentRoute && currentRoute.coords.length > 1 ? progressAlong(currentRoute, live && position ? position : currentRoute.coords[0]) : null;
 
   // Off the line with real GPS: get a fresh route (at most every 15 s).
   const lastReroute = useRef(0);
@@ -110,6 +117,16 @@ export function ResponderApp({ unitId }: { unitId: number }) {
   }, [offRoute, nowMs]);
 
   // ─── Actions ───
+  async function advance(scene: boolean) {
+    if (!me || !currentRoute?.onRoads) return;
+    setBusy(true); setError(null);
+    try {
+      if (scene) await callWithCopy('unit_on_scene', { unitId: me.id });
+      else await callWithCopy('unit_en_route', { unitId: me.id, arriveAtS: nowS + currentRoute.durationS,
+        freeAtS: nowS + 2 * currentRoute.durationS + (target?.request.extractS ?? 300) });
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { setBusy(false); }
+  }
   async function complete(outcome: MissionOutcome) {
     if (!me) return;
     setBusy(true);
@@ -140,6 +157,8 @@ export function ResponderApp({ unitId }: { unitId: number }) {
       clock={s.clock}
       nowS={nowS}
       onScene={onScene}
+      status={me?.status ?? 'assigned'}
+      canComplete={!s.live || onScene}
       busy={busy}
       error={error}
       onComplete={() => complete('rescued')}
@@ -152,10 +171,11 @@ export function ResponderApp({ unitId }: { unitId: number }) {
       <header className="rbar">
         <p className="rbar__updated" title="Last update from the queue">
           <img src={brandMark} width={11} height={14} alt="" />
-          <b>ResQueue</b> {clockHM(s.updatedAtMs)} · {ago}s ago
+          <b>ResQueue</b>
+          <span className="rbar__time">{clockHM(s.updatedAtMs)} · {ago}s ago</span>
         </p>
         <div className="rbar__right">
-          <span className="rbar__sim">SIM</span>
+          <span className="rbar__sim">REPLAY</span>
           <a className="rbar__switch" href="#/">
             Caller view
           </a>
@@ -170,7 +190,7 @@ export function ResponderApp({ unitId }: { unitId: number }) {
           {target ? (
             <>
               <span className="mbar__label">
-                {preview ? 'PREVIEW' : target === active ? (onScene ? 'ON SCENE' : 'EN ROUTE') : 'NEXT'} · {callsign}
+                {preview ? 'PREVIEW' : target === active ? (onScene ? 'ON SCENE' : me?.status === 'assigned' ? 'ASSIGNED' : 'EN ROUTE') : 'NEXT'} · {callsign}
               </span>
               <span className="mbar__line">
                 <span className="mono mbar__code">{requestCode(target.request.id)}</span>
@@ -195,22 +215,22 @@ export function ResponderApp({ unitId }: { unitId: number }) {
         </span>
       </button>
 
-      <div className="rapp__stage" style={{ ['--nav-top' as string]: '10px', ['--nav-bottom' as string]: `${sheetH + 8}px` }}>
+      <div className={`rapp__stage${queueOpen ? ' rapp__stage--queue-open' : ''}`} style={{ ['--nav-top' as string]: '10px', ['--nav-bottom' as string]: `${mapBottom + 8}px` }}>
         <NavMap
           snapshot={s}
           target={target}
           route={currentRoute}
-          position={live ? (onScene && target === active ? null : position) : chainOrigin}
+          position={live ? position : chainOrigin}
           positionLabel={live ? callsign : `After ${targetIdx > 0 ? requestCode(myStops[targetIdx - 1].request.id) : active ? requestCode(active.request.id) : '—'}`}
           gps={live && useGps}
           laterStops={laterStops}
           follow={follow && live}
           onUserMove={() => setFollow(false)}
-          padding={{ top: 0, bottom: sheetH }}
+          padding={{ top: 0, bottom: mapBottom }}
         />
 
         {(!follow || !live) && (position || chainOrigin) && (
-          <button type="button" className="recenter" style={{ bottom: sheetH + 14 }} onClick={backToCurrent}>
+          <button type="button" className="recenter" style={{ bottom: mapBottom + 14 }} onClick={backToCurrent}>
             ◎ {preview ? 'Back to my route' : 'Recenter'}
           </button>
         )}
@@ -241,6 +261,7 @@ export function ResponderApp({ unitId }: { unitId: number }) {
         )}
 
         <DirectionsSheet
+          docked={desktop}
           appHeight={appH}
           expanded={sheetExpanded}
           onExpandedChange={setSheetExpanded}
@@ -250,9 +271,12 @@ export function ResponderApp({ unitId }: { unitId: number }) {
           progress={progress}
           arrived={!!(onScene && target === active)}
           etaText={etaText}
-          empty={target ? undefined : `No stops for ${callsign}. New missions appear here.`}
+          empty={currentRoute?.reason ?? (target ? undefined : `No stops for ${callsign}. New missions appear here.`)}
           notice={
             <>
+              {s.live && <ForecastSummary live={s.live} />}
+              {target && <RiskSummary card={s.live?.risks.get(target.request.id)} />}
+              {error && <p className="mission__error" role="alert">{error}</p>}
               {preview && (
                 <p className="dsheet__notice">
                   Previewing {targetIdx >= 0 ? `stop ${targetIdx + 2}` : `${preview.unitCallsign}’s stop`} · {destName}.{' '}
@@ -264,14 +288,16 @@ export function ResponderApp({ unitId }: { unitId: number }) {
               {useGps && gps.status === 'error' && <p className="dsheet__warn">{gps.message} Showing the unit’s position instead.</p>}
               {useGps && gps.status === 'locating' && <p className="dsheet__notice">Getting a GPS fix…</p>}
               {farMeters > FAR_FROM_INCIDENT_M && (
-                <p className="dsheet__warn">This phone is {distanceText(farMeters)} from the simulated incident; directions from here are long.</p>
+                <p className="dsheet__warn">This phone is {distanceText(farMeters)} from the incident; directions from here are long.</p>
               )}
               {offRoute && <p className="dsheet__notice">Off route. Re-routing…</p>}
             </>
           }
           actions={
             <>
-              {target && (
+              {s.live && target === active && me?.status === 'assigned' && <button type="button" className="rchip rchip--primary" disabled={busy || !me.trip?.route?.onRoads} onClick={() => advance(false)}>Start response</button>}
+              {s.live && target === active && me?.status === 'en_route' && <button type="button" className="rchip rchip--primary" disabled={busy || !progress || progress.remainingM > 40} onClick={() => advance(true)}>Mark on scene</button>}
+              {target && !DEMO_MODE && (
                 <a
                   className="rchip rchip--primary"
                   href={googleMapsUrl(useGps ? null : (chainOrigin ?? unitPos), [target.request.lon, target.request.lat])}
@@ -281,13 +307,14 @@ export function ResponderApp({ unitId }: { unitId: number }) {
                   Open in Google Maps ↗
                 </a>
               )}
+              <button type="button" className="rchip" onClick={() => setFollow(f => !f)}>{follow ? 'Show whole route' : 'Follow truck'}</button>
               <span className="rseg" role="group" aria-label="Route from">
                 <button type="button" className={!useGps ? 'is-on' : ''} aria-pressed={!useGps} onClick={() => setUseGps(false)}>
                   Unit position
                 </button>
-                <button type="button" className={useGps ? 'is-on' : ''} aria-pressed={useGps} onClick={() => setUseGps(true)}>
+                {!DEMO_MODE && <button type="button" className={useGps ? 'is-on' : ''} aria-pressed={useGps} onClick={() => setUseGps(true)}>
                   Phone GPS
-                </button>
+                </button>}
               </span>
               {live && !(onScene && target === active) && (
                 <button type="button" className="rchip" onClick={() => setReroute(n => n + 1)}>

@@ -1,25 +1,28 @@
+import { vehiclePositionAt, vehicleStatus } from '../../ops/vehicleMotion';
+import { simNow } from '../../ops/derive';
 import type { FeatureCollection } from 'geojson';
+import { alertMarker, truckMarker, spreadAlerts } from '../../components/mapMarkers';
+import { satelliteStyle } from '../../lib/mapStyle';
+import { EXPOSURE_COLOR, learnedConcern } from '../../ops/learnedForecast';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import arrowDownRight from '../../assets/figma/command/arrow-down-right.svg';
-import ban from '../../assets/figma/command/ban.svg';
 import warehouse from '../../assets/figma/command/warehouse.svg';
 import { cellsOutline, cellsToPolygons, centroid, clockHM, forecastArea, nearestCellPoint, requestCode, simToMs } from '../../ops/derive';
 import type { Route } from '../../ops/routing';
 import type { CommandSnapshot, Unit } from '../../ops/types';
-import { compass, mph, slackMin, stationShort, type CommandRow } from '../derive';
+import { compass, mph, stationShort, type CommandRow } from '../derive';
 import { FORECAST_WINDOW_S, type LayerName } from '../mapLayers';
 import './CommandMap.css';
 
 maplibregl.setWorkerUrl(workerUrl);
 
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
 type LngLat = [number, number];
 
-const LEVEL_COLOR = ['match', ['get', 'level'], 'unreachable', '#20282d', 'critical', '#b33b32', 'high', '#b86d12', 'moderate', '#79816f', '#a5b0b5'];
+const LEVEL_COLOR = ['match', ['get', 'level'], 'unreachable', '#20282d', 'critical', '#b33b32', 'high', '#b86d12', 'moderate', '#79816f', 'low', '#347b58', '#a5b0b5'];
 
 /** A unit's route: from where it is now, through each stop in order. */
 export interface Journey {
@@ -30,6 +33,7 @@ export interface Journey {
 }
 
 interface Props {
+  horizon: number;
   snapshot: CommandSnapshot;
   rows: CommandRow[];
   selected: CommandRow | null;
@@ -51,7 +55,7 @@ function el(className: string, html: string) {
   return div;
 }
 
-export function CommandMap({ snapshot, rows, selected, labeled, route, visible, fitSignal, journey, onSelect }: Props) {
+export function CommandMap({ snapshot, rows, selected, labeled, route, visible, fitSignal, journey, onSelect, horizon }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Record<string, maplibregl.Marker>>({});
@@ -64,11 +68,12 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
   useEffect(() => {
     const map = new maplibregl.Map({
       container: containerRef.current!,
-      style: STYLE_URL,
+      style: satelliteStyle,
       center: [-121.59, 39.78],
       zoom: 12,
       attributionControl: { compact: true },
     });
+    map.on('moveend', () => spreadAlerts(map, markersRef.current));
     map.addControl(new maplibregl.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left');
     map.on('load', () => {
       for (const [id, prop, value] of [
@@ -80,11 +85,12 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
       }
       map.getContainer().querySelector('.maplibregl-compact-show')?.classList.remove('maplibregl-compact-show');
       for (const id of ['forecast', 'forecast-edge', 'fire', 'fire-edge', 'closures', 'route', 'journey', 'requests']) map.addSource(id, { type: 'geojson', data: EMPTY });
-      map.addLayer({ id: 'forecast-fill', type: 'fill', source: 'forecast', paint: { 'fill-color': '#f1d7a4', 'fill-opacity': 0.45, 'fill-antialias': false } });
+      map.addLayer({ id: 'forecast-fill', type: 'fill', source: 'forecast', paint: { 'fill-color': EXPOSURE_COLOR as unknown as string, 'fill-opacity': 0.72, 'fill-antialias': false } });
       map.addLayer({ id: 'forecast-line', type: 'line', source: 'forecast-edge', paint: { 'line-color': '#b86d12', 'line-width': 1.2, 'line-dasharray': [3, 2] } });
-      map.addLayer({ id: 'fire-fill', type: 'fill', source: 'fire', paint: { 'fill-color': '#d99a7c', 'fill-opacity': 0.75, 'fill-antialias': false } });
-      map.addLayer({ id: 'fire-line', type: 'line', source: 'fire-edge', paint: { 'line-color': '#9d4d32', 'line-width': 1.6 } });
-      map.addLayer({ id: 'closure-line', type: 'line', source: 'closures', paint: { 'line-color': '#b33b32', 'line-width': 4, 'line-dasharray': [1, 0.8] } });
+      map.addLayer({ id: 'fire-fill', type: 'fill', source: 'fire', paint: { 'fill-color': '#ec2917', 'fill-opacity': 0.85, 'fill-antialias': false } });
+      map.addLayer({ id: 'fire-line', type: 'line', source: 'fire-edge', paint: { 'line-color': '#a9160b', 'line-width': 1.6 } });
+      map.addLayer({ id: 'closure-casing', type: 'line', source: 'closures', paint: { 'line-color': '#fff', 'line-width': 6 } });
+      map.addLayer({ id: 'closure-line', type: 'line', source: 'closures', paint: { 'line-color': '#c61e2e', 'line-width': 6, 'line-dasharray': [1.5, 1.5] } });
       map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 7 } });
       map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#2d5b73', 'line-width': 4 } });
       map.addLayer({ id: 'journey-casing', type: 'line', source: 'journey', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 7 } });
@@ -113,6 +119,8 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
           'circle-color': LEVEL_COLOR as unknown as string,
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 1.5,
+          'circle-opacity': 0,
+          'circle-stroke-opacity': 0,
         },
       });
       map.on('click', 'request-dots', e => {
@@ -138,6 +146,8 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
   const { grid, fireCells, forecastCells, closures, clock } = snapshot;
   const fireIds = useMemo(() => new Set(fireCells.map(c => c.cellId)), [fireCells]);
   const forecastIds = useMemo(() => forecastArea(fireCells, forecastCells, clock.simS + FORECAST_WINDOW_S), [fireCells, forecastCells, clock.simS]);
+  const modelLayer = snapshot.live?.riskPipeline?.status === 'ready' ? snapshot.live.fireRisk : null;
+  const concern = useMemo(() => learnedConcern(modelLayer, horizon), [modelLayer, horizon]);
 
   // ─── Data ───
   useEffect(() => {
@@ -146,8 +156,8 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
     const set = (id: string, data: FeatureCollection | GeoJSON.Feature) => (map.getSource(id) as maplibregl.GeoJSONSource).setData(data);
     set('fire', cellsToPolygons(grid, fireIds));
     set('fire-edge', cellsOutline(grid, fireIds));
-    set('forecast', cellsToPolygons(grid, forecastIds));
-    set('forecast-edge', cellsOutline(grid, forecastIds));
+    set('forecast', concern);
+    set('forecast-edge', EMPTY);
     set('closures', {
       type: 'FeatureCollection',
       features: closures.filter(c => c.active).map(c => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[c.lon1, c.lat1], [c.lon2, c.lat2]] } })),
@@ -169,7 +179,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
         geometry: { type: 'LineString', coordinates: coords },
       })),
     });
-  }, [ready, grid, fireIds, forecastIds, closures, rows, selected, route, journey]);
+  }, [ready, grid, fireIds, concern, closures, rows, selected, route, journey]);
 
   // ─── Layer toggles ───
   useEffect(() => {
@@ -177,8 +187,8 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
     if (!map || !ready) return;
     const groups: Record<LayerName, string[]> = {
       'Fire perimeter': ['fire-fill', 'fire-line'],
-      'Forecast +30m': ['forecast-fill', 'forecast-line'],
-      'Closed roads': ['closure-line'],
+      'U-Net exposure': ['forecast-fill', 'forecast-line'],
+      'Closed roads': ['closure-line', 'closure-casing'],
       Requests: ['request-dots'],
       Stations: [],
       'Selected route': ['route-casing', 'route-line'],
@@ -216,14 +226,12 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
     }
     if (visible.has('Requests')) {
       for (const r of rows) {
-        if (!labeled.has(r.request.id) || r === selected) continue;
-        const level = r.escalated ? 'unreachable' : r.request.level;
-        want[`req-${r.request.id}`] = { at: [r.request.lon, r.request.lat], html: requestCode(r.request.id), className: `cmap-tag cmap-tag--${level}`, anchor: 'left', offset: [8, 0] };
+
+        want[`req-${r.request.id}`] = { at: [r.request.lon, r.request.lat], html: `<button type="button" aria-label="Select ${requestCode(r.request.id)}">${alertMarker(r.request, requestCode(r.request.id))}</button>`, className: 'pixel-map-marker', anchor: 'center' };
       }
     }
+    for (const u of snapshot.units) want[`truck-${u.id}`] = { at: [u.lon, u.lat], html: truckMarker(u.callsign) + `<small class="truck-motion-status">${vehicleStatus(u, snapshot.clock.simS)}</small>`, className: 'pixel-map-marker', anchor: 'center' };
     if (journey) {
-      const u = journey.unit;
-      want.unit = { at: [u.lon, u.lat], html: u.callsign, className: 'cmap-unit', anchor: 'center' };
       journey.stops.forEach(({ row, current }, i) => {
         const eta = clockHM(simToMs(snapshot.clock, row.entry.etaS));
         want[`stop-${i}`] = {
@@ -235,30 +243,9 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
         };
       });
     } else if (selected) {
-      const m = slackMin(selected.request.slackS);
-      want.selected = {
-        at: [selected.request.lon, selected.request.lat],
-        html: `<span class="cmap-halo"></span><span class="cmap-tag cmap-tag--selected">${requestCode(selected.request.id)}${m === null ? '' : ` · ${m}m`}</span>`,
-        className: 'cmap-selected',
-        anchor: 'center',
-      };
-      if (route && route.coords.length > 1 && selected.unit && visible.has('Selected route')) {
-        want.travel = {
-          at: route.coords[Math.floor(route.coords.length / 2)],
-          html: `${selected.unit.callsign} · ${Math.round(selected.entry.travelS / 60)} min travel`,
-          className: 'cmap-tag cmap-tag--route',
-          anchor: 'left',
-          offset: [10, 0],
-        };
-      }
-    }
-    if (visible.has('Closed roads')) {
-      for (const c of closures.filter(x => x.active)) {
-        want[`closure-${c.id}`] = { at: [(c.lon1 + c.lon2) / 2, (c.lat1 + c.lat2) / 2], html: `<img src="${ban}" width="12" height="12" alt="" />${c.name} closed`, className: 'cmap-tag cmap-tag--closure', anchor: 'right', offset: [-8, 0] };
-      }
+
     }
     if (fireAt && visible.has('Fire perimeter')) want.fire = { at: fireAt, html: 'ACTIVE FIRE', className: 'cmap-text cmap-text--fire', anchor: 'center' };
-    if (forecastAt && visible.has('Forecast +30m')) want.forecast = { at: forecastAt, html: 'FORECAST · +30 MIN', className: 'cmap-text cmap-text--forecast', anchor: 'left', offset: [8, 0] };
 
     for (const key of Object.keys(markers)) {
       if (!want[key]) {
@@ -275,10 +262,39 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
       }
       m.setLngLat(spec.at);
       const node = m.getElement();
-      if (node.innerHTML !== spec.html) node.innerHTML = spec.html;
+      if (node.dataset.markerHtml !== spec.html) { node.innerHTML = spec.html; node.dataset.markerHtml = spec.html; }
       if (node.className.split(' maplibregl')[0] !== spec.className) node.className = `${spec.className} ${node.className.split(' ').filter(c => c.startsWith('maplibregl')).join(' ')}`;
     }
-  }, [ready, snapshot.stations, snapshot.clock, rows, labeled, selected, route, closures, fireAt, forecastAt, visible, journey]);
+    spreadAlerts(map, markers);
+  }, [ready, snapshot.stations, snapshot.units, snapshot.clock, rows, labeled, selected, route, closures, fireAt, forecastAt, visible, journey]);
+
+  const motionRef = useRef(snapshot);
+  useEffect(() => { motionRef.current = snapshot; }, [snapshot]);
+  useEffect(() => {
+    if (!ready) return;
+    let frame: number;
+    const animate = () => {
+      const state = motionRef.current;
+      const now = simNow(state.clock);
+      for (const unit of state.units) {
+        const marker = markersRef.current[`truck-${unit.id}`];
+        if (!marker) continue;
+        const point = vehiclePositionAt(unit, now);
+        marker.setLngLat(point);
+        const node = marker.getElement();
+        node.dataset.unitId = String(unit.id);
+        node.dataset.longitude = point[0].toFixed(6);
+        node.dataset.latitude = point[1].toFixed(6);
+        const label = node.querySelector('small');
+        const status = vehicleStatus(unit, now);
+        if (label && label.textContent !== status) label.textContent = status;
+        node.title = `${unit.callsign}: ${status}`;
+      }
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [ready]);
 
   // ─── Framing ───
   function fitIncident() {
@@ -287,11 +303,12 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
     const pts: LngLat[] = [
       ...rows.map(r => [r.request.lon, r.request.lat] as LngLat),
       ...snapshot.stations.map(s => [s.lon, s.lat] as LngLat),
-      ...(fireAt ? [fireAt] : []),
+      ...snapshot.units.map(u => [u.lon, u.lat] as LngLat),
+      ...fireCells.map(c => { const row = Math.floor(c.cellId / grid.cols), col = c.cellId % grid.cols; return [grid.originLon + col * grid.cellSizeM / (111320 * Math.cos(grid.originLat * Math.PI / 180)), grid.originLat + row * grid.cellSizeM / 111320] as LngLat; }),
     ];
     if (!pts.length) return;
     const b = pts.reduce((acc, p) => acc.extend(p), new maplibregl.LngLatBounds(pts[0], pts[0]));
-    map.fitBounds(b, { padding: { top: 110, bottom: 40, left: 220, right: 70 }, duration: 500 });
+    map.fitBounds(b, { padding: { top: 50, bottom: 55, left: 70, right: 70 }, duration: 500 });
   }
   const fitRef = useRef(fitIncident);
   useEffect(() => {
@@ -331,7 +348,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
   return (
     <div className="cmap">
       <div ref={containerRef} className="cmap__canvas" />
-      <div className="cmap__wind">
+      {!snapshot.live && <div className="cmap__wind">
         <p className="cmap__wind-speed">
           <img src={arrowDownRight} width={22} height={22} alt="" style={{ transform: `rotate(${toward - 135}deg)` }} />
           {mph(w.windSpeedMps)} mph
@@ -341,6 +358,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
         </p>
         <p className="cmap__wind-note">Simplified spread · +30 min{w.locked ? ' · manual' : ''}</p>
       </div>
+      }
       <div className="cmap__zoom">
         <button type="button" aria-label="Zoom in" onClick={() => mapRef.current?.zoomIn()}>
           +
@@ -352,7 +370,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
           N ↑
         </button>
       </div>
-      <p className="cmap__disclaimer">SIMULATED SCENARIO · NOT FOR NAVIGATION</p>
+      <p className="cmap__disclaimer">NIROPS recorded perimeter · U-Net exposure ≥10% by {horizon / 3600}h</p>
     </div>
   );
 }

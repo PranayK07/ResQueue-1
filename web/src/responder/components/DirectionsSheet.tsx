@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { distanceText, instruction, maneuverIcon, type Progress } from '../../ops/navigation';
 import type { Route } from '../../ops/routing';
 
@@ -8,6 +8,8 @@ export const SHEET_PEEK = 108;
 export const SHEET_MAX_FRACTION = 1 / 3;
 
 interface Props {
+  /** Desktop directions occupy a side pane instead of covering the map. */
+  docked?: boolean;
   /** Total height available to the app, for the 1/3 limit. */
   appHeight: number;
   expanded: boolean;
@@ -31,12 +33,18 @@ interface Props {
   empty?: ReactNode;
 }
 
-/** Swipe-up directions. Peek shows the next maneuver; expanded lists every step. */
+/** Swipe-up directions on mobile; a persistent, scrollable pane on desktop. */
 export function DirectionsSheet(p: Props) {
   const maxH = Math.max(SHEET_PEEK + 60, Math.round(p.appHeight * SHEET_MAX_FRACTION));
   const [dragH, setDragH] = useState<number | null>(null);
   const start = useRef<{ y: number; h: number; moved: boolean } | null>(null);
   const height = dragH ?? (p.expanded ? maxH : SHEET_PEEK);
+  const { docked, onHeightChange } = p;
+
+  // Also report height changes caused by resizing an expanded mobile sheet.
+  useEffect(() => {
+    onHeightChange(docked ? 0 : height);
+  }, [onHeightChange, docked, height]);
 
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -66,18 +74,19 @@ export function DirectionsSheet(p: Props) {
   const step = p.route && p.progress ? p.route.steps[p.progress.nextStep] : null;
 
   return (
-    <section className="dsheet" style={{ height }} aria-label="Directions">
+    <section className={`dsheet${p.docked ? ' dsheet--docked' : ''}`} style={p.docked ? undefined : { height }} aria-label="Directions">
       <div
         className="dsheet__grab"
-        role="button"
-        tabIndex={0}
-        aria-expanded={p.expanded}
-        aria-label={p.expanded ? 'Collapse directions' : 'Expand directions'}
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
+        role={p.docked ? undefined : 'button'}
+        tabIndex={p.docked ? undefined : 0}
+        aria-expanded={p.docked ? undefined : p.expanded}
+        aria-label={p.docked ? undefined : p.expanded ? 'Collapse directions' : 'Expand directions'}
+        onPointerDown={p.docked ? undefined : onDown}
+        onPointerMove={p.docked ? undefined : onMove}
+        onPointerUp={p.docked ? undefined : onUp}
+        onPointerCancel={p.docked ? undefined : onUp}
         onKeyDown={e => {
+          if (p.docked) return;
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             p.onExpandedChange(!p.expanded);
@@ -85,7 +94,7 @@ export function DirectionsSheet(p: Props) {
           }
         }}
       >
-        <span className="dsheet__handle" aria-hidden />
+        {p.docked ? <p className="dsheet__heading">Directions</p> : <span className="dsheet__handle" aria-hidden />}
         {p.arrived ? (
           <div className="dsheet__next">
             <span className="dsheet__icon" aria-hidden>
@@ -132,7 +141,7 @@ export function DirectionsSheet(p: Props) {
             ))}
           </ol>
         )}
-        {!p.arrived && p.route && !p.route.onRoads && <p className="dsheet__warn">Road routing unavailable; showing a straight line.</p>}
+        {!p.arrived && p.route && !p.route.onRoads && <p className="dsheet__warn">{p.route.reason || 'No safe road route is available. Holding position.'}</p>}
         {p.nextLeg}
       </div>
     </section>

@@ -67,6 +67,7 @@ export interface Unit {
 
 /** LIVE-ONLY: one leg of a unit's mission, in sim seconds. */
 export interface UnitTrip {
+  route?: import('./routing').Route;
   fromLat: number;
   fromLon: number;
   toLat: number;
@@ -110,7 +111,7 @@ export interface RoadClosure {
   updatedAtMs: number;
 }
 
-export type DangerLevel = 'unknown' | 'unreachable' | 'critical' | 'high' | 'moderate';
+export type DangerLevel = 'unknown' | 'unreachable' | 'critical' | 'high' | 'moderate' | 'low';
 
 /** help_request, as exposed through the ops_request view. */
 export interface HelpRequest {
@@ -135,6 +136,7 @@ export interface HelpRequest {
   pinnedUnitId: number;
   /** LIVE-ONLY: app | asi1 | sms_sim | synthetic (seeded or mock pings). */
   channel?: string;
+  entrance?: string;
   /** LIVE-ONLY: sim second the request arrived. */
   createdSimS?: number;
   /** LIVE-ONLY: how many times the plan moved it between stations. */

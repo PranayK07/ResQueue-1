@@ -15,6 +15,7 @@ export PATH="$HOME/.local/bin:$PATH"
 SERVER="${STDB_SERVER:-local}"
 DB="${STDB_DB:-wildfire-rescue}"
 PY="${PYTHON:-venv/bin/python}"
+PY="$("$PY" -c 'import sys; print(sys.executable)')"
 
 if [ "$SERVER" = "local" ]; then
   if ! curl -sf http://127.0.0.1:3000/v1/ping >/dev/null; then
@@ -34,8 +35,8 @@ spacetime publish --server "$SERVER" -y ${CLEAR[@]+"${CLEAR[@]}"} "$DB"
 
 if [ "${FIRE_SOURCE:-sim}" = "recorded" ]; then
   : "${RECORDED_INCIDENT_PATH:?set RECORDED_INCIDENT_PATH to a prepared bundle}"
-  (cd agents && "../$PY" scripts/seed_recorded_incident.py "$RECORDED_INCIDENT_PATH" --run --speed "${SIM_SPEED:-30}")
+  (cd agents && "$PY" scripts/seed_recorded_incident.py "$RECORDED_INCIDENT_PATH" --run --speed "${SIM_SPEED:-30}")
 else
-  (cd agents && "../$PY" scripts/seed_scenario.py scenarios/paradise_demo.json --run)
+  (cd agents && "$PY" scripts/seed_scenario.py scenarios/paradise_demo.json --run)
 fi
-cd agents && exec "../$PY" -m rescue.run_all
+cd agents && exec "$PY" -m rescue.run_all

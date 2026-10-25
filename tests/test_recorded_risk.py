@@ -297,3 +297,16 @@ def test_resident_sighting_is_crosschecked_against_learned_exposure(recorded):
     assert r["probabilities"] == [] and any("sighting is trusted" in x for x in r["quality_flags"])
     assert r["fire_eta_s"] == 3600  # the sighting still drives the physical ETA, via the danger engine
 
+
+
+def test_committed_truck_uses_its_route_and_has_no_unit_wait(recorded):
+    f = inputs(recorded)
+    rid = f.requests[0]['id']
+    committed = {rid: dict(request_id=rid, station_id=1, travel_s=1200.0, reachable=True)}
+    r = _risk(f, committed=committed)
+    assert r['travel_s'] == 1200 and r['wait_s'] == 0
+    assert r['scheduled_slack_s'] == 3600 - 1200 - 600 - 300
+    committed[rid]['reachable'] = False
+    r = _risk(f, committed=committed)
+    assert not r['reachable'] and r['travel_s'] is None
+    assert r['scheduled_slack_s'] is None

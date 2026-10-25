@@ -1,10 +1,5 @@
-// Road route + turn-by-turn steps, via the public OSRM demo server
-// (OpenStreetMap roads, no key; light use only). Advisory: it doesn't know
-// about closures or fire. Falls back to a straight line if unavailable.
-//
-// This is the one place to swap in another routing engine (e.g. Google
-// Directions API with a key); everything else consumes `Route`.
-
+// Shared OSM road routing. Unavailable or blocked routes never become straight-line driving directions.
+import { roadRoute, unavailable, type RoadContext, type RoadGraph, type RoadPoint } from './roadGraph.mjs';
 type LngLat = [number, number];
 
 export interface RouteStep {
@@ -26,94 +21,38 @@ export interface RouteStep {
 }
 
 export interface Route {
+  points?: RoadPoint[];
+  reason?: string;
   coords: LngLat[];
   distanceM: number;
   durationS: number;
   steps: RouteStep[];
   /** Longest named road on the route, for the "via" label. Empty if unknown. */
   via: string;
-  /** False when we fell back to a straight line. */
+  /** False when no road route can be provided; coordinates are empty. */
   onRoads: boolean;
 }
 
-const OSRM = 'https://router.project-osrm.org/route/v1/driving';
+let context: RoadContext = {};
+let revision = '';
+let graphPromise: Promise<RoadGraph> | null = null;
 const cache = new Map<string, Promise<Route>>();
-
-interface OsrmStep {
-  name: string;
-  distance: number;
-  duration: number;
-  maneuver: { type: string; modifier?: string; location: LngLat; bearing_after?: number; exit?: number };
+export function configureRouting(next: RoadContext) {
+  const key = JSON.stringify([next.grid, next.fireCells?.map(c => c.cellId), next.closures?.filter(c => c.active).map(c => [c.lat1, c.lon1, c.lat2, c.lon2])]);
+  if (key !== revision) { revision = key; context = next; cache.clear(); }
 }
-
-interface OsrmResponse {
-  code: string;
-  routes: {
-    distance: number;
-    duration: number;
-    geometry: { coordinates: LngLat[] };
-    legs: { steps: OsrmStep[] }[];
-  }[];
-}
-
-const M_PER_DEG = 111_320;
 export function metersBetween(a: LngLat, b: LngLat) {
-  const k = Math.cos((((a[1] + b[1]) / 2) * Math.PI) / 180);
-  return Math.hypot((a[0] - b[0]) * M_PER_DEG * k, (a[1] - b[1]) * M_PER_DEG);
+  return Math.hypot((a[0] - b[0]) * 111320 * Math.cos((a[1] + b[1]) * Math.PI / 360), (a[1] - b[1]) * 111320);
 }
-
-function straight(from: LngLat, to: LngLat): Route {
-  const d = metersBetween(from, to);
-  return {
-    coords: [from, to],
-    distanceM: d,
-    durationS: d / 11,
-    steps: [
-      { type: 'depart', modifier: '', name: '', distanceM: d, durationS: d / 11, location: from, bearingAfter: 0, exit: null, startM: 0 },
-      { type: 'arrive', modifier: '', name: '', distanceM: 0, durationS: 0, location: to, bearingAfter: 0, exit: null, startM: d },
-    ],
-    via: '',
-    onRoads: false,
-  };
-}
-
 export function fetchRoute(from: LngLat, to: LngLat): Promise<Route> {
-  // ~10 m precision is plenty and keeps the cache effective.
-  const key = [...from, ...to].map(v => v.toFixed(4)).join(',');
-  let route = cache.get(key);
-  if (!route) {
-    route = fetch(`${OSRM}/${from.join(',')};${to.join(',')}?overview=full&geometries=geojson&steps=true`)
-      .then(res => (res.ok ? (res.json() as Promise<OsrmResponse>) : Promise.reject(new Error(String(res.status)))))
-      .then(data => {
-        const r = data.routes[0];
-        if (data.code !== 'Ok' || !r) return straight(from, to);
-        const raw = r.legs.flatMap(l => l.steps);
-        let along = 0;
-        const steps: RouteStep[] = raw.map(s => {
-          const step = {
-            type: s.maneuver.type,
-            modifier: s.maneuver.modifier ?? '',
-            name: s.name,
-            distanceM: s.distance,
-            durationS: s.duration,
-            location: s.maneuver.location,
-            bearingAfter: s.maneuver.bearing_after ?? 0,
-            exit: s.maneuver.exit ?? null,
-            startM: along,
-          };
-          along += s.distance;
-          return step;
-        });
-        const byName = new Map<string, number>();
-        for (const s of raw) if (s.name) byName.set(s.name, (byName.get(s.name) ?? 0) + s.distance);
-        const via = [...byName.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
-        return { coords: r.geometry.coordinates, distanceM: r.distance, durationS: r.duration, steps, via, onRoads: true };
-      })
-      .catch(() => {
-        cache.delete(key); // retry next time
-        return straight(from, to);
-      });
-    cache.set(key, route);
+  const key = [...from, ...to].map(v => v.toFixed(5)).join(',') + revision;
+  let cached = cache.get(key);
+  if (!cached) {
+    graphPromise ??= fetch(`${import.meta.env.BASE_URL}replay/roads.json`, { signal: AbortSignal.timeout(10000) })
+      .then(r => { if (!r.ok) throw new Error('Road network unavailable'); return r.json() as Promise<RoadGraph>; });
+    const snapshot = context;
+    cached = graphPromise.then(graph => roadRoute(graph, from, to, snapshot)).catch(() => { graphPromise = null; cache.delete(key); return unavailable('Road network unavailable. No driving route has been assumed.'); });
+    cache.set(key, cached);
   }
-  return route;
+  return cached;
 }

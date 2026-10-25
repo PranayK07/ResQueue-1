@@ -98,7 +98,11 @@ export function LiveMap({ point, height, editable = false, onPick, apiRef, child
 
     mapRef.current = map;
     markerRef.current = marker;
+    // The desktop columns and mobile stack can resize this container independently.
+    const resize = new ResizeObserver(() => map.resize());
+    resize.observe(containerRef.current!);
     return () => {
+      resize.disconnect();
       marker.remove();
       map.remove();
       mapRef.current = null;
@@ -130,7 +134,7 @@ export function LiveMap({ point, height, editable = false, onPick, apiRef, child
     <div className="live-map" style={{ height }}>
       <div ref={containerRef} className="live-map__canvas" />
       <p className="live-map__context">LOCAL PREVIEW</p>
-      <p className="live-map__disclaimer">Simulated · Not for navigation</p>
+      <p className="live-map__disclaimer">Location preview</p>
       {children && <div className="live-map__overlay">{children}</div>}
     </div>
   );

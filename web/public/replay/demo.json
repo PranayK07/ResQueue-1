@@ -1,0 +1,86 @@
+{
+  "sourceId": "sequence-2bdb2cbdb71e878fee72eef8",
+  "callerLocations": [
+    {
+      "lat": 35.635981,
+      "lon": -112.742506
+    },
+    {
+      "lat": 35.636096,
+      "lon": -112.741861
+    },
+    {
+      "lat": 35.639001,
+      "lon": -112.75074
+    },
+    {
+      "lat": 35.638385,
+      "lon": -112.751511
+    },
+    {
+      "lat": 35.638522,
+      "lon": -112.751222
+    },
+    {
+      "lat": 35.638499,
+      "lon": -112.752409
+    },
+    {
+      "lat": 35.638796,
+      "lon": -112.751179
+    },
+    {
+      "lat": 35.638978,
+      "lon": -112.747528
+    },
+    {
+      "lat": 35.638704,
+      "lon": -112.746742
+    },
+    {
+      "lat": 35.636876,
+      "lon": -112.737907
+    },
+    {
+      "lat": 35.638521,
+      "lon": -112.745312
+    },
+    {
+      "lat": 35.638224,
+      "lon": -112.744863
+    }
+  ],
+  "description": "NIROPS Arizona July 2020 replay; synthetic residents, stations and units",
+  "profiles": [
+    {
+      "request_id": 1,
+      "lat": 35.638772,
+      "lon": -112.748313,
+      "headcount": 1,
+      "needs": "mobility",
+      "note": "Wheelchair assistance requested",
+      "calculatedSlackS": 257.79999999999995,
+      "learnedExposure24h": 0.03968394547700882
+    },
+    {
+      "request_id": 2,
+      "lat": 35.639023,
+      "lon": -112.750108,
+      "headcount": 1,
+      "needs": "",
+      "note": "Pickup requested at road access",
+      "calculatedSlackS": 2338.8,
+      "learnedExposure24h": 0.028026875108480453
+    },
+    {
+      "request_id": 3,
+      "lat": 35.685653,
+      "lon": -112.691523,
+      "headcount": 1,
+      "needs": "",
+      "note": "Pickup requested at road access",
+      "calculatedSlackS": 10215.0,
+      "learnedExposure24h": 0.0
+    }
+  ]
+}

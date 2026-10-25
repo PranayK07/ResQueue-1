@@ -2,9 +2,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 390px;
   min-height: 100vh;
-  margin: 0 auto;
+  min-height: 100dvh;
   background: var(--surface);
 }
 
@@ -72,10 +71,57 @@
 
 .screen__content {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 20px;
-  min-height: 788px;
+  min-width: 0;
   padding: 20px;
+}
+
+.screen__section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .identity {
+    padding-inline: 32px;
+  }
+
+  .screen__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(320px, 32vw, 440px);
+    align-items: start;
+    align-content: start;
+    gap: 32px;
+    padding: 32px;
+  }
+
+  .screen__section--secondary {
+    padding-left: 32px;
+    border-left: 1px solid var(--border);
+  }
+
+  .screen__section .live-map {
+    min-height: clamp(320px, 48vh, 560px);
+  }
+
+  .screen__section:not(.screen__section--secondary) > .button {
+    align-self: flex-start;
+    width: auto;
+    min-width: 220px;
+    padding-inline: 24px;
+  }
+
+  .screen__section > .note {
+    max-width: 72ch;
+  }
+
+  .screen .heading {
+    font-size: 32px;
+  }
 }
 
 .heading {

@@ -64,6 +64,7 @@ export function clockOrigin(
 
 /** Pretty title for an incident or scenario id: recorded sequences get a short name, slugs get words. */
 export function incidentTitle(key: string, name: string): string {
+  if (name.trim() && !/sequence-[0-9a-f]+$/i.test(name)) return name.trim();
   const seq = /^(?:recorded-)?sequence-([0-9a-f]+)$/i.exec(key) ?? /^(?:recorded-)?sequence-([0-9a-f]+)$/i.exec(name);
   if (seq) return `Recorded fire · sequence ${seq[1].slice(0, 6).toLowerCase()}`;
   const text = name.trim() || key.trim();

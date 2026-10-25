@@ -24,6 +24,10 @@ FORECAST_HORIZON_S = 3 * 3600.0
 UNREACHABLE_S = 1e9  # JSON-safe stand-in for "no safe ground route"
 
 
+def routing_forecast_current(meta, now_s):
+    return bool(meta and meta["computed_at_s"] <= now_s < meta["computed_at_s"] + meta["horizon_s"])
+
+
 def local_hazard(grid: Grid, now_s: float, lat: float, lon: float, forecast: dict[int, float], burning: set[int],
                  spot_radius_m: float = NEAR_FIRE_M) -> LocalHazard:
     """The hazard model's view at one point: forecast fire arrival, distance to the nearest burning cell, and the
@@ -79,6 +83,6 @@ def assess_requests(
             fire_eta = min(fire_eta, hint)
         extract = extract_time_s(headcount, needs) + extra
         slack = slack_s(fire_eta, now_s, 0.0, best, extract)
-        assessments.append({"request_id": rid, "level": level_for(slack), "slack_s": round(slack, 1),
-                            "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1)})
+        assessments.append({"request_id": rid, "level": "unreachable" if cid in burning or best == UNREACHABLE_S else level_for(slack), "slack_s": round(slack, 1),
+                            "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1), "observed_fire": cid in burning})
     return assessments, travel

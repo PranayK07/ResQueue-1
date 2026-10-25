@@ -33,4 +33,5 @@ export default __t.row({
   pinnedStationId: __t.u32().name("pinned_station_id"),
   hopCount: __t.u32().name("hop_count"),
   updatedAt: __t.timestamp().name("updated_at"),
+  entrance: __t.string(),
 });

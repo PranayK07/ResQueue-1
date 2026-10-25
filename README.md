@@ -14,9 +14,8 @@ see the same live state through SpacetimeDB.
 > per-resident exposure, routing, slack and accepted evidence through `ops_risk` / `my_risk`.
 > [RL_INTEGRATION.md](docs/RL_INTEGRATION.md) describes the separate dispatch-policy extension.
 
-> **Everything here is simulated.** Synthetic residents, a simplified fire model,
-> no real dispatch. This is decision support for a human incident commander. It
-> never replaces 911.
+> **Recorded Arizona demo:** real NIROPS perimeters and trained U-Net forecasts, with synthetic residents, stations and units.
+> Start with `scripts/demo.sh`; see [the demo runbook](docs/DEMO_RUNBOOK.md). LOOKAHEAD handles dispatch.
 
 ## Recorded-incident risk pipeline
 
@@ -141,7 +140,7 @@ web/                          frontend (Vite + React + TS): cd web && npm instal
 | `danger` engine (inside commander) | risk + slack + level + travel time per request, via `rescue/core/danger.py` (written; end-to-end run on a throwaway database: 24 requests scored, 24 queued, 5 units dispatched) |
 | Commander planning loop | builds `PlanInput` from the database, runs the policy chosen by `POLICY` (`lookahead` placeholder by default, `rl` = the RL teammate's `rescue/rl_policy.py`), publishes the plan with current risk records and trace IDs; learned fire risk exercised through the real local agent mesh. The separate RL dispatcher remains a stub. See `docs/RL_INTEGRATION.md` |
 | Unit missions | **simulated crews**: `agents/scripts/sim_crews.py` (started by `run_all` unless `SIM_CREWS=0`) takes dispatched units en route, on scene and back; a responder phone open for a unit makes the rescued call itself |
-| Frontend (`web/`, Vite + React) | **wired to SpacetimeDB** (`VITE_DATA_SOURCE=live`, the default; `sim` keeps Sharon's in-browser simulation). Incident command (`#/command`: sign-in, replay clock, speed, mock pings, learned-forecast status) and the responder phone (`#/responder/<unitId>`) run on live data; the resident screen (`#/`) still uses simulated dispatch. Live layer: `web/src/live/` (connection, store, reducers, sign-in gate) and `web/src/ops/live/` (the two sources). Demo: [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md) |
+| Frontend (`web/`, Vite + React) | **wired to SpacetimeDB** (`VITE_DATA_SOURCE=live`, the default; `sim` keeps Sharon's in-browser simulation). Incident command (`#/command`: sign-in, replay clock, speed, mock pings, learned-forecast status) and the responder phone (`#/responder/<unitId>`) run on live data; the resident screen (`#/`) submits, updates and closes real shared requests. Demo mode places callers on fictional road-access locations without GPS. Live layer: `web/src/live/` (connection, store, reducers, sign-in gate) and `web/src/ops/live/` (the two sources). Demo: [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md) |
 
 ## Quick start
 

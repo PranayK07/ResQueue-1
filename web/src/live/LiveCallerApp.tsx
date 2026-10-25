@@ -1,0 +1,157 @@
+import { useEffect, useState } from 'react';
+import { LiveMap } from '../components/LiveMap';
+import { OptionalDetailsForm } from '../components/OptionalDetailsForm';
+import { AppShell, Button, Heading, LocationBlock, Note, Panel, SafetyNotice, ScreenSection, StatusNotice } from '../components/ui';
+import { coordsPlace } from '../lib/geo';
+import { CONSENT_MINUTES, EMPTY_DETAILS, NEED_LABELS, clock, newRequest, type CallerLocation, type Details, type HelpRequest, type Need } from '../lib/request';
+import { useCurrentPosition, type PositionState } from '../lib/useCurrentPosition';
+import { simNow, simToMs } from '../ops/derive';
+import { CorrectLocationScreen } from '../screens/CorrectLocationScreen';
+import { RequestHelpScreen } from '../screens/RequestHelpScreen';
+import { SendingScreen } from '../screens/SendingScreen';
+import { UpdateLocationScreen } from '../screens/UpdateLocationScreen';
+import { DEMO_MODE } from './config';
+import { connection } from './connection';
+import { errorCopy } from './errors';
+import { SurfaceContext, useConnection, useLiveClock, useLiveRows } from './hooks';
+import { callWithCopy } from './reducers';
+import type { RowOf } from './tables';
+import { tsToMs } from './time';
+
+const ACTIVE = new Set(['pending', 'queued', 'assigned', 'en_route', 'on_scene']);
+type Card = RowOf<'my_requests'>;
+const detailsOf = (card: Card): Details => ({ headcount: card.headcount, needs: card.needs.split(',').filter(n => n in NEED_LABELS) as Need[], note: card.note, media: [] });
+const locationOf = (card: Card): CallerLocation => ({ ...coordsPlace(card.lat, card.lon), entrance: card.entrance });
+const TITLE: Record<string, string> = {
+  pending: 'Your request was received', queued: 'Your request is in the rescue queue', assigned: 'A unit has been assigned',
+  en_route: 'Your responder is en route', on_scene: 'Your responder is on scene', rescued: 'Assistance completed',
+  safe: 'Your request is closed', revoked: 'Location sharing stopped', expired: 'Location sharing expired', not_found: 'Request closed by the crew',
+};
+
+/** The database card is the receipt and assignment authority. No local dispatch timers. */
+export function LiveCallerApp() {
+  useEffect(() => { connection.use('caller'); }, []);
+  return <SurfaceContext.Provider value="caller"><CallerFlow /></SurfaceContext.Provider>;
+}
+
+function CallerFlow() {
+  const conn = useConnection();
+  const rows = useLiveRows('my_requests');
+  const grids = useLiveRows('grid');
+  const clocks = useLiveRows('sim_clock');
+  const liveClock = useLiveClock();
+  // Disabling this hook prevents both the permission prompt and getCurrentPosition in the demo.
+  const device = useCurrentPosition(!DEMO_MODE);
+  const [seed] = useState(() => Math.random());
+  const [fixedAt] = useState(Date.now);
+  const scenario = clocks[0]?.scenario;
+  const [placed, setPlaced] = useState<{ scenario: string; location: CallerLocation } | null>(null);
+  const [corrected, setCorrected] = useState<CallerLocation | null>(null);
+  const [details, setDetails] = useState<Details>(EMPTY_DETAILS);
+  const [overlay, setOverlay] = useState<'correct' | 'update' | null>(null);
+  const [dismissed, setDismissed] = useState<Set<bigint>>(() => new Set());
+  const [pending, setPending] = useState<ReturnType<typeof newRequest> | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [edit, setEdit] = useState<Details>(EMPTY_DETAILS);
+
+  useEffect(() => {
+    if (!DEMO_MODE || !scenario || placed?.scenario === scenario || !grids[0]) return;
+    let active = true;
+    fetch(`${import.meta.env.BASE_URL}replay/demo.json`).then(r => { if (!r.ok) throw new Error('Demo locations are unavailable. Run scripts/demo.sh.'); return r.json() as Promise<{ callerLocations: { lat: number; lon: number }[] }>; }).then(data => {
+      const point = data.callerLocations[Math.floor(seed * data.callerLocations.length)];
+      if (!point) throw new Error('No road-access caller locations are prepared.');
+      if (active) setPlaced({ scenario, location: { ...coordsPlace(point.lat, point.lon), entrance: '' } });
+    }).catch(e => { if (active) setError(String(e)); });
+    return () => { active = false; };
+  }, [scenario, grids, placed, seed]);
+
+  const position: PositionState = DEMO_MODE
+    ? placed ? { status: 'found', lat: placed.location.lat, lon: placed.location.lon, accuracyM: 0, fixedAt } : { status: 'locating' }
+    : device.position;
+  const detected: CallerLocation | null = position.status === 'found' ? { ...coordsPlace(position.lat, position.lon), entrance: '' } : null;
+  const location = corrected ?? placed?.location ?? detected;
+  const card = [...rows].sort((a, b) => tsToMs(b.createdAt) - tsToMs(a.createdAt)).find(r => ACTIVE.has(r.status))
+    ?? [...rows].sort((a, b) => tsToMs(b.createdAt) - tsToMs(a.createdAt)).find(r => !dismissed.has(r.requestId));
+
+  async function run(action: () => Promise<void>) {
+    setBusy(true); setError('');
+    try { await action(); setEditing(false); }
+    catch (e) { setError(errorCopy(e)); }
+    finally { setBusy(false); }
+  }
+
+  async function send() {
+    if (!location || !conn.canCall || busy) return;
+    setPending(newRequest(location, details));
+    await run(() => callWithCopy('submit_app_request', { lat: location.lat, lon: location.lon, entrance: location.entrance,
+      headcount: details.headcount, needs: details.needs.join(','), note: details.note, consentMinutes: CONSENT_MINUTES }));
+    setPending(null);
+  }
+
+  const connectionNotice = conn.surface !== 'caller' || !conn.ready
+    ? <StatusNotice title="Connecting to the rescue queue">{conn.error || 'Waiting for the shared incident. Your alert has not been sent.'}</StatusNotice>
+    : conn.state !== 'live' ? <StatusNotice title="Connection interrupted">Showing the last confirmed status. Reconnecting…</StatusNotice> : null;
+  const errorNotice = error ? <StatusNotice title="Could not complete that action">{error}</StatusNotice> : null;
+
+  if (card) {
+    const active = ACTIVE.has(card.status);
+    const confirmedLocation = locationOf(card);
+    const currentDetails = detailsOf(card);
+    const local: HelpRequest = { token: `live:${card.requestId}`, number: String(card.requestId), location: confirmedLocation,
+      details: currentDetails, phase: 'assigned', createdAt: tsToMs(card.createdAt), receivedAt: tsToMs(card.createdAt),
+      updatedAt: tsToMs(card.updatedAt), arrivalAt: null, sharedUntil: tsToMs(card.consentExpiresAt), dispatch: null, locationUpdatedAt: null };
+    if (active && overlay === 'update') return <UpdateLocationScreen request={local} onKeep={() => setOverlay(null)} onSend={async next => {
+      await callWithCopy('update_my_request', { requestId: card.requestId, lat: next.lat, lon: next.lon, entrance: next.entrance,
+        headcount: card.headcount, needs: card.needs, note: card.note });
+      setCorrected(next); setOverlay(null);
+    }} />;
+    const eta = liveClock && card.etaS !== undefined ? Math.max(0, Math.ceil((card.etaS - simNow(liveClock)) / 60)) : null;
+    return <AppShell>
+      <ScreenSection>
+        {connectionNotice}
+        <Note>REQUEST Q-{String(card.requestId).padStart(3, '0')}</Note>
+        <Heading>{TITLE[card.status] ?? card.status}</Heading>
+        <Note tone="ink" size={14}>{card.reason || (active ? 'Incident command can see your request.' : 'Your location is no longer shared.')}</Note>
+        {active && <>
+          <LocationBlock label="Shared location" location={confirmedLocation} />
+          <LiveMap point={confirmedLocation} height={220} />
+          <Note>Your location and updates are visible to incident command and your assigned station.</Note>
+        </>}
+        {active && <Panel>
+          <p className="panel__title">{card.unitCallsign || card.stationName || 'Awaiting assignment'}</p>
+          {card.stationName && card.unitCallsign && <Note>{card.stationName}</Note>}
+          {eta !== null && <><p className="travel__eta">{eta} min</p><Note>Estimated arrival · {clock(simToMs(liveClock!, card.etaS!))} on the replay clock</Note></>}
+          {card.queuePosition > 0 && <Note>Station queue position: {card.queuePosition}</Note>}
+          {!card.unitCallsign && <Note>No unit is committed yet. This page updates when command assigns one.</Note>}
+        </Panel>}
+        {card.intakeReply && active && <Note>{card.intakeReply}</Note>}
+      </ScreenSection>
+      <ScreenSection secondary>
+        {errorNotice}
+        {active ? <>
+          <Note tone="ink" size={14}>{card.headcount} {card.headcount === 1 ? 'person' : 'people'} · {card.needs || 'No listed needs'}</Note>
+          {card.note && <Note>{card.note}</Note>}
+          {editing ? <>
+            <OptionalDetailsForm idPrefix="live-edit" value={edit} onChange={setEdit} allowMedia={false} />
+            <Button variant="primary" disabled={busy || !conn.canCall} onClick={() => run(() => callWithCopy('update_my_request', {
+              requestId: card.requestId, lat: card.lat, lon: card.lon, entrance: card.entrance,
+              headcount: edit.headcount, needs: edit.needs.join(','), note: edit.note,
+            }))}>Save details</Button>
+            <Button onClick={() => setEditing(false)}>Cancel editing</Button>
+          </> : <Button disabled={busy} onClick={() => { setEdit(currentDetails); setEditing(true); }}>Edit request details</Button>}
+          <Button disabled={busy || !conn.canCall} onClick={() => setOverlay('update')}>My location has changed</Button>
+          <Button disabled={busy || !conn.canCall} onClick={() => run(() => callWithCopy('close_my_request', { requestId: card.requestId, externalRef: '', outcome: 'safe' }))}>I’m safe — close request</Button>
+          <Note>Location shared until {clock(tsToMs(card.consentExpiresAt))}. Closing the request stops sharing.</Note>
+        </> : <Button onClick={() => { setDismissed(new Set(rows.map(r => r.requestId))); setDetails(EMPTY_DETAILS); setOverlay(null); }}>Start another request</Button>}
+        <SafetyNotice />
+      </ScreenSection>
+    </AppShell>;
+  }
+  if (pending && busy) return <SendingScreen request={pending} />;
+  if (overlay === 'correct') return <CorrectLocationScreen position={position} initial={location} onConfirm={next => { setCorrected(next); setOverlay(null); }} />;
+  return <RequestHelpScreen position={position} location={location} corrected={!!corrected} details={details} onDetailsChange={setDetails}
+    onRetryLocate={DEMO_MODE ? () => {} : device.retry} onAdjustLocation={() => setOverlay('correct')} onSend={send}
+    canSend={conn.surface === 'caller' && conn.ready && conn.canCall && !busy} allowMedia={false} notice={<>{connectionNotice}{errorNotice}</>} />;
+}

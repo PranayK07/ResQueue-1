@@ -2,8 +2,9 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import brandMark from '../assets/figma/brand-mark.svg';
 import type { CallerLocation } from '../lib/request';
 import './ui.css';
+import { DEMO_MODE } from '../live/config';
 
-/** Mobile frame shared by every caller screen: product identity bar + content. */
+/** Full-width shell shared by every caller screen: product identity bar + content. */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="screen">
@@ -17,6 +18,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="screen__content">{children}</main>
     </div>
   );
+}
+
+/** Related content stays together when the caller flow becomes two columns. */
+export function ScreenSection({ children, secondary = false }: { children: ReactNode; secondary?: boolean }) {
+  return <div className={`screen__section${secondary ? ' screen__section--secondary' : ''}`}>{children}</div>;
 }
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' };
@@ -64,12 +70,13 @@ export function LocationBlock({ label, location }: { label: string; location: Ca
 }
 
 export function SafetyNotice() {
+  if (DEMO_MODE) return <p className="note note--muted note--12">July 2020 Arizona replay · Synthetic response resources</p>;
   return (
     <div className="safety">
       <p className="safety__call">
         Immediate danger? <a href="tel:911">Call 911</a>
       </p>
-      <p className="safety__sim">Simulated assistance only · No real dispatch</p>
+      <p className="safety__sim">Historical replay · Synthetic response resources</p>
     </div>
   );
 }

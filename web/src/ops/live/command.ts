@@ -9,7 +9,7 @@ import type { CommandCapabilities, CommandSource } from '../sources';
 import { createCommandBuilder, liveStore } from './snapshot';
 
 const CAPABILITIES: CommandCapabilities = Object.freeze({
-  unitAssignment: false,
+  unitAssignment: true,
   planPreview: false,
   speed: true,
   releaseWind: true,
@@ -43,11 +43,9 @@ export function createLiveCommandSource(): CommandSource {
     releaseWeatherLock: () => run('release_weather_lock', {}),
     overrideAssignment: (requestId, stationId, note) => run('override_assignment', { requestId, stationId, note }),
     assignToUnit: (requestId, unitId) => {
-      // The backend can pin a station, not a unit: pin the unit's station (0 unpins).
+      // Manual dispatch commits the chosen unit; 0 releases a station pin.
       if (unitId === 0) return run('override_assignment', { requestId, stationId: 0, note: '' });
-      const unit = store.rows('unit').find(u => u.id === unitId);
-      if (!unit) return Promise.reject(new Error('That unit is no longer in the incident.'));
-      return run('override_assignment', { requestId, stationId: unit.stationId, note: `assign to ${unit.callsign}` });
+      return run('assign_request_to_unit', { requestId, unitId });
     },
     setUnitOrder: () => notLive('Reordering a unit'),
     releaseUnit: () => notLive('Releasing a unit'),

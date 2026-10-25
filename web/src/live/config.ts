@@ -13,6 +13,7 @@ export const DATA_SOURCE: DataSource = read(env.VITE_DATA_SOURCE)?.toLowerCase()
 export const STDB_URI: string = read(env.VITE_STDB_URI) ?? defaults.uri;
 export const STDB_DB: string = read(env.VITE_STDB_DB) ?? read(defaults.db) ?? 'wildfire-rescue';
 export const isLive: boolean = DATA_SOURCE === 'live';
+export const DEMO_MODE = read(env.VITE_DEMO_MODE)?.toLowerCase() === 'true';
 
 function configError(): string | null {
   let url: URL;

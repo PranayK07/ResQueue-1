@@ -9,7 +9,7 @@ Run one driver at a time: to start your own (say with --stations), run the mesh 
 Nothing in the backend moves units: publish_plan only marks one `assigned`. This driver reads the plan back from the
 database and calls the lifecycle reducers at the sim times it implies:
 
-    assigned   -> unit_en_route(arrive, free)            travel: ops_travel, else the queue ETA, else a straight line
+    assigned   -> unit_en_route(arrive, free)            travel: published closure-aware road route
     en_route   -> unit_position(request), unit_on_scene  once sim time reaches the queue ETA
     on_scene   -> complete_mission(rescued)              after the request's on-scene time (or --dwell-s), unless a
                                                          responder phone has the unit open: then its crew decides
@@ -40,15 +40,13 @@ from rescue.core.slack import extract_time_s  # noqa: E402
 from rescue.stdb import Debouncer, ReducerError, SpacetimeClient  # noqa: E402
 
 NAME = "sim-crews"
-TABLES = ["sim_clock", "grid", "station", "unit", "ops_queue", "ops_request", "ops_travel"]
-WATCH = ["sim_clock", "unit", "ops_queue", "crew_presence"]
+TABLES = ["sim_clock", "grid", "station", "unit", "ops_queue", "ops_request", "ops_travel", "ops_risk", "fire_cell", "road_closure", "ops_unit_route"]
+WATCH = ["sim_clock", "unit", "ops_queue", "ops_unit_route", "crew_presence"]
 SAFETY_S = 2.0  # step at least this often, even when no update arrives
 HEARTBEAT_S = 10.0  # as the mesh agents; the console calls an agent stale after 45 s
 CREWED_S = 45.0  # a responder phone heartbeats about every 20 s while it shows its unit
 PENDING_S = 15.0  # a step whose result has not reached the replica by then may be sent again
 RETRY_S, RETRY_MAX_S = 5.0, 60.0  # backoff after a rejected call
-ROAD_MPS, DETOUR = 12.0, 1.35  # core.routing.RoadParams, for the straight-line fallback
-NO_ROUTE_S = 1e8  # danger publishes 1e9 when there is no safe ground route
 AT_STATION_M = 100.0
 LABELS = {"assigned": "dispatched", "en_route": "en route", "on_scene": "on scene", "returning": "returning",
           "available": "available", "out_of_service": "out of service"}
@@ -203,50 +201,50 @@ class Crews:
         first = self.since.setdefault(key(u), now)
         if rid and not req:
             return Move([], f"waiting for request #{rid} to reach the replica")
+        route = self.db.table("ops_unit_route").get(uid)
+        routed = route and route["status"] == "ready" and route["request_id"] == rid
         if status == "assigned" and req:
-            travel = self.travel(u, req, q, st, now)
+            if not routed:
+                return Move([], "waiting for a safe road route")
+            travel = route["duration_s"]
             arrive = now + travel
             free = arrive + self.dwell(req) + travel  # back at the station, as the planner's timeline assumes
             return Move([("unit_en_route", uid, float(arrive), float(free))],
                         f"en route to #{rid}: on scene in {mins(travel)}, back at the station in {mins(free - now)}")
         if status == "en_route" and req:
-            eta = q["eta_s"] if q else first + self.travel(u, req, None, st, first)
+            if not routed:
+                return Move([], "road route unavailable; holding position")
+            eta = route["arrive_s"]
             if now < eta:
                 return Move([], f"en route to #{rid}, on scene in {mins(eta - now)}")
-            # One position write, so the map shows the unit at the scene and the drive back starts there.
-            there = haversine_m(u["lat"], u["lon"], req["lat"], req["lon"]) < 1.0
-            calls = [] if there else [("unit_position", uid, float(req["lat"]), float(req["lon"]))]
-            return Move(calls + [("unit_on_scene", uid)], f"on scene at #{rid}")
+            return Move([("unit_on_scene", uid)], f"on scene at #{rid}")
         if status == "on_scene" and req:
-            if uid in crewed:
+            if uid in crewed and getattr(self.a, "manual_phones", False):
                 return Move([], f"on scene at #{rid}: its responder phone decides when it is done")
             done = (q["eta_s"] if q else first) + self.dwell(req)
             if now < done:
                 return Move([], f"on scene at #{rid}, done in {mins(done - now)}")
+            following = self.continuation(u, now, stations)
+            if following:
+                next_id, assessment, drive = following
+                return Move([('continue_unit_mission', uid, next_id, assessment, drive)], f'rescued #{rid}; continuing to #{next_id}')
             return Move([("complete_mission", uid, "rescued")], f"rescued #{rid}, driving back")
         home = st is not None and haversine_m(u["lat"], u["lon"], st["lat"], st["lon"]) < AT_STATION_M
         back = [("unit_available", uid, float(st["lat"]), float(st["lon"]))] if st else []
         if status == "returning" and st and not rid:
-            # A unit still at home ("can't reach" before it left) is back in service now: free_at_s counts the
-            # whole mission it never drove.
-            if not home and 0 < now < u["free_at_s"]:
-                return Move([], f"returning, back at {st['name']} in {mins(u['free_at_s'] - now)}")
+            following = self.continuation(u, now, stations)
+            if following:
+                next_id, assessment, drive = following
+                return Move([('continue_unit_mission', uid, next_id, assessment, drive)], f'redirecting to unserved caller #{next_id}')
+            if not routed:
+                return Move([], "waiting for a safe return road route")
+            if now < route["arrive_s"]:
+                return Move([], f"returning, back at {st['name']} in {mins(route['arrive_s'] - now)}")
             return Move(back, f"back in service at {st['name']}")
         if status == "available" and st and not rid and not home:
             # Released away from home (the request closed, or the crew declined, on scene).
             return Move(back, f"released, back at {st['name']}")
         return Move([], LABELS.get(status, status))
-
-    def travel(self, u: dict, req: dict, q: dict | None, st: dict | None, now: float) -> float:
-        """Station -> request in sim seconds: the danger engine's route, else the plan's ETA, else a straight line."""
-        tr = self.db.table("ops_travel").get(req["id"] * 1024 + u["station_id"])
-        if tr and tr["reachable"] and 0 <= tr["travel_s"] < NO_ROUTE_S:
-            return float(tr["travel_s"])
-        if q and q["eta_s"] - now < NO_ROUTE_S:
-            return max(60.0, q["eta_s"] - now)
-        if st:
-            return haversine_m(st["lat"], st["lon"], req["lat"], req["lon"]) * DETOUR / ROAD_MPS
-        return 600.0
 
     def dwell(self, req: dict) -> float:
         if self.a.dwell_s is not None:
@@ -322,6 +320,7 @@ async def main() -> None:
                     help="on-scene time in sim seconds for every mission (default: each request's extract time)")
     ap.add_argument("--once", action="store_true",
                     help="one step, print every unit's state, then exit (debugging; stop the running driver first)")
+    ap.add_argument("--manual-phones", action="store_true", help="leave completion to an open responder phone (default: automatic)")
     a = ap.parse_args()
     if a.dwell_s is not None and not 0 <= a.dwell_s < 1e7:
         ap.error("--dwell-s must be a number of sim seconds, 0 or more")

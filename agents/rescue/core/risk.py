@@ -11,7 +11,7 @@ import hashlib
 import json
 import math
 
-from .slack import MARGIN_S
+from .slack import MARGIN_S, level_for, slack_s
 
 # A credible resident sighting means fire is close. If the learned model gives the shortest horizon less than this
 # probability for that cell, the two sources disagree and a human should look; the sooner physical ETA is kept.
@@ -67,11 +67,11 @@ def risk_snapshot(now_s, scenario, versions, units, meta=None, pipeline=None):
 
 
 def compose_risks(
-    snapshot, requests, assessments, travel, units, weighed, *, meta=None, cells=(), pipeline=None, context=None
+    snapshot, requests, assessments, travel, units, weighed, *, meta=None, cells=(), pipeline=None, responses=None, context=None, committed=None
 ):
     """Return one complete risk record for each physically assessed active request.
 
-    Travel/wait are the earliest station-unit option, not a dispatch promise.
+    Travel/wait use the committed truck when supplied, otherwise the earliest station-unit option.
     Missing units/routes and unknown exposure remain explicit optional values.
     Accepted evidence has already adjusted assessments; it is not applied twice.
     """
@@ -122,8 +122,21 @@ def compose_risks(
         r, w = reqs[rid], weighed.get(rid)
         legs = routes.get(rid, [])
         leg = min(legs, key=lambda t: free[t["station_id"]] + t["travel_s"]) if legs else None
+        assigned = (committed or {}).get(rid)
+        if assigned:
+            leg = assigned if assigned['reachable'] else None
         drive = leg["travel_s"] if leg else None
         wait = max(0.0, free[leg["station_id"]] - now) if leg else None
+        if assigned and leg:
+            wait = 0.0
+        if responses is not None:
+            leg = responses.get(rid)
+            drive = leg['travel_s'] if leg else None
+            wait = leg['wait_s'] if leg else None
+            if leg:
+                value = slack_s(danger['fire_eta_s'], now, wait, drive, danger['extract_s'])
+                danger = {**danger, 'slack_s': round(value, 1),
+                          'level': 'unreachable' if danger.get('observed_fire') else level_for(value)}
         scheduled = (
             danger["fire_eta_s"] - now - drive - wait - danger["extract_s"] - MARGIN_S if leg else None
         )
@@ -147,7 +160,7 @@ def compose_risks(
         reason = (
             f"Physical risk {danger['level']}; immediate slack {danger['slack_s'] / 60:.1f} min. "
             + (
-                f"Station {leg['station_id']}: travel {drive / 60:.1f} min, wait {wait / 60:.1f} min, "
+                f"{leg.get('callsign', 'Station ' + str(leg['station_id']))}: travel {drive / 60:.1f} min, wait {wait / 60:.1f} min, "
                 f"extraction {danger['extract_s'] / 60:.1f} min; scheduled slack {scheduled / 60:.1f} min. "
                 if leg
                 else "No station-unit route is currently available. "

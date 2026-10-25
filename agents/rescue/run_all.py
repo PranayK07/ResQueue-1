@@ -22,11 +22,12 @@ MODULES = {
     "commander": ["rescue.agents.commander"],
     # Not a uAgent: stands in for the station crews, so dispatched units go en route, on scene and back.
     "crews": ["scripts.sim_crews"],
+    "routes": ["scripts.route_worker"],
 }
 
 
 def main() -> None:
-    names = sys.argv[1:] or [a.name for a in ROSTER] + (["crews"] if settings.sim_crews else [])
+    names = sys.argv[1:] or [a.name for a in ROSTER] + (["routes"] if settings.recorded_incident_path else []) + (["crews"] if settings.sim_crews else [])
     if unknown := [n for n in names if n not in MODULES]:
         sys.exit(f"unknown agent(s) {', '.join(unknown)}; choose from {', '.join(MODULES)}")
     procs: dict[str, subprocess.Popen] = {}

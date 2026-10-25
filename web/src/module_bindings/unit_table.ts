@@ -22,4 +22,5 @@ export default __t.row({
   currentRequest: __t.u64().name("current_request"),
   freeAtS: __t.f64().name("free_at_s"),
   updatedAt: __t.timestamp().name("updated_at"),
+  legDepartS: __t.f64().name("leg_depart_s"),
 });

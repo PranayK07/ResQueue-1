@@ -12,6 +12,8 @@ interface Props {
   clock: SimClock;
   nowS: number;
   onScene: boolean;
+  status: string;
+  canComplete: boolean;
   busy: boolean;
   error: string | null;
   onComplete: () => void;
@@ -19,7 +21,7 @@ interface Props {
 }
 
 /** The mission this unit is committed to, with the crew's actions. */
-export function ActiveMission({ item, clock, nowS, onScene, busy, error, onComplete, onCantReach }: Props) {
+export function ActiveMission({ item, clock, nowS, onScene, status, canComplete, busy, error, onComplete, onCantReach }: Props) {
   const { request } = item;
   const place = useAddress(request.id, request.lat, request.lon);
   const [confirming, setConfirming] = useState(false);
@@ -27,7 +29,7 @@ export function ActiveMission({ item, clock, nowS, onScene, busy, error, onCompl
   return (
     <section className="mission" aria-label={`Active mission ${requestCode(request.id)}`}>
       <p className="mission__eyebrow">
-        ACTIVE MISSION · {item.unitCallsign} · {onScene ? 'ON SCENE' : 'EN ROUTE'}
+        ACTIVE MISSION · {item.unitCallsign} · {onScene ? 'ON SCENE' : status === 'assigned' ? 'ASSIGNED' : 'EN ROUTE'}
       </p>
       <div className="mission__identity">
         <h2 className="mono">{requestCode(request.id)}</h2>
@@ -87,7 +89,7 @@ export function ActiveMission({ item, clock, nowS, onScene, busy, error, onCompl
             <img src={flag} width={16} height={16} alt="" />
             Can’t reach
           </button>
-          <button type="button" className="raction raction--primary" onClick={onComplete} disabled={busy}>
+          <button type="button" className="raction raction--primary" onClick={onComplete} disabled={busy || !canComplete}>
             <img src={check} width={16} height={16} alt="" />
             {busy ? 'Saving…' : 'Mark complete'}
           </button>

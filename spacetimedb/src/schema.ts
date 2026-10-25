@@ -100,6 +100,7 @@ export const unit = table(
     currentRequest: t.u64(), // 0 = none
     freeAtS: t.f64(), // sim second the unit is expected to be free again
     updatedAt: t.timestamp(),
+    legDepartS: t.f64().default(0),
   }
 );
 
@@ -113,6 +114,15 @@ export const crewPresence = table(
     seenAt: t.timestamp(),
   }
 );
+
+export const RoadPoint = t.object('RoadPoint', { lon: t.f64(), lat: t.f64(), name: t.string() });
+/** A private, shared route: it contains a resident's destination. */
+export const unitRoute = table({ name: 'unit_route' }, {
+  unitId: t.u32().primaryKey(), requestId: t.u64(), targetLat: t.f64(), targetLon: t.f64(),
+  points: t.array(RoadPoint), durationS: t.f64(), departS: t.f64(), arriveS: t.f64(),
+  status: t.string(), reason: t.string(), signature: t.string(), updatedAt: t.timestamp(),
+  fireVersion: t.u64().default(0n), roadsVersion: t.u64().default(0n),
+});
 
 // ─── Fire, weather, forecast, roads ─────────────────────────────────────────
 
@@ -382,6 +392,7 @@ export const helpRequest = table(
     pinnedStationId: t.u32(), // commander override; 0 = not pinned
     hopCount: t.u32(),
     updatedAt: t.timestamp(),
+    entrance: t.string().default(''),
   }
 );
 
@@ -722,6 +733,7 @@ const spacetimedb = schema(
     station,
     unit,
     crewPresence,
+    unitRoute,
     weather,
     fireCell,
     forecastCell,

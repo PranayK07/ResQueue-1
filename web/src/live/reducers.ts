@@ -3,6 +3,11 @@
 // could otherwise call them from here.
 
 import type {
+  AssignRequestToUnitParams,
+  SubmitAppRequestParams,
+  UpdateMyRequestParams,
+  UnitEnRouteParams,
+  UnitOnSceneParams,
   ClaimOperatorParams,
   CloseMyRequestParams,
   CompleteMissionParams,
@@ -28,6 +33,11 @@ import { CallError, errorCopy } from './errors';
 
 /** Arguments are the generated camelCase params; u64 ids are bigint. Zero-argument reducers take {}. */
 export type ReducerArgs = {
+  assign_request_to_unit: AssignRequestToUnitParams;
+  submit_app_request: SubmitAppRequestParams;
+  update_my_request: UpdateMyRequestParams;
+  unit_en_route: UnitEnRouteParams;
+  unit_on_scene: UnitOnSceneParams;
   claim_operator: ClaimOperatorParams;
   submit_help_request: SubmitHelpRequestParams;
   close_my_request: CloseMyRequestParams;

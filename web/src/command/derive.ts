@@ -12,19 +12,28 @@ export interface CommandRow {
   escalated: boolean;
   /** A unit is committed (en route / on scene). */
   committed: boolean;
+  pending?: boolean;
 }
 
 /** All requests, escalations first, then ground-queue order (planner position). */
 export function commandRows(s: CommandSnapshot): CommandRow[] {
-  const rows = s.queue.flatMap(entry => {
+  const rows: CommandRow[] = s.queue.flatMap(entry => {
     const request = s.requests.find(r => r.id === entry.requestId);
     const station = s.stations.find(st => st.id === entry.stationId);
     if (!request || !station) return [];
     const unit = s.units.find(u => u.id === entry.unitId) ?? null;
     return [{ request, entry, station, unit, escalated: entry.position === 0, committed: unit?.currentRequest === request.id }];
   });
+  const listed = new Set(rows.map(r => r.request.id));
+  for (const request of s.requests) {
+    if (listed.has(request.id)) continue;
+    rows.push({ request, pending: true, unit: null, committed: false, escalated: false,
+      station: { id: 0, name: 'Unassigned', lat: request.lat, lon: request.lon },
+      entry: { requestId: request.id, stationId: 0, unitId: 0, rank: 0, position: 0, etaS: 0, waitS: 0, travelS: 0,
+        reason: 'Received · risk assessment and assignment pending' } });
+  }
   return rows.sort((a, b) =>
-    a.escalated !== b.escalated
+    a.pending !== b.pending ? Number(!!b.pending) - Number(!!a.pending) : a.escalated !== b.escalated
       ? Number(b.escalated) - Number(a.escalated)
       : a.escalated
         ? (a.request.slackS ?? 0) - (b.request.slackS ?? 0)
@@ -35,7 +44,7 @@ export function commandRows(s: CommandSnapshot): CommandRow[] {
 /** Overview order: escalations first, then least slack first ("SLACK ↑"). */
 export function bySlack(rows: CommandRow[]) {
   return rows.slice().sort((a, b) =>
-    a.escalated !== b.escalated ? Number(b.escalated) - Number(a.escalated) : (a.request.slackS ?? Infinity) - (b.request.slackS ?? Infinity)
+    a.pending !== b.pending ? Number(!!b.pending) - Number(!!a.pending) : a.escalated !== b.escalated ? Number(b.escalated) - Number(a.escalated) : (a.request.slackS ?? Infinity) - (b.request.slackS ?? Infinity)
   );
 }
 
@@ -44,8 +53,9 @@ export type AlertTone = 'red' | 'amber' | 'blue' | 'muted';
 /** Where an alert stands right now, for the queue's STATUS column. */
 export function alertStatus(row: CommandRow, s: CommandSnapshot): { label: string; tone: AlertTone; flagged: boolean } {
   const flagged = s.flags.some(f => f.requestId === row.request.id && !f.resolved && f.kind !== 'unreachable');
+  if (row.pending) return { label: 'Received · assessing', tone: 'blue', flagged };
   if (row.escalated) return { label: 'Escalated', tone: 'red', flagged };
-  if (row.committed) return row.unit?.status === 'on_scene' ? { label: 'On scene', tone: 'amber', flagged } : { label: 'Unit en route', tone: 'blue', flagged };
+  if (row.committed) return { label: row.unit?.status === 'on_scene' ? 'On scene' : row.unit?.status === 'assigned' ? 'Unit assigned' : 'Unit en route', tone: row.unit?.status === 'on_scene' ? 'amber' : 'blue', flagged };
   return { label: 'Waiting', tone: 'muted', flagged }; // the planned unit is in STATION / UNIT
 }
 
@@ -75,6 +85,7 @@ export function counts(s: CommandSnapshot, rows: CommandRow[]) {
     critical: by('critical') + by('unreachable'), // delayed-but-dispatched counts as critical
     high: by('high'),
     moderate: by('moderate'),
+    low: by('low'),
     unitsAvailable: available,
     unitsTotal: s.units.length,
     stations: s.stations.length,
@@ -125,13 +136,16 @@ export function peopleNeedsLong(r: HelpRequest) {
 export const slackMin = (slackS: number | null) => (slackS === null ? null : Math.round(slackS / 60));
 
 export function slackText(slackS: number | null) {
+  if (slackS !== null && slackS < -1e7) return 'No safe route';
   const m = slackMin(slackS);
   if (m === null) return '—';
+  if (slackS !== null && slackS < 0 && m === 0) return '−<1 min';
   return m < 0 ? `−${Math.abs(m)} min` : `+${m} min`;
 }
 
 /** "S02 / E21" ("S03 / Review" for escalations). */
 export function stationUnit(row: CommandRow) {
+  if (row.pending) return 'Awaiting assignment';
   const s = stationShort(row.station.name);
   return `${s} / ${row.escalated ? 'Review' : (row.unit?.callsign ?? '—')}`;
 }
@@ -143,11 +157,12 @@ export function stationUnit(row: CommandRow) {
  */
 export function slackBreakdown(row: CommandRow, s: CommandSnapshot, marginS: number) {
   const { request: r, entry } = row;
+  const risk = s.live?.risks.get(r.id);
   if (r.fireEtaS === null) return null;
   const now = s.clock.simS;
   const toFire = Math.round((r.fireEtaS - now) / 60);
-  const wait = Math.round(entry.waitS / 60);
-  const travel = Math.round(entry.travelS / 60);
+  const wait = Math.round((risk?.current ? risk.waitS ?? 0 : entry.waitS) / 60);
+  const travel = Math.round((risk?.current ? risk.travelS ?? 0 : entry.travelS) / 60);
   const extract = Math.round(r.extractS / 60);
   const margin = Math.round(marginS / 60);
   return {
@@ -181,3 +196,24 @@ export function stationShort(name: string) {
   const m = /^synthetic station (\S+)$/i.exec(name.trim());
   return m ? `St. ${m[1]}` : name.split(' ')[0];
 }
+
+export function commandSlack(row: CommandRow, s: CommandSnapshot) {
+  const risk = s.live?.risks.get(row.request.id);
+  if (risk && !risk.current) return 'Reassessing';
+  return slackText(row.request.slackS);
+}
+
+/** A committed plan's original reason/ETA can outlive the input forecast. */
+export function commandReason(row: CommandRow, s: CommandSnapshot) {
+  const risk = s.live?.risks.get(row.request.id);
+  return risk ? risk.current ? risk.reason : risk.staleReason : row.entry.reason;
+}
+
+export function commandEta(row: CommandRow, s: CommandSnapshot) {
+  const risk = s.live?.risks.get(row.request.id);
+  if (row.unit?.status === 'on_scene') return 'On scene';
+  if (row.pending || row.escalated || (risk?.current && !risk.reachable)) return '—';
+  if (row.entry.etaS <= s.clock.simS) return row.unit?.status === 'assigned' ? 'Not departed' : row.unit?.status === 'en_route' ? 'ETA overdue' : 'Replanning';
+  return `${Math.ceil((row.entry.etaS - s.clock.simS) / 60)} min`;
+}
+

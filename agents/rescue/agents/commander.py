@@ -84,7 +84,7 @@ class CommanderAgent(MeshAgent):
         "SELECT * FROM fire_cell", "SELECT * FROM forecast_cell", "SELECT * FROM forecast_meta", "SELECT * FROM road_closure",
         "SELECT * FROM world_version", "SELECT * FROM incident",
         "SELECT * FROM ops_request", "SELECT * FROM ops_queue", "SELECT * FROM ops_travel", "SELECT * FROM ops_flag",
-        "SELECT * FROM ops_assessment", "SELECT * FROM ops_risk",
+        "SELECT * FROM ops_assessment", "SELECT * FROM ops_risk", "SELECT * FROM ops_unit_route",
         "SELECT * FROM fire_risk_meta", "SELECT * FROM fire_risk_cell", "SELECT * FROM risk_pipeline",
     ]
 
