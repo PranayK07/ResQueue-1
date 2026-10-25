@@ -116,3 +116,36 @@ class HazardReportRequest(Model):
 class HazardReport(Model):
     fire: FireReport
     weather: WeatherReport
+
+
+# ─── Commander <-> news agent ───────────────────────────────────────────────
+
+class NewsReportRequest(Model):
+    limit: int = 5
+
+
+class NewsItem(Model):
+    title: str
+    url: str
+    published: str
+    relevance: float
+    evacuation: bool
+    closures: str
+    containment_pct: float  # -1 unknown
+    acres: float  # -1 unknown
+
+
+class NewsReport(Model):
+    items: list[NewsItem]
+    summary: str
+    last_fetch: str
+    source: str  # file | brightdata | off
+
+
+class NewsRefreshRequest(Model):
+    pass
+
+
+class NewsRefreshResult(Model):
+    ok: bool
+    message: str

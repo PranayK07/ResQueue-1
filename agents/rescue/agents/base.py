@@ -9,15 +9,19 @@ A MeshAgent is a Fetch.ai uAgent that is ALSO a SpacetimeDB client:
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from pathlib import Path
 
-from uagents import Agent, Context, Protocol
+from uagents import Agent, Context, Model, Protocol
 
 from ..config import AGENTS_ROOT, settings
-from ..mesh import MeshResolver, spec
+from ..mesh import MeshResolver, address_of, spec
 from ..messages import StatusQuery, StatusReply
 from ..stdb import SpacetimeClient
+
+ASK_TIMEOUT_S = 8
+READY_WAIT_S = 6.0
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -46,6 +50,9 @@ class MeshAgent:
             publish_agent_details=True,
         )
         self.db = SpacetimeClient(name)
+        # Set once this agent's copy of the world is loaded. Message handlers must wait for it:
+        # answering earlier would report an empty world (fire 0, wind 0) as if it were real.
+        self.ready = asyncio.Event()
         self.status = "starting"
         self.detail = ""
 
@@ -78,12 +85,38 @@ class MeshAgent:
         await self.db.connect(self.queries)
         self.status = "online"
         await self.on_ready(ctx)
+        self.ready.set()
 
     async def on_ready(self, ctx: Context) -> None:
         """Override: subscriptions are live and the replica is populated."""
 
+    async def when_ready(self, ctx: Context, wait: float = READY_WAIT_S) -> bool:
+        """For message handlers: True once the world is loaded; False (so don't reply) if it isn't within `wait` s.
+        The asker times out and treats us as silent, which is correct: better no answer than an empty one."""
+        if self.ready.is_set():
+            return True
+        try:
+            await asyncio.wait_for(self.ready.wait(), wait)
+            return True
+        except asyncio.TimeoutError:
+            ctx.logger.warning("message received before startup finished; not answering")
+            return False
+
     def set_status(self, status: str, detail: str = "") -> None:
         self.status, self.detail = status, detail
+
+    async def ask(self, ctx: Context, agent: str, req: Model, resp_type: type[Model], timeout: int = ASK_TIMEOUT_S) -> Model | None:
+        """Ask another mesh agent a question and wait for its typed reply (None if it doesn't answer).
+        Never send two concurrent requests to the SAME agent: uAgents keys pending replies by
+        (sender, destination, session), so they collide. Different agents in parallel are fine."""
+        try:
+            reply, status = await ctx.send_and_receive(address_of(agent), req, response_type=resp_type, timeout=timeout)
+        except Exception as e:  # noqa: BLE001
+            ctx.logger.warning(f"asking {agent} failed: {e}")
+            return None
+        if reply is None:
+            ctx.logger.warning(f"{agent} did not answer: {status.detail if status else 'timeout'}")
+        return reply if isinstance(reply, resp_type) else None
 
     # Convenience accessors for singletons every agent reads.
     def sim_now(self) -> float:

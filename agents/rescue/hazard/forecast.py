@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import asyncio
 import math
+
+import httpx
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -15,7 +17,7 @@ from uagents import Context
 
 from ..core.fire import FUEL_SEED, Ensemble, FuelMap, Wind, ensemble_arrival
 from ..core.geo import Grid
-from ..stdb import Debouncer, Update
+from ..stdb import Debouncer, ReducerError, Update
 
 if TYPE_CHECKING:
     from ..agents.hazard import HazardAgent
@@ -23,8 +25,11 @@ if TYPE_CHECKING:
 HORIZON_S = 3 * 3600.0
 MEMBERS = 16
 # Wind changes re-forecast immediately; fire growth alone at most this often,
-# since each forecast rewrites thousands of rows.
-FIRE_REFORECAST_S = 15.0
+# since each forecast rewrites thousands of rows (and fans out to every subscriber).
+FIRE_REFORECAST_S = 45.0
+# Arrival times are quantised so tiny shifts don't rewrite thousands of unchanged rows.
+QUANTUM_S = 30.0
+PUBLISH_TIMEOUT_S = 90.0
 
 
 class ForecastEngine:
@@ -79,8 +84,16 @@ class ForecastEngine:
             if cid in burning:
                 continue
             median = float(p50[r, c]) if math.isfinite(p50[r, c]) else now + HORIZON_S
-            cells.append({"cell_id": cid, "arrival_early_s": round(float(p10[r, c]), 1), "arrival_median_s": round(median, 1)})
+            early = math.floor(float(p10[r, c]) / QUANTUM_S) * QUANTUM_S  # floor = earlier = conservative
+            cells.append({"cell_id": cid, "arrival_early_s": early, "arrival_median_s": round(median / QUANTUM_S) * QUANTUM_S})
 
-        await self.db.call("publish_forecast", versions["weather"], versions["fire"], now, HORIZON_S, MEMBERS, cells)
+        try:
+            await self.db.call("publish_forecast", versions["weather"], versions["fire"], now, HORIZON_S, MEMBERS, cells,
+                               timeout=PUBLISH_TIMEOUT_S)
+        except (httpx.TimeoutException, httpx.TransportError, ReducerError) as e:
+            # The write is an idempotent upsert, so a timeout is safe to retry on the next trigger.
+            self.host.set_part("forecast", "degraded", f"publish failed: {type(e).__name__}")
+            self.log.warning("forecast publish failed (%s); will retry on the next fire/wind change", type(e).__name__)
+            return
         self.host.set_part("forecast", "online", f"{len(cells)} cells at risk within {HORIZON_S / 3600:.0f} h")
         self.log.info("published forecast: %d cells, wind %.1f m/s from %.0f°", len(cells), wind.speed_mps, wind.from_deg)

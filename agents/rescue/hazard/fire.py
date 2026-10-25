@@ -169,8 +169,12 @@ class FireEngine:
         wind = Wind(w["wind_speed_mps"], w["wind_from_deg"])
         head_rate = self.params.base_ros_mps * math.exp(self.params.wind_coeff * wind.speed_mps) * 3.6
 
-        past = [n for t, n in self.history if t <= now - 1800]
-        growth = self.area_km2() - self.area_km2(past[-1]) if past else self.area_km2()
+        # Growth over the last 30 sim-min, or over however much history this process has (it restarts
+        # empty); with less than 5 min of history there is no honest number, so say nothing.
+        base = next(((t, n) for t, n in reversed(self.history) if t <= now - 1800), self.history[0] if self.history else None)
+        span_min = (now - base[0]) / 60 if base else 0.0
+        growth = self.area_km2() - self.area_km2(base[1]) if base and span_min >= 5 else 0.0
+        growth_txt = f" (+{growth:.1f} km² in last {min(span_min, 30):.0f} min)" if base and span_min >= 5 else ""
 
         threats: list[StationThreat] = []
         g = self.grid
@@ -187,11 +191,14 @@ class FireEngine:
             threats.append(StationThreat(station_id=s["id"], station=s["name"], fire_eta_min=round(eta, 1),
                                          distance_km=round(dist, 2) if math.isfinite(dist) else -1.0))
 
-        lines = [f"{self.area_km2():.1f} km² burning (+{growth:.1f} km² in last 30 min), "
+        lines = [f"{self.area_km2():.1f} km² burning{growth_txt}, "
                  f"head moving {compass(heading)} at ~{head_rate:.1f} km/h"]
         close = [t for t in threats if 0 <= t.fire_eta_min <= 180]
         for t in sorted(close, key=lambda t: t.fire_eta_min):
-            lines.append(f"{t.station}: fire expected in ~{t.fire_eta_min:.0f} min ({t.distance_km:.1f} km away)")
+            if t.fire_eta_min == 0 and 0 <= t.distance_km <= 0.3:  # the station's own grid cell is burning
+                lines.append(f"{t.station}: FIRE IS AT THE STATION")
+            else:
+                lines.append(f"{t.station}: fire expected in ~{t.fire_eta_min:.0f} min ({t.distance_km:.1f} km away)")
         if not close and threats:
             nearest = min((t for t in threats if t.distance_km >= 0), key=lambda t: t.distance_km, default=None)
             if nearest:

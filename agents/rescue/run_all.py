@@ -16,6 +16,7 @@ from .mesh import ROSTER
 
 MODULES = {
     "hazard": ["rescue.agents.hazard"],
+    "news": ["rescue.agents.news"],
     "danger": ["rescue.agents.danger"],
     "delegation": ["rescue.agents.delegation"],
     "station-1": ["rescue.agents.station", "1"],

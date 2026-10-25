@@ -17,6 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from rescue import incidents  # noqa: E402
 from rescue.config import settings  # noqa: E402
 from rescue.core.geo import M_PER_DEG_LAT, Grid  # noqa: E402
 from rescue.stdb import SpacetimeClient  # noqa: E402
@@ -29,6 +30,7 @@ async def main() -> None:
     ap.add_argument("scenario")
     ap.add_argument("--run", action="store_true", help="start the sim clock")
     ap.add_argument("--no-residents", action="store_true")
+    ap.add_argument("--incident", help="incident key from incidents.json (overrides the scenario file's \"incident\")")
     a = ap.parse_args()
     sc = json.loads(Path(a.scenario).read_text())
     g = sc["grid"]
@@ -43,6 +45,12 @@ async def main() -> None:
     cells = [{"cell_id": grid.locate(p["lat"], p["lon"]), "ignited_s": 0.0, "intensity": 1.0} for p in sc["ignition"]]
     await db.call("upsert_fire_cells", [c for c in cells if c["cell_id"] is not None], True, "seed")
     print(f"loaded {sc['name']}: {len(sc['stations'])} stations, {len(sc['units'])} units, fire at {len(cells)} cells")
+
+    inc_key = a.incident or sc.get("incident")
+    if inc_key:
+        inc = incidents.get(inc_key)
+        await db.call("set_incident", *inc.reducer_args())
+        print(f"incident: {inc.name} (news {inc.news_from:%Y-%m-%d} → {inc.news_to:%Y-%m-%d})")
 
     if not a.no_residents:
         res = sc["residents"]

@@ -15,7 +15,7 @@ export const agent = table(
   { name: 'agent', public: true },
   {
     identity: t.identity().primaryKey(),
-    role: t.string(), // hazard (fire+weather+forecast) | closures | danger | delegation | station | intake | commander | scenario  (legacy: fire | weather | forecast)
+    role: t.string(), // hazard (fire+weather+forecast) | news | closures | danger | delegation | station | intake | commander | scenario  (legacy: fire | weather | forecast)
     name: t.string(),
     stationId: t.u32(), // only for role=station, else 0
     fetchAddress: t.string(), // agent1q... address on Agentverse
@@ -190,6 +190,96 @@ export const roadClosure = table(
   }
 );
 
+/** Singleton (id = 0): which real-world incident the demo is replaying and the
+ *  news date window for it. start_at is the real time that sim T+0 maps to.
+ *  Queries are '|'-separated, places ','-separated. Absent = live mode. */
+export const incident = table(
+  { name: 'incident', public: true },
+  {
+    id: t.u8().primaryKey(),
+    key: t.string(), // catalog id, e.g. glass-fire-2020
+    name: t.string(),
+    startAt: t.timestamp(),
+    newsFrom: t.timestamp(),
+    newsTo: t.timestamp(),
+    location: t.string(),
+    queries: t.string(),
+    places: t.string(),
+    updatedAt: t.timestamp(),
+  }
+);
+
+/** The head agent's synthesized view of the incident: one row each time the delegation agent
+ *  pools the hazard (fire + weather) and news reports. Typed columns, not text, so the RL policy
+ *  can read live state from here and the RL workstream can export the log as training/eval data.
+ *  Holds no resident data. Trimmed to the newest SITUATION_KEEP rows. */
+export const situation = table(
+  { name: 'situation', public: true },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    at: t.timestamp(),
+    simS: t.f64(),
+    incident: t.string(), // incident.key ('' = live mode)
+    fireAreaSqKm: t.f64(),
+    fireGrowthSqKm: t.f64(), // over the last <= 30 sim-min (0 = not enough history yet)
+    fireHeadingDeg: t.f64(), // compass direction the head of the fire is moving toward
+    fireHeadKmh: t.f64(),
+    windSpeedMps: t.f64(),
+    windFromDeg: t.f64(),
+    gustMps: t.f64(),
+    humidityPct: t.f64(), // -1 = unknown
+    redFlag: t.bool(),
+    newsOk: t.bool(), // false = the news agent didn't answer; news fields below are neutral
+    newsRelevant: t.u32(), // articles scoring >= 0.5 for this incident
+    newsEvacuation: t.bool(),
+    newsClosures: t.u32(), // relevant articles mentioning road closures
+    newsMaxContainmentPct: t.f64(), // -1 = unknown
+    newsMaxAcres: t.f64(), // -1 = unknown
+    stationsJson: t.string(), // [{"id", "eta_min", "dist_km"}] per station; eta -1 = beyond forecast horizon
+    summary: t.string(),
+    // Freshness (appended with defaults so the table migrates in place): how old is what the head agent saw?
+    windSource: t.string().default(''), // nws | manual | scenario | none
+    windObservedAt: t.string().default(''), // ISO-8601 UTC time of the NWS observation (or of the manual/scenario write)
+    windAgeMin: t.f64().default(-1), // minutes since that time; -1 = unknown
+    forecastAgeSimMin: t.f64().default(-1), // sim-minutes since the forecast was computed; -1 = no forecast yet
+    forecastMatchesWind: t.bool().default(true), // false = the forecast predates the latest wind change
+    newsLastFetch: t.string().default(''), // ISO-8601 UTC time of the newest stored article scrape
+    newsAgeMin: t.f64().default(-1),
+    dataFresh: t.bool().default(true), // false = see staleReasons
+    staleReasons: t.string().default(''),
+  }
+);
+
+/** News coverage scraped by the news agent (Bright Data). Public: it is
+ *  published journalism, and holds no resident data. Signals are extracted
+ *  hints for the commander (never auto-applied to roads or queues). */
+export const newsArticle = table(
+  { name: 'news_article', public: true },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    url: t.string().unique(),
+    source: t.string(), // cnn | ...
+    title: t.string(),
+    author: t.string(),
+    publishedRaw: t.string(), // as printed by the site
+    publishedAt: t.option(t.timestamp()),
+    category: t.string(),
+    tags: t.string(), // comma list
+    summary: t.string(), // first ~600 chars of the article
+    content: t.string(), // article text, truncated
+    query: t.string(), // search that found it
+    relevance: t.f32(), // 0..1, agent-scored
+    locationMatch: t.string(), // incident place names mentioned
+    evacuation: t.bool(),
+    closures: t.string(), // extracted road-closure sentences, " | "-separated
+    containmentPct: t.option(t.f32()),
+    acres: t.option(t.f64()),
+    fetchedAt: t.timestamp(),
+    // Appended last with a default so the table migrates in place: existing rows become '' (live mode).
+    incident: t.string().default(''), // incident.key this article was scraped for
+  }
+);
+
 // ─── Incident data (PRIVATE) ────────────────────────────────────────────────
 
 export const helpRequest = table(
@@ -346,6 +436,58 @@ export const PlanEntryInput = t.object('PlanEntryInput', {
   residentReason: t.string(),
 });
 
+export const SituationInput = t.object('SituationInput', {
+  simS: t.f64(),
+  incident: t.string(),
+  fireAreaSqKm: t.f64(),
+  fireGrowthSqKm: t.f64(),
+  fireHeadingDeg: t.f64(),
+  fireHeadKmh: t.f64(),
+  windSpeedMps: t.f64(),
+  windFromDeg: t.f64(),
+  gustMps: t.f64(),
+  humidityPct: t.f64(),
+  redFlag: t.bool(),
+  newsOk: t.bool(),
+  newsRelevant: t.u32(),
+  newsEvacuation: t.bool(),
+  newsClosures: t.u32(),
+  newsMaxContainmentPct: t.f64(),
+  newsMaxAcres: t.f64(),
+  stationsJson: t.string(),
+  summary: t.string(),
+  windSource: t.string(),
+  windObservedAt: t.string(),
+  windAgeMin: t.f64(),
+  forecastAgeSimMin: t.f64(),
+  forecastMatchesWind: t.bool(),
+  newsLastFetch: t.string(),
+  newsAgeMin: t.f64(),
+  dataFresh: t.bool(),
+  staleReasons: t.string(),
+});
+
+export const NewsInput = t.object('NewsInput', {
+  url: t.string(),
+  incident: t.string(),
+  source: t.string(),
+  title: t.string(),
+  author: t.string(),
+  publishedRaw: t.string(),
+  publishedMicros: t.i64(), // 0 = unknown
+  category: t.string(),
+  tags: t.string(),
+  summary: t.string(),
+  content: t.string(),
+  query: t.string(),
+  relevance: t.f32(),
+  locationMatch: t.string(),
+  evacuation: t.bool(),
+  closures: t.string(),
+  containmentPct: t.f32(), // < 0 = unknown
+  acres: t.f64(), // < 0 = unknown
+});
+
 export const UnreachableInput = t.object('UnreachableInput', {
   requestId: t.u64(),
   detail: t.string(),
@@ -367,6 +509,9 @@ const spacetimedb = schema(
     forecastMeta,
     worldVersion,
     roadClosure,
+    newsArticle,
+    incident,
+    situation,
     helpRequest,
     queueEntry,
     travelEstimate,
