@@ -53,7 +53,10 @@ export type AlertTone = 'red' | 'amber' | 'blue' | 'muted';
 /** Where an alert stands right now, for the queue's STATUS column. */
 export function alertStatus(row: CommandRow, s: CommandSnapshot): { label: string; tone: AlertTone; flagged: boolean } {
   const flagged = s.flags.some(f => f.requestId === row.request.id && !f.resolved && f.kind !== 'unreachable');
-  if (row.pending) return { label: 'Received · assessing', tone: 'blue', flagged };
+  if (row.pending) {
+    const risk = s.live?.risks.get(row.request.id);
+    return { label: risk?.current ? (risk.reachable ? 'Awaiting available unit' : 'Ground route needed') : 'Received · assessing', tone: 'blue', flagged };
+  }
   if (row.escalated) return { label: 'Escalated', tone: 'red', flagged };
   if (row.committed) return { label: row.unit?.status === 'on_scene' ? 'On scene' : row.unit?.status === 'assigned' ? 'Unit assigned' : 'Unit en route', tone: row.unit?.status === 'on_scene' ? 'amber' : 'blue', flagged };
   return { label: 'Waiting', tone: 'muted', flagged }; // the planned unit is in STATION / UNIT
@@ -216,4 +219,3 @@ export function commandEta(row: CommandRow, s: CommandSnapshot) {
   if (row.entry.etaS <= s.clock.simS) return row.unit?.status === 'assigned' ? 'Not departed' : row.unit?.status === 'en_route' ? 'ETA overdue' : 'Replanning';
   return `${Math.ceil((row.entry.etaS - s.clock.simS) / 60)} min`;
 }
-

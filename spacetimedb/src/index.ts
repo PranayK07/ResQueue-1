@@ -1310,8 +1310,7 @@ export const continue_unit_mission = spacetimedb.reducer({
   const risk = ctx.db.requestRisk.requestId.find(next.id);
   if (!risk || risk.assessmentId !== a.assessmentId || !riskCard(ctx, risk).current || !risk.reachable)
     throw new SenderError('fresh reachable risk assessment required');
-  if (!Number.isFinite(a.travelS) || a.travelS <= 0 || a.travelS >= 86400
-      || now + a.travelS + next.extractS + 300 > next.fireEtaS!) throw new SenderError('insufficient modeled rescue window');
+  if (!Number.isFinite(a.travelS) || a.travelS <= 0 || a.travelS >= 86400) throw new SenderError('invalid ground travel time');
   const position = roadPosition(ctx, u);
   if (u.status === 'on_scene') {
     const current = requireRequest(ctx, u.currentRequest);
@@ -1495,6 +1494,34 @@ export const submit_mock_requests = spacetimedb.reducer(
   }
 );
 
+/** Prepare synthetic response resources without deleting or taking ownership of resident calls. */
+export const prepare_demo_resources = spacetimedb.reducer({
+  batch: t.string(), stations: t.array(StationInput), pings: t.array(MockRequestInput),
+}, (ctx, { batch, stations, pings }) => {
+  const actor = requireCommander(ctx);
+  if (!batch || batch.length > 100 || pings.length !== 3 || !stations.length) throw new SenderError('a demo batch requires three synthetic callers and stations');
+  const prefix = `demo-profile:${batch}:`;
+  if ([...ctx.db.helpRequest.iter()].some(r => r.channel === 'synthetic' && r.externalRef.startsWith(prefix))) return;
+  for (const station of stations) {
+    if (!ctx.db.station.id.find(station.id) || !insideGrid(ctx, station.lat, station.lon)) throw new SenderError('invalid demo station');
+  }
+  for (const request of [...ctx.db.helpRequest.iter()]) {
+    if (request.channel === 'synthetic' && isActive(request)) closeRequest(ctx, request, 'cancelled', actor, 'synthetic demo fixture replaced');
+  }
+  for (const station of stations) {
+    ctx.db.station.id.update(station);
+    for (const unit of ctx.db.unit.stationId.filter(station.id)) {
+      if (unit.currentRequest !== 0n) continue; // a real caller's committed mission keeps its unit
+      ctx.db.unitRoute.unitId.delete(unit.id);
+      ctx.db.unit.id.update({ ...unit, lat: station.lat, lon: station.lon, status: 'available', freeAtS: simNow(ctx), legDepartS: 0, updatedAt: ctx.timestamp });
+    }
+  }
+  pings.forEach(({ report: _report, ...ping }, index) => createRequest(ctx,
+    { ...ping, channel: 'synthetic', externalRef: `${prefix}${index}`, consentMinutes: MAX_CONSENT_MIN }, actor));
+  bump(ctx, 'roads');
+  log(ctx, actor, 'demo_prepared', 'Prepared three synthetic callers and road-access stations; resident calls retained');
+});
+
 // ─── Views (row-level privacy) ──────────────────────────────────────────────
 
 type Scope = { kind: 'all' } | { kind: 'station'; stationId: number } | { kind: 'owner' } | { kind: 'none' };
@@ -1610,7 +1637,7 @@ function riskCard(ctx: Ctx | VCtx, r: NonNullable<ReturnType<VCtx['db']['request
   const col = request ? Math.floor((request.lon - grid.originLon) * 111_320 * Math.cos(grid.originLat * Math.PI / 180) / grid.cellSizeM) : -1;
   const observed = row >= 0 && row < grid.rows && col >= 0 && col < grid.cols && !!ctx.db.fireCell.cellId.find(row * grid.cols + col);
   const timingUnconfirmed = !observed && r.fireEtaS <= c.simS;
-  const current = !routingExpired && !timingUnconfirmed && r.scenario === c.scenario && r.weatherVersion === v.weather && r.fireVersion === v.fire
+  const current = !routingExpired && r.scenario === c.scenario && r.weatherVersion === v.weather && r.fireVersion === v.fire
     && r.roadsVersion === v.roads && r.requestsVersion === v.requests && r.forecastVersion === v.forecast
     && r.unitsStamp === unitsStamp(ctx)
     && r.riskUpdatedAt === (ctx.db.fireRiskMeta.id.find(0)?.updatedAt.microsSinceUnixEpoch ?? 0n)

@@ -63,7 +63,7 @@ def assess_requests(
         fire_early[grid.rc(cid)] = t
     blocked = blocked_mask(grid, burning, closures)
     router = GridRouter(grid, params)
-    fields = {sid: router.travel_times((lat, lon), now_s, fire_early, blocked) for sid, lat, lon in stations}
+    fields = {sid: router.travel_times((lat, lon), now_s, np.full_like(fire_early, np.inf), blocked) for sid, lat, lon in stations}
     topology_fields = None
 
     assessments: list[dict] = []

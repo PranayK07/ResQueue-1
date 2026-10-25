@@ -11,13 +11,11 @@ def assess(grid, *, now=0, forecast=None, burning=None, closures=None, needs="")
                            [(1, *grid.center(5))], forecast or {}, burning or set(), closures or [])
 
 
-def test_forecast_deadline_can_exclude_an_unburned_destination_without_a_road_closure():
+def test_forecast_deadline_is_advisory_and_does_not_close_an_unburned_road():
     grid = Grid(35, -112, 60, 3, 5)
     risks, travel = assess(grid, forecast={7: 300})
-    assert not travel[0]["reachable"] and risks[0]["slack_s"] == 0
-    assert "outside the observed fire" in risks[0]["route_reason"]
-    assert "5 minutes" in risks[0]["route_reason"]
-    # Same geometry, with enough forecast clearance: an approach exists.
+    assert travel[0]["reachable"] and risks[0]["slack_s"] < 0
+    assert risks[0]["level"] == "critical" and risks[0]["route_reason"] == ""
     assert assess(grid, forecast={7: 1800})[1][0]["reachable"]
 
 

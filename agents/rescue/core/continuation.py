@@ -1,7 +1,6 @@
 """One-stop LOOKAHEAD from a crew's actual location; never steal an attended caller."""
 from .assistance import response_options
 from .geo import haversine_m
-from .slack import MARGIN_S
 
 
 def next_request(unit, now, requests, units, cards, grid, burning=(), closures=()):
@@ -18,8 +17,6 @@ def next_request(unit, now, requests, units, cards, grid, burning=(), closures=(
         if not option or not risk['reachable']:
             continue
         drive = max(1.0, option['travel_s'])
-        if now + drive + r['extract_s'] + MARGIN_S > risk['fire_eta_s']:
-            continue
         nearby_critical = risk['level'] == 'critical' and haversine_m(unit['lat'], unit['lon'], r['lat'], r['lon']) <= 3000
         feasible.append(((not nearby_critical, risk['slack_s'], drive), r['id'], risk['assessment_id'], drive))
     return min(feasible)[1:] if feasible else None

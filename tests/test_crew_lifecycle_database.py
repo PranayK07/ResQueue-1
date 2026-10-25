@@ -29,7 +29,7 @@ def test_return_position_extraction_and_atomic_continuation():
             await command.call('publish_unit_route', 1, rid, request['lat'], request['lon'],
                 [dict(lat=unit['lat'],lon=unit['lon'],name='Fixture road'), dict(lat=request['lat'],lon=request['lon'],name='Fixture road')],
                 arrival-clock['sim_s'], 'ready', 'Isolated route fixture', str((rid,arrival)), versions['fire'], versions['roads'])
-        async def publish():
+        async def publish(deadline=None):
             versions = (await rows('world_version'))[0]
             clock = (await rows('sim_clock'))[0]
             await hazard.call('publish_forecast', versions['weather'], versions['fire'], clock['sim_s'], 18000.0, 16, [])
@@ -41,6 +41,9 @@ def test_return_position_extraction_and_atomic_continuation():
             dangers, travel = assess_requests(grid, clock['sim_s'],
                 [(r['id'],r['lat'],r['lon'],r['headcount'],r['needs']) for r in requests],
                 [(1,35.6005,-112.7995)], {},set(),[])
+            if deadline is not None:
+                for danger in dangers:
+                    if danger['request_id'] == second: danger['fire_eta_s'] = deadline
             await command.call('publish_risk_assessments', *risk_to_reducer_args(snap, compose_risks(snap,requests,dangers,travel,units,{}),travel))
         try:
             await command.call('register_agent',settings.agent_join_key,'scenario','Crew regression',0,'')
@@ -78,7 +81,7 @@ def test_return_position_extraction_and_atomic_continuation():
             with pytest.raises(ReducerError,match='extraction is still in progress'):
                 await command.call('continue_unit_mission',1,second,assessment['assessment_id'],60.0)
             await command.call('advance_replay')
-            await publish()
+            await publish(deadline=1190.0)  # an elapsed forecast is advisory, not an automatic dispatch veto
             assessment=next(r['assessment'] for r in await rows('ops_risk') if r['assessment']['request_id']==second)
             await command.call('continue_unit_mission',1,second,assessment['assessment_id'],60.0)
             unit=(await rows('unit'))[0]

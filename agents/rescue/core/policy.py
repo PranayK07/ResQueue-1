@@ -243,52 +243,27 @@ class GreedyUrgencyPolicy:
 
 
 class LookaheadPolicy:
-    """Default heuristic. Differences from B1:
-    1. requests nobody can reach in time even with an immediate dispatch are
-       escalated instead of consuming a unit that could save someone else;
-    2. among savable requests, picks the station that saves it with the most
-       slack *after* accounting for each station's backlog (cross-station
-       reassignment under load);
-    3. a swap pass reorders adjacent requests in a station queue when that
-       saves more weighted people."""
+    """Rank by urgency and station availability, then improve order with lookahead.
+
+    Slack is advisory: even an overdue modeled rescue window stays eligible
+    for ground dispatch when a route and a compatible resource exist.
+    """
 
     name = "lookahead"
 
     def plan(self, inp: PlanInput) -> Plan:
         reqs = sorted(inp.requests, key=lambda r: (_best_case(r, inp), -r.weight))
-        hopeless = [r for r in reqs if _best_case(r, inp) < 0]
-        savable = [r for r in reqs if _best_case(r, inp) >= 0]
-        unreachable = [
-            (r.id,
-             "no safe ground route" if min(r.travel_s.values(), default=INF) == INF
-             else f"fire arrives {fmt_min(-_best_case(r, inp))} before the fastest possible ground rescue",
-             "Request air support / alternate resource; push shelter-in-place guidance")
-            for r in hopeless
-        ]
-
+        unreachable = []
         tl = _Timeline(inp)
         chosen: dict[int, list[RequestState]] = {s: [] for s in inp.stations}
-        late: list[RequestState] = []
-        for r in savable:
+        for r in reqs:
             opts = _station_options(r, tl, inp)
-            saving = [(a, s) for a, s in opts if _saved(r, a, inp.margin_s)]
-            if saving:
-                # most slack left wins; tie -> the station with less backlog
-                s = min(saving, key=lambda x: (x[0], len(chosen[x[1]])))[1]
-            elif opts and opts[0][0] < INF:
-                late.append(r)
+            if not opts or not math.isfinite(opts[0][0]):
+                unreachable.append((r.id, "no ground route or compatible resource", "Commander review required"))
                 continue
-            else:
-                unreachable.append((r.id, "no safe ground route", "Request air support or shelter-in-place guidance"))
-                continue
-            tl.commit(s, r)
-            chosen[s].append(r)
-        # Late-but-reachable requests still get queued (best effort, last).
-        for r in late:
-            opts = _station_options(r, tl, inp)
-            s = opts[0][1]
-            tl.commit(s, r)
-            chosen[s].append(r)
+            station = min(opts, key=lambda option: (option[0], len(chosen[option[1]])))[1]
+            tl.commit(station, r)
+            chosen[station].append(r)
 
         for s in chosen:
             chosen[s] = self._improve(inp, s, chosen[s])
@@ -317,6 +292,12 @@ class LookaheadPolicy:
         while improved:
             improved = False
             for i in range(len(queue) - 1):
+                # Do not trade an overdue/critical caller behind a lower urgency band.
+                def band(request):
+                    slack = _best_case(request, inp)
+                    return (slack >= 0, 0 if slack < 600 else 1 if slack < 1800 else 2 if slack < 3600 else 3)
+                if band(queue[i]) != band(queue[i + 1]):
+                    continue
                 cand = queue[:i] + [queue[i + 1], queue[i]] + queue[i + 2:]
                 sc = score(cand)
                 if sc > best + 1e-9:

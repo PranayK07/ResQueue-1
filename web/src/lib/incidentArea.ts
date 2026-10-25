@@ -19,9 +19,17 @@ export function insideIncidentArea(area: IncidentArea | null | undefined, point:
 }
 
 /** A stable starting pin near the acquired perimeter, or inside the grid while fire data loads. No GPS. */
-export function defaultIncidentLocation(area: IncidentArea | null | undefined, fire: readonly { cellId: number }[], seed = 0.5): CallerLocation | null {
+export function defaultIncidentLocation(area: IncidentArea | null | undefined, fire: readonly { cellId: number }[], seed = 0.5, roadCandidates: readonly Point[] = []): CallerLocation | null {
   if (!validIncidentArea(area)) return null;
   const burning = new Set(fire.map(c => c.cellId));
+  const safeSeed = Number.isFinite(seed) ? Math.max(0, Math.min(seed, 1 - Number.EPSILON)) : 0.5;
+  const accessible = roadCandidates.filter(point => {
+    if (!insideIncidentArea(area, point)) return false;
+    const row = Math.floor((point.lat - area.originLat) * 111_320 / area.cellSizeM);
+    const col = Math.floor((point.lon - area.originLon) * 111_320 * Math.cos(area.originLat * Math.PI / 180) / area.cellSizeM);
+    return !burning.has(row * area.cols + col);
+  });
+  if (accessible.length) return { ...coordsPlace(accessible[Math.floor(safeSeed * accessible.length)].lat, accessible[Math.floor(safeSeed * accessible.length)].lon), entrance: '' };
   const at = (cellId: number): CallerLocation => {
     const row = Math.floor(cellId / area.cols), col = cellId % area.cols;
     const lat = area.originLat + (row + 0.5) * area.cellSizeM / 111_320;

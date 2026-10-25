@@ -141,7 +141,7 @@ class ForecastEngine:
             self._retry.cancel()
             self._retry = None
         self.host.set_part("forecast", "online", f"{len(cells)} cells at risk within {HORIZON_S / 3600:.0f} h")
-        self._clock_trigger_s = now
+        self._clock_trigger_s = self.host.sim_now()
         if settings.fire_source != "recorded":
             await self._publish_risk_status("disabled" if settings.fire_forecast_backend == "simulation" else "fallback",
                                             "Known recorded observation history is not configured")

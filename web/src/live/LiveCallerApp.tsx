@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import roadDemo from '../../public/replay/demo.json';
 import { LiveMap } from '../components/LiveMap';
 import { IncidentAreaWarning } from '../components/IncidentAreaWarning';
 import { OptionalDetailsForm } from '../components/OptionalDetailsForm';
@@ -40,13 +41,14 @@ function CallerFlow() {
   const rows = useLiveRows('my_requests');
   const grids = useLiveRows('grid');
   const fires = useLiveRows('fire_cell');
+  const incidents = useLiveRows('incident');
   const clocks = useLiveRows('sim_clock');
   const liveClock = useLiveClock();
   const [seed] = useState(() => Math.random());
   const [placedAt] = useState(() => Date.now());
   const scenario = clocks[0]?.scenario;
   const area = validIncidentArea(grids[0]) ? grids[0] : null;
-  const incidentKey = area ? [scenario, area.originLat, area.originLon, area.rows, area.cols, area.cellSizeM].join(':') : null;
+  const incidentKey = area ? [scenario, incidents[0]?.key, area.originLat, area.originLon, area.rows, area.cols, area.cellSizeM].join(':') : null;
   const [placed, setPlaced] = useState<{ key: string; location: CallerLocation } | null>(null);
   const [corrected, setCorrected] = useState<{ key: string; location: CallerLocation } | null>(null);
   const [details, setDetails] = useState<Details>(EMPTY_DETAILS);
@@ -60,7 +62,7 @@ function CallerFlow() {
 
   // Default from the loaded incident in every live environment, independently of local demo flags.
   if (incidentKey && placed?.key !== incidentKey && area) {
-    const point = defaultIncidentLocation(area, fires, seed);
+    const point = defaultIncidentLocation(area, fires, seed, incidents[0]?.key === roadDemo.sourceId ? roadDemo.callerLocations : []);
     if (point) setPlaced({ key: incidentKey, location: point });
   }
 

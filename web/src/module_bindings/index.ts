@@ -52,6 +52,7 @@ import LoadScenarioReducer from "./load_scenario_reducer";
 import MessageResidentReducer from "./message_resident_reducer";
 import OverrideAssignmentReducer from "./override_assignment_reducer";
 import PingNewsReducer from "./ping_news_reducer";
+import PrepareDemoResourcesReducer from "./prepare_demo_resources_reducer";
 import PublishAssessmentReducer from "./publish_assessment_reducer";
 import PublishDangerReducer from "./publish_danger_reducer";
 import PublishFireRiskReducer from "./publish_fire_risk_reducer";
@@ -479,6 +480,7 @@ const reducersSchema = __reducers(
   __reducerSchema("message_resident", MessageResidentReducer),
   __reducerSchema("override_assignment", OverrideAssignmentReducer),
   __reducerSchema("ping_news", PingNewsReducer),
+  __reducerSchema("prepare_demo_resources", PrepareDemoResourcesReducer),
   __reducerSchema("publish_assessment", PublishAssessmentReducer),
   __reducerSchema("publish_danger", PublishDangerReducer),
   __reducerSchema("publish_fire_risk", PublishFireRiskReducer),
@@ -701,4 +703,3 @@ export class DbConnection extends __DbConnectionImpl<typeof REMOTE_MODULE> {
     return new SubscriptionBuilder(this);
   };
 }
-

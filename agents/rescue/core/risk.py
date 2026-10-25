@@ -161,6 +161,9 @@ def compose_risks(
                         lower_slack = window["lower_s"] - duration if window["lower_s"] is not None else None
                         upper_slack = window["upper_s"] - duration if window["upper_s"] is not None else None
         ground_route = rid in ground_routes
+        overdue = danger['fire_eta_s'] <= now and not danger.get('observed_fire')
+        if overdue:
+            flags = list(flags) + ['past_arrival_unobserved']
         reason = (
             (f"Physical risk {danger['level']}; immediate slack {danger['slack_s'] / 60:.1f} min. "
              if ground_route else "No safe ground route; rescue slack cannot be calculated. ")
@@ -176,6 +179,7 @@ def compose_risks(
                 if probabilities
                 else f"Learned exposure {request_state}. "
             )
+            + ("Forecast arrival estimate elapsed at an unobserved location; slack is advisory. " if overdue else "")
             + (f"Accepted evidence: {w.note}." if w and w.note else "No accepted world-evidence adjustment.")
         )
         row_flags = list(flags)
