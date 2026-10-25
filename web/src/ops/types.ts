@@ -68,6 +68,7 @@ export interface Unit {
 
 /** LIVE-ONLY: one leg of a unit's mission, in sim seconds. */
 export interface UnitTrip {
+  route?: import('./routing').Route;
   fromLat: number;
   fromLon: number;
   toLat: number;

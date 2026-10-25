@@ -51,6 +51,7 @@ PRIMARY_KEYS: dict[str, str] = {
     "news_focus": "id",
     "ops_request": "id",
     "ops_queue": "request_id",
+    "ops_unit_route": "unit_id",
     "ops_travel": "key",
     "ops_flag": "id",
     "ops_report": "id",

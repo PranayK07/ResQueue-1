@@ -24,8 +24,7 @@ FORECAST_HORIZON_S = 3 * 3600.0
 UNREACHABLE_S = 1e9  # JSON-safe stand-in for "no safe ground route"
 
 
-def routing_forecast_current(meta: dict | None, now_s: float) -> bool:
-    """A short-term routing forecast cannot certify access beyond its modeled window."""
+def routing_forecast_current(meta, now_s):
     return bool(meta and meta["computed_at_s"] <= now_s < meta["computed_at_s"] + meta["horizon_s"])
 
 
@@ -64,7 +63,6 @@ def assess_requests(
     blocked = blocked_mask(grid, burning, closures)
     router = GridRouter(grid, params)
     fields = {sid: router.travel_times((lat, lon), now_s, fire_early, blocked) for sid, lat, lon in stations}
-    topology_fields = None
 
     assessments: list[dict] = []
     travel: list[dict] = []
@@ -85,22 +83,6 @@ def assess_requests(
             fire_eta = min(fire_eta, hint)
         extract = extract_time_s(headcount, needs) + extra
         slack = slack_s(fire_eta, now_s, 0.0, best, extract)
-        route_reason = ""
-        if best == UNREACHABLE_S:
-            if cid in burning:
-                route_reason = "The request is inside the observed fire."
-            else:
-                if topology_fields is None:
-                    topology_fields = [router.travel_times((lat, lon), now_s, np.full_like(fire_early, np.inf), blocked)
-                                       for _, lat, lon in stations]
-                if any(math.isfinite(field[rc]) for field in topology_fields):
-                    route_reason = ("Forecast safety deadline blocks the approach, although the request is outside "
-                                    f"the observed fire. The grid router requires {params.fire_buffer_s / 60:g} minutes "
-                                    "of clearance before predicted fire arrival.")
-                else:
-                    route_reason = ("No grid path through the observed fire and active road closures."
-                                    if closures else "No grid path through the observed fire.")
         assessments.append({"request_id": rid, "level": "unreachable" if cid in burning or best == UNREACHABLE_S else level_for(slack), "slack_s": round(slack, 1),
-                            "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1), "observed_fire": cid in burning,
-                            "route_reason": route_reason})
+                            "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1), "observed_fire": cid in burning})
     return assessments, travel

@@ -1,0 +1,7 @@
+.pixel-map-marker { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+.pixel-map-marker button { all: unset; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+.pixel-map-marker button:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.pixel-alert { display: block; filter: drop-shadow(0 2px 2px #0009); }
+.pixel-truck { display: block; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 2px 2px #000a); }
+.pixel-marker-label { display: block; padding: 2px 5px; border-radius: 3px; color: white; background: #142024e8; font: 600 10px/1.4 'IBM Plex Mono', monospace; white-space: nowrap; }
+.pixel-marker-leader { position: absolute; left: 50%; top: 50%; width: 1px; height: 1px; overflow: visible; pointer-events: none; z-index: -1; }

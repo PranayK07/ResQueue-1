@@ -357,6 +357,9 @@ export type OpsRisk = __Infer<typeof OpsRisk>;
 export const OpsTravel = __t.object("OpsTravel", {});
 export type OpsTravel = __Infer<typeof OpsTravel>;
 
+export const OpsUnitRoute = __t.object("OpsUnitRoute", {});
+export type OpsUnitRoute = __Infer<typeof OpsUnitRoute>;
+
 export const PlanEntryInput = __t.object("PlanEntryInput", {
   requestId: __t.u64(),
   stationId: __t.u32(),
@@ -509,7 +512,6 @@ export const ResidentCardRow = __t.object("ResidentCardRow", {
   queuePosition: __t.u32(),
   stationName: __t.string(),
   unitCallsign: __t.string(),
-  unitId: __t.u32(),
   etaS: __t.option(__t.f64()),
   reason: __t.string(),
   headcount: __t.u32(),
@@ -572,6 +574,13 @@ export const RoadClosure = __t.object("RoadClosure", {
   updatedAt: __t.timestamp(),
 });
 export type RoadClosure = __Infer<typeof RoadClosure>;
+
+export const RoadPoint = __t.object("RoadPoint", {
+  lon: __t.f64(),
+  lat: __t.f64(),
+  name: __t.string(),
+});
+export type RoadPoint = __Infer<typeof RoadPoint>;
 
 export const SimClock = __t.object("SimClock", {
   id: __t.u8(),
@@ -722,6 +731,26 @@ export const UnitInput = __t.object("UnitInput", {
 });
 export type UnitInput = __Infer<typeof UnitInput>;
 
+export const UnitRoute = __t.object("UnitRoute", {
+  unitId: __t.u32(),
+  requestId: __t.u64(),
+  targetLat: __t.f64(),
+  targetLon: __t.f64(),
+  get points() {
+    return __t.array(RoadPoint);
+  },
+  durationS: __t.f64(),
+  departS: __t.f64(),
+  arriveS: __t.f64(),
+  status: __t.string(),
+  reason: __t.string(),
+  signature: __t.string(),
+  updatedAt: __t.timestamp(),
+  fireVersion: __t.u64(),
+  roadsVersion: __t.u64(),
+});
+export type UnitRoute = __Infer<typeof UnitRoute>;
+
 export const UnreachableInput = __t.object("UnreachableInput", {
   requestId: __t.u64(),
   detail: __t.string(),
@@ -751,3 +780,4 @@ export const WorldVersion = __t.object("WorldVersion", {
   plan: __t.u64(),
 });
 export type WorldVersion = __Infer<typeof WorldVersion>;
+

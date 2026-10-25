@@ -1,8 +1,8 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import brandMark from '../assets/figma/brand-mark.svg';
 import type { CallerLocation } from '../lib/request';
-import { DEMO_MODE } from '../live/config';
 import './ui.css';
+import { DEMO_MODE } from '../live/config';
 
 /** Full-width shell shared by every caller screen: product identity bar + content. */
 export function AppShell({ children, responderUnitId }: { children: ReactNode; responderUnitId?: number }) {
@@ -70,13 +70,13 @@ export function LocationBlock({ label, location }: { label: string; location: Ca
 }
 
 export function SafetyNotice() {
-  if (DEMO_MODE) return <div className="safety"><p className="safety__sim">2020 Arizona replay · Synthetic residents and response resources</p></div>;
+  if (DEMO_MODE) return <p className="note note--muted note--12">July 2020 Arizona replay · Synthetic response resources</p>;
   return (
     <div className="safety">
       <p className="safety__call">
         Immediate danger? <a href="tel:911">Call 911</a>
       </p>
-      <p className="safety__sim">ResQueue · Location shared only with your consent</p>
+      <p className="safety__sim">Historical replay · Synthetic response resources</p>
     </div>
   );
 }

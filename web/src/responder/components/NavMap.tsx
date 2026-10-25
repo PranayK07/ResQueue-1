@@ -7,10 +7,7 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import circleX from '../../assets/figma/responder/circle-x.svg';
-import destinationHalo from '../../assets/figma/responder/destination-halo.svg';
-import destinationMarker from '../../assets/figma/responder/destination-marker.svg';
-import unitMarker from '../../assets/figma/responder/unit-marker.svg';
+import { alertMarker, truckMarker } from '../../components/mapMarkers';
 import {
   cellsOutline,
   cellsToPolygons,
@@ -95,7 +92,8 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
       map.addLayer({ id: 'concern-fill', type: 'fill', source: 'concern', paint: { 'fill-color': EXPOSURE_COLOR as unknown as string, 'fill-opacity': 0.65, 'fill-antialias': false } });
       map.addLayer({ id: 'fire-fill', type: 'fill', source: 'fire', paint: { 'fill-color': '#ec2917', 'fill-opacity': 0.8, 'fill-antialias': false } });
       map.addLayer({ id: 'fire-line', type: 'line', source: 'fire-edge', paint: { 'line-color': '#a9160b', 'line-width': 1.5 } });
-      map.addLayer({ id: 'closure-line', type: 'line', source: 'closures', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#ff958a', 'line-width': 3, 'line-dasharray': [0.1, 2] } });
+      map.addLayer({ id: 'closure-casing', type: 'line', source: 'closures', paint: { 'line-color': '#fff', 'line-width': 6 } });
+      map.addLayer({ id: 'closure-line', type: 'line', source: 'closures', paint: { 'line-color': '#c61e2e', 'line-width': 6, 'line-dasharray': [1.5, 1.5] } });
       map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#0b0f12', 'line-width': 9 } });
       map.addLayer({ id: 'route-lower', type: 'line', source: 'route', filter: ['==', ['get', 'exposure'], 'lower'], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#a7cee5', 'line-width': 5 } });
       map.addLayer({ id: 'route-elevated', type: 'line', source: 'route', filter: ['==', ['get', 'exposure'], 'elevated'], layout: { 'line-join': 'round' }, paint: { 'line-color': '#f0be73', 'line-width': 5, 'line-dasharray': [2, 1.5] } });
@@ -171,35 +169,27 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     if (position) {
       want.me = gps
         ? { at: position, html: '<span class="nav-gps__dot"></span>', className: 'nav-gps', anchor: 'center' }
-        : { at: position, html: `<img src="${unitMarker}" width="16" height="16" alt="" /><span class="nav-tag nav-tag--unit">${positionLabel}</span>`, className: 'nav-unit', anchor: 'center' };
+        : { at: position, html: truckMarker(positionLabel), className: 'pixel-map-marker', anchor: 'center' };
     }
     if (target) {
       want.dest = {
         at: [target.request.lon, target.request.lat],
-        html: `<img class="nav-dest__halo" src="${destinationHalo}" width="30" height="30" alt="" /><img class="nav-dest__dot" src="${destinationMarker}" width="12" height="12" alt="" /><span class="nav-tag nav-tag--dest">${requestCode(target.request.id)}</span>`,
-        className: 'nav-dest',
+        html: alertMarker(target.request, requestCode(target.request.id)),
+        className: 'pixel-map-marker',
         anchor: 'center',
       };
     }
     laterStops.forEach((s, i) => {
       want[`stop-${s.request.id}`] = {
         at: [s.request.lon, s.request.lat],
-        html: `<span class="nav-stop__n">${i + 2}</span>${requestCode(s.request.id)}`,
-        className: 'nav-stop',
+        html: alertMarker(s.request, `${i + 2} · ${requestCode(s.request.id)}`),
+        className: 'pixel-map-marker',
         anchor: 'left',
         offset: [-9, 0],
       };
     });
     if (fireLabelAt) want.fire = { at: fireLabelAt, html: 'FIRE', className: 'nav-text nav-text--fire', anchor: 'center' };
-    for (const c of closures.filter(x => x.active)) {
-      want[`closure-${c.id}`] = {
-        at: [(c.lon1 + c.lon2) / 2, (c.lat1 + c.lat2) / 2],
-        html: `<img src="${circleX}" width="13" height="13" alt="" />${c.name} closed`,
-        className: 'nav-tag nav-tag--closure',
-        anchor: 'left',
-        offset: [8, 0],
-      };
-    }
+
     for (const key of Object.keys(markers)) {
       if (!want[key]) {
         markers[key].remove();
@@ -219,7 +209,7 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
 
   // ─── Camera ───
   useEffect(() => {
-    mapRef.current?.setPadding({ top: padding.top + 16, bottom: padding.bottom + 16, left: 24, right: 24 });
+    mapRef.current?.setPadding({ top: padding.top + 16, bottom: padding.bottom + 16, left: 60, right: 60 });
   }, [padding.top, padding.bottom]);
 
   // Following: keep the vehicle in view as it moves.
@@ -251,10 +241,11 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
   const routeKey = route ? `${route.coords.length}:${route.distanceM}` : '';
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !ready || follow || !route) return;
-    const pts = [...route.coords, ...(position ? [position] : [])];
+    if (!map || !ready || follow || !route || route.coords.length < 2) return;
+    const firePoints: LngLat[] = fireCells.map(c => { const row = Math.floor(c.cellId / grid.cols), col = c.cellId % grid.cols; return [grid.originLon + col * grid.cellSizeM / (111320 * Math.cos(grid.originLat * Math.PI / 180)), grid.originLat + row * grid.cellSizeM / 111320]; });
+    const pts: LngLat[] = [...route.coords, ...firePoints, ...(position ? [position] : []), ...(target ? [[target.request.lon, target.request.lat] as LngLat] : [])];
     const b = pts.reduce((acc, p) => acc.extend(p), new maplibregl.LngLatBounds(pts[0], pts[0]));
-    map.fitBounds(b, { maxZoom: 16, duration: 600 });
+    map.fitBounds(b, { maxZoom: 16, padding: { top: padding.top + 50, bottom: padding.bottom + 55, left: 65, right: 65 }, duration: 600 });
     // Re-frame on a new route or layout, not on every position update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, routeKey, follow, sizeKey, padding.top, padding.bottom]);

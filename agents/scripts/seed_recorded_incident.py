@@ -19,16 +19,15 @@ from rescue.forecast_ml.recorded import RecordedIncident  # noqa: E402
 from rescue.stdb import SpacetimeClient  # noqa: E402
 
 
-async def seed(path, run=False, speed=30.0, no_residents=False, demo_three=False):
+async def seed(path, run=False, speed=30.0, no_residents=False, demo=False):
     path = Path(path).expanduser()
     path = path if path.is_absolute() else REPO_ROOT / path
     source = RecordedIncident.load(path)
     manifest = json.loads(Path(path).read_text())
-    if demo_three:
-        from rescue.demo_profile import demo_residents
-        manifest["residents"] = demo_residents(source, manifest["stations"])
-        manifest["stations"] = [{**s, "name": f"Station {s['id']}"} for s in manifest["stations"]]
-        manifest["units"] = [{**u, "callsign": f"R{u['id']}"} for u in manifest["units"]]
+    if demo:
+        from rescue.demo import demo_fixture
+        stations, units, residents = await demo_fixture(source, manifest)
+        manifest = {**manifest, 'stations': stations, 'units': units, 'residents': residents}
     g = source.routing_grid
     db = SpacetimeClient("recorded-scenario")
     try:
@@ -48,18 +47,18 @@ async def seed(path, run=False, speed=30.0, no_residents=False, demo_three=False
             0.0,
         )
         await db.call("upsert_fire_cells", source.fire_cells(0), True, "perimeter")
-        await db.call("set_replay_schedule", [float(t - source.start_utc_s) for t in source.times_s])
         await db.call(
             "set_incident",
             source.source_id,
-            "2020 northern Arizona wildfire",
+            'Arizona wildfire · July 2020',
             int(source.start_utc_s * 1e6),
             int(source.start_utc_s * 1e6),
             int(source.times_s[-1] * 1e6),
-            "Recorded fire",
+            "Northern Arizona · NIROPS aerial infrared perimeters",
             "",
             "",
         )
+        await db.call("set_replay_schedule", [float(t - source.start_utc_s) for t in source.times_s])
         if not no_residents:
             for r in manifest["residents"]:
                 await db.call(
@@ -70,15 +69,12 @@ async def seed(path, run=False, speed=30.0, no_residents=False, demo_three=False
                     r["lon"],
                     r["headcount"],
                     r["needs"],
-                    r.get("note", "Recorded-fire demo resident"),
-                    1440,
+                    r.get('note', 'Recorded-fire response exercise'),
+                    120,
                 )
-        if run and not demo_three:
+        if run:
             await db.call("set_sim", True, speed)
         print(f"Loaded {source.scenario}; T+0 = UTC {source.start_utc_s}; stations/residents are synthetic")
-        if demo_three:
-            print("Demo fixtures (computed at observation zero):", [
-                {k: r[k] for k in ('request_id', 'needs', 'selection_slack_s', 'selection_exposure')} for r in manifest['residents']])
     finally:
         await db.close()
 
@@ -89,6 +85,6 @@ if __name__ == "__main__":
     parser.add_argument("--run", action="store_true")
     parser.add_argument("--speed", type=float, default=30.0)
     parser.add_argument("--no-residents", action="store_true")
-    parser.add_argument("--demo-three", action="store_true", help="three model-checked fictional caller locations")
+    parser.add_argument("--demo", "--demo-three", action="store_true", help="three road-access requests chosen from current model/urgency inputs")
     args = parser.parse_args()
-    asyncio.run(seed(args.manifest, args.run, args.speed, args.no_residents, args.demo_three))
+    asyncio.run(seed(args.manifest, args.run, args.speed, args.no_residents, args.demo))

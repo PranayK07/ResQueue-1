@@ -141,7 +141,7 @@ export function DirectionsSheet(p: Props) {
             ))}
           </ol>
         )}
-        {!p.arrived && p.route && !p.route.onRoads && <p className="dsheet__warn">Road routing unavailable; showing a straight line.</p>}
+        {!p.arrived && p.route && !p.route.onRoads && <p className="dsheet__warn">{p.route.reason || 'No safe road route is available. Holding position.'}</p>}
         {p.nextLeg}
       </div>
     </section>

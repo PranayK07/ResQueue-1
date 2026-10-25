@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { DEMO_MODE } from '../live/config';
 import { ForecastSummary } from '../components/ForecastSummary';
-import { useLiveRows } from '../live/hooks';
-import { callWithCopy } from '../live/reducers';
 import layersIcon from '../assets/figma/command/layers.svg';
 import pauseIcon from '../assets/figma/command/pause.svg';
 import scanIcon from '../assets/figma/command/scan.svg';
@@ -51,9 +50,6 @@ function gridCentre(s: CommandSnapshot) {
 
 /** Figma 3:3691 "Wildfire rescue command". */
 export function OverviewPage() {
-  const acquisitions = useLiveRows('replay_observation');
-  const [advancing, setAdvancing] = useState(false);
-  const [advanceError, setAdvanceError] = useState('');
   const { snapshot: s, source } = useCommandData();
   const nowMs = useNow(1000);
   const [horizon, setHorizon] = useState(86400);
@@ -108,13 +104,17 @@ export function OverviewPage() {
       live = false;
     };
   }, [legKey]);
-  const journeyLegs = legs?.key === legKey ? legs.legs : null;
+  const journeyLegs = useMemo(() => {
+    const calculated = legs?.key === legKey ? legs.legs : null;
+    if (!calculated) return null;
+    return unit?.trip?.route && stops[0]?.current ? [unit.trip.route.coords, ...calculated.slice(1)] : calculated;
+  }, [legs, legKey, unit, stops]);
   const journey = useMemo<Journey | null>(() => (unit ? { unit, stops, legs: journeyLegs } : null), [unit, stops, journeyLegs]);
   const escalations = s.flags.filter(f => !f.resolved && f.kind === 'unreachable' && rows.some(r => r.request.id === f.requestId && r.escalated));
 
   // ─── Route for the selected request ───
   const [route, setRoute] = useState<{ key: string; route: Route } | null>(null);
-  const routeKey = selected?.unit && !selected.escalated ? [selected.unit.trip?.fromLon ?? selected.unit.lon, selected.unit.trip?.fromLat ?? selected.unit.lat, selected.request.lon, selected.request.lat].join(',') : '';
+  const routeKey = selected?.unit && !selected.escalated ? [selected.unit.lon, selected.unit.lat, selected.request.lon, selected.request.lat].join(',') : '';
   useEffect(() => {
     if (!routeKey) return;
     let live = true;
@@ -215,11 +215,6 @@ export function OverviewPage() {
               ))}
             </select>
           )}
-          {replay && <button type="button" className="cbtn" disabled={advancing || !acquisitions.some(o => o.atS > s.clock.simS + 0.001)} onClick={async () => {
-            setAdvancing(true); setAdvanceError('');
-            try { await callWithCopy('advance_replay', {}); } catch (e) { setAdvanceError(e instanceof Error ? e.message : String(e)); }
-            finally { setAdvancing(false); }
-          }}>{advancing ? 'Loading observation…' : 'Next observation'}</button>}
           <button type="button" className="cbtn" onClick={() => source.setRunning(!s.clock.running)}>
             {s.clock.running ? <img src={pauseIcon} width={14} height={14} alt="" /> : <span aria-hidden>▶</span>}
             {live ? (s.clock.running ? 'Pause' : 'Resume') : s.clock.running ? 'Pause simulation' : 'Resume simulation'}
@@ -239,7 +234,6 @@ export function OverviewPage() {
         <Metric value={clockHMS(s.lastPlan.atMs)} small title="Queue recomputed" sub={`${s.lastPlan.reason} · ${ago(s.lastPlan.atMs)} ago`} />
       </section>
 
-      {advanceError && <p role="alert" className="cerror">{advanceError}</p>}
       <main className="cworkspace">
         <section className="cpanel cqueue">
           <div className="cqueue__heading">
@@ -378,7 +372,7 @@ export function OverviewPage() {
             </tbody>
           </table>
           </div>
-          <p className="cfootnote">Slack: &lt;10 min critical (including negative margins) · 10–30 high · 30–60 moderate · &gt;60 low. Ground reachability is assessed separately. ETA = unit wait + travel, not extraction.</p>
+          <p className="cfootnote">Slack: &lt;10 min critical · 10–30 high · 30–60 moderate · &gt;60 low. Ground reachability is assessed separately. ¹ETA = unit wait + travel, not extraction.</p>
         </section>
 
         <section className="cpicture">
@@ -414,7 +408,7 @@ export function OverviewPage() {
                     </div>
                   )}
                 </div>
-                {source.capabilities.mockPings && (
+                {source.capabilities.mockPings && !DEMO_MODE && (
                   <>
                     <select
                       className="cbtn"
@@ -447,7 +441,7 @@ export function OverviewPage() {
               rows={rows}
               selected={selected}
               labeled={new Set(pageRows.map(r => r.request.id))}
-              route={route?.key === routeKey ? route.route : null}
+              route={selected?.unit?.trip?.route ?? (route?.key === routeKey ? route.route : null)}
               visible={visible}
               fitSignal={fitSignal}
               journey={journey}
@@ -461,13 +455,10 @@ export function OverviewPage() {
               </select>
             </label>
             <div className="clegend">
-              <span><i className="ckey ckey--dot ckey--unreachable" />Unreachable</span>
-              <span><i className="ckey ckey--dot ckey--critical" />Critical</span>
-              <span><i className="ckey ckey--dot ckey--high" />High</span>
-              <span><i className="ckey ckey--dot ckey--moderate" />Moderate</span>
+              <span><b style={{ color: "#ad1522" }}>!</b> Less slack → <b style={{ color: "#c7a700" }}>!</b> More slack</span>
               <span><i className="ckey ckey--fire" />Observed fire</span>
               <span><i className="ckey ckey--forecast" />U-Net predicted exposure</span>
-              <span><i className="ckey ckey--closed" />Closed road</span>
+              <span title="Demo closures inferred where recorded fire intersects OSM roads"><i className="ckey ckey--closed" />Fire-affected road · closed</span>
               <span><i className="ckey ckey--route" />Selected route</span>
             </div>
 

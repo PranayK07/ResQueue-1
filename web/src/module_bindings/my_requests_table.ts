@@ -17,7 +17,6 @@ export default __t.row({
   queuePosition: __t.u32().name("queue_position"),
   stationName: __t.string().name("station_name"),
   unitCallsign: __t.string().name("unit_callsign"),
-  unitId: __t.u32().name("unit_id"),
   etaS: __t.option(__t.f64()).name("eta_s"),
   reason: __t.string(),
   headcount: __t.u32(),

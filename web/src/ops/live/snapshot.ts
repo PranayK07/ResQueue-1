@@ -8,6 +8,8 @@
 // at lifecycle steps, so the marker is interpolated rather than streamed).
 
 import { connection, type ConnSnapshot } from '../../live/connection';
+import { positionAlong, routeFromPoints } from '../roadGraph.mjs';
+import { configureRouting } from '../routing';
 import { operatorOf } from '../../live/operator';
 import { store } from '../../live/store';
 import { groupsFor, type RowOf, type SourceName, type Surface } from '../../live/tables';
@@ -40,7 +42,6 @@ import type {
   Station,
   Unit,
   UnitStatus,
-  UnitTrip,
   Weather,
 } from '../types';
 
@@ -149,7 +150,6 @@ const toUnit = perRow(
     currentRequest: r.currentRequest,
     freeAtS: r.freeAtS,
     updatedAtMs: tsToMs(r.updatedAt),
-    departS: r.legDepartS,
     trip: null,
   })
 );
@@ -486,6 +486,7 @@ function escalationStation(r: HelpRequest, stations: ReadonlyMap<number, Station
 // ─── Units: motion along the current leg ───────────────────────────────────
 
 interface Motion {
+  routes: ReadonlyMap<number, RowOf<'ops_unit_route'>>;
   nowS: number;
   clockRow: RowOf<'sim_clock'> | undefined;
   queueByRequest: ReadonlyMap<bigint, RowOf<'ops_queue'>>;
@@ -494,54 +495,17 @@ interface Motion {
 }
 
 function unitMover() {
-  // Per unit, keyed by the row write that started the leg: a later pause must not move the departure.
-  const departs = new Map<number, { key: string; departS: number }>();
-  const trips = new Map<number, { key: string; trip: UnitTrip }>();
-
-  /** Sim second the unit row was written, from server times only (no device clock skew). */
-  const departOf = (u: Unit, m: Motion) => {
-    if (u.departS !== undefined) return u.departS;
-    const key = `${u.updatedAtMs}|${u.status}`;
-    const hit = departs.get(u.id);
-    if (hit && hit.key === key) return hit.departS;
-    let departS = m.nowS;
-    if (m.clockRow) {
-      const gapS = m.clockRow.running ? ((tsToMs(m.clockRow.lastTick) - (u.updatedAtMs ?? 0)) / 1000) * m.clockRow.speed : 0;
-      departS = Math.min(m.nowS, m.clockRow.simS - gapS);
-    }
-    departs.set(u.id, { key, departS });
-    return departS;
-  };
-
-  const along = (u: Unit, m: Motion, toLat: number, toLon: number, departS: number, arriveS: number): Unit => {
-    const key = `${u.updatedAtMs}|${u.status}|${u.lat}|${u.lon}|${toLat}|${toLon}|${departS}|${arriveS}`;
-    let trip = trips.get(u.id)?.key === key ? trips.get(u.id)!.trip : undefined;
-    if (!trip) {
-      trip = { fromLat: u.lat, fromLon: u.lon, toLat, toLon, departS, arriveS };
-      trips.set(u.id, { key, trip });
-    }
-    const f = clamp01((m.nowS - departS) / Math.max(1, arriveS - departS));
-    return { ...u, lat: q5(u.lat + (toLat - u.lat) * f), lon: q5(u.lon + (toLon - u.lon) * f), trip };
-  };
-
   return (u: Unit, m: Motion): Unit => {
-    if (u.currentRequest !== 0n && (u.status === 'en_route' || u.status === 'on_scene')) {
-      const r = m.requestById.get(u.currentRequest);
-      if (!r) return u;
-      if (u.status === 'on_scene') return u.lat === r.lat && u.lon === r.lon ? u : { ...u, lat: r.lat, lon: r.lon };
-      // en_route: from where the row says (the station; nothing streams positions) to the request, arriving at etaS.
-      const q = m.queueByRequest.get(u.currentRequest);
-      if (!q) return u;
-      return along(u, m, r.lat, r.lon, Math.min(departOf(u, m), q.etaS - 1), q.etaS);
-    }
-    if (u.status === 'returning') {
-      // The driver leaves the row at the scene; free_at_s is when it is back at its station.
-      const s = m.stationById.get(u.stationId);
-      if (!s || distanceM(u.lat, u.lon, s.lat, s.lon) < 1) return u;
-      const departS = departOf(u, m);
-      return along(u, m, s.lat, s.lon, departS, Math.max(u.freeAtS, departS + 1));
-    }
-    return u;
+    const row = m.routes.get(u.id);
+    const target = u.currentRequest ? m.requestById.get(u.currentRequest) : m.stationById.get(u.stationId);
+    if (!row || row.status !== 'ready' || !target || row.requestId !== u.currentRequest || row.points.length < 2) return u;
+    const driving = u.status === 'en_route' || u.status === 'returning';
+    const f = driving ? clamp01((m.nowS - row.departS) / Math.max(1, row.arriveS - row.departS)) : u.status === 'on_scene' ? 1 : 0;
+    const position = positionAlong(row.points, f)!;
+    if (Math.abs(row.targetLat - target.lat) > 1e-8 || Math.abs(row.targetLon - target.lon) > 1e-8) return { ...u, lon: position[0], lat: position[1] };
+    const first = row.points[0], last = row.points.at(-1)!;
+    return { ...u, lon: q5(position[0]), lat: q5(position[1]), trip: { fromLat: first.lat, fromLon: first.lon, toLat: last.lat, toLon: last.lon,
+      departS: row.departS, arriveS: row.arriveS, route: routeFromPoints(row.points, row.durationS) } };
   };
 }
 
@@ -578,10 +542,6 @@ function sharedBuilder(surface: Surface, command: boolean) {
   const stationMapOf = memo((stations: Station[]) => new Map(stations.map(s => [s.id, s])));
   const unitsOf = memo((rows: Rows<'unit'>) => rows.map(toUnit).sort(byId));
   const requestsOf = memo((rows: Rows<'ops_request'>) => rows.filter(r => ACTIVE.has(r.status) && !r.locationPurged).map(toRequest));
-  const assessedRequestsOf = memo((requests: HelpRequest[], risks: ReadonlyMap<bigint, RiskCard>) => requests.map(r => {
-    const risk = risks.get(r.id);
-    return !risk || !risk.current ? { ...r, level: 'unknown' as const, slackS: null, fireEtaS: null } : r;
-  }));
   const requestMapOf = memo((requests: HelpRequest[]) => new Map(requests.map(r => [r.id, r])));
   const queueMapOf = memo((rows: Rows<'ops_queue'>) => new Map(rows.map(q => [q.requestId, q])));
   const fireOf = memo((rows: Rows<'fire_cell'>) => rows.map(toFireCell));
@@ -694,13 +654,16 @@ function sharedBuilder(surface: Surface, command: boolean) {
 
     const stations = stationsOf(read.rows('station'));
     const stationById = stationMapOf(stations);
-    const risks = risksOf(read.rows('ops_risk'));
-    const requests = assessedRequestsOf(requestsOf(read.rows('ops_request')), risks);
+    const requests = requestsOf(read.rows('ops_request')).map(r => {
+      const card = read.rows('ops_risk').find(c => c.assessment.requestId === r.id);
+      return !card || !card.current ? { ...r, level: 'unknown' as const, slackS: null, fireEtaS: null } : r;
+    });
     const queueRows = read.rows('ops_queue');
     const baseUnits = unitsOf(read.rows('unit'));
-    const motion: Motion = { nowS, clockRow, queueByRequest: queueMapOf(queueRows), requestById: requestMapOf(requests), stationById };
+    const motion: Motion = { routes: new Map(read.rows('ops_unit_route').map(r => [r.unitId, r])), nowS, clockRow, queueByRequest: queueMapOf(queueRows), requestById: requestMapOf(requests), stationById };
     const units = keepArray(prev?.shared.units, baseUnits.map(u => move(u, motion)));
     const flags = command ? flagsOf(read.rows('ops_flag')) : NO_FLAGS;
+    const risks = risksOf(read.rows('ops_risk'));
     const { queue, pending } = buildQueue({
       queueRows,
       units: baseUnits,
@@ -756,6 +719,7 @@ function sharedBuilder(surface: Surface, command: boolean) {
       news: command ? newsOf(read.rows('news_article'), incident ? incident.key : null) : NO_NEWS,
     });
 
+    configureRouting({ grid: gridOf(read.rows('grid')), fireCells: fireOf(read.rows('fire_cell')), closures: closuresOf(read.rows('road_closure')) });
     const shared: Shared = keepObject(prev?.shared, {
       updatedAtMs,
       clock,

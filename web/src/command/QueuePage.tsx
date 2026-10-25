@@ -64,10 +64,10 @@ function applyPins(order: bigint[], pins: Map<bigint, number>, firstMovable: num
 
 /** Figma 8:1397 "Rescue queue management". */
 export function QueuePage() {
-  return isLive ? <LiveQueuePage /> : <SimulatedQueuePage />;
+  return isLive ? <LiveQueuePage /> : <SimulationQueuePage />;
 }
 
-function SimulatedQueuePage() {
+function SimulationQueuePage() {
   const { snapshot: s, source } = useCommandData();
   const nowMs = useNow(1000);
   const rows = useMemo(() => commandRows(s), [s]);
@@ -340,6 +340,7 @@ function SimulatedQueuePage() {
                 <option value="critical">Critical</option>
                 <option value="high">High</option>
                 <option value="moderate">Moderate</option>
+                <option value="low">Low</option>
               </select>
             </div>
 
@@ -458,7 +459,7 @@ function SimulatedQueuePage() {
             </div>
             <div className="qformula">
               <p className="mono">Slack = fire-arrival p10 − (unit wait + travel + extraction) − safety margin</p>
-              <p>² &lt;0 unreachable · 0–10m critical · &gt;10–30m high · &gt;30m moderate. ¹ ETA = wait + travel, excluding extraction.</p>
+              <p>² &lt;10m critical · 10–30m high · 30–60m moderate · &gt;60m low. Ground reachability is assessed separately. ¹ ETA = wait + travel, excluding extraction.</p>
             </div>
           </section>
 
@@ -578,7 +579,7 @@ function SimulatedQueuePage() {
                 <img src={slidersIcon} width={16} height={16} alt="" />
                 Sorting parameters
               </h2>
-              <span className="cbadge cbadge--amber">LOCAL PREVIEW</span>
+              <span className="cbadge cbadge--amber">SIMULATED</span>
             </div>
             <p className="qparams__intro">Draft a policy, preview it, then apply. Nothing changes until you apply.</p>
             <p className="qparams__baseline">

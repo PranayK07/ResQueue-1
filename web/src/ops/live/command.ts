@@ -1,5 +1,6 @@
-// Incident command on SpacetimeDB. LOOKAHEAD plans queues; commanders may pin stations or commit an
-// available ground unit atomically. Stop reordering and policy previews remain local-simulation features.
+// Incident command on SpacetimeDB. The backend plans the queue itself (the commander agent's dispatch policy), so
+// the simulation's unit-level tools (assign to a unit, stop order, what-if preview) are off; the commander pins a
+// request to a station instead. Rejections carry UI copy (the screens print e.message).
 
 import { callWithCopy as run } from '../../live/reducers';
 import { store } from '../../live/store';
@@ -42,7 +43,7 @@ export function createLiveCommandSource(): CommandSource {
     releaseWeatherLock: () => run('release_weather_lock', {}),
     overrideAssignment: (requestId, stationId, note) => run('override_assignment', { requestId, stationId, note }),
     assignToUnit: (requestId, unitId) => {
-      // Zero releases a station pin; committing a unit uses the transactional dispatch reducer.
+      // Manual dispatch commits the chosen unit; 0 releases a station pin.
       if (unitId === 0) return run('override_assignment', { requestId, stationId: 0, note: '' });
       return run('assign_request_to_unit', { requestId, unitId });
     },

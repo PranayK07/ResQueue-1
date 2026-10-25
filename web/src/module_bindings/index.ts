@@ -61,6 +61,7 @@ import PublishPlanReducer from "./publish_plan_reducer";
 import PublishRecordedFireRiskReducer from "./publish_recorded_fire_risk_reducer";
 import PublishRiskAssessmentsReducer from "./publish_risk_assessments_reducer";
 import PublishRiskPipelineStatusReducer from "./publish_risk_pipeline_status_reducer";
+import PublishUnitRouteReducer from "./publish_unit_route_reducer";
 import RecordSituationReducer from "./record_situation_reducer";
 import RegisterAgentReducer from "./register_agent_reducer";
 import ReleaseWeatherLockReducer from "./release_weather_lock_reducer";
@@ -112,6 +113,7 @@ import OpsReportRow from "./ops_report_table";
 import OpsRequestRow from "./ops_request_table";
 import OpsRiskRow from "./ops_risk_table";
 import OpsTravelRow from "./ops_travel_table";
+import OpsUnitRouteRow from "./ops_unit_route_table";
 import ReplayObservationRow from "./replay_observation_table";
 import RiskPipelineRow from "./risk_pipeline_table";
 import RoadClosureRow from "./road_closure_table";
@@ -448,6 +450,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, OpsTravelRow),
+  opsUnitRoute: __table({
+    name: 'ops_unit_route',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, OpsUnitRouteRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
@@ -479,6 +488,7 @@ const reducersSchema = __reducers(
   __reducerSchema("publish_recorded_fire_risk", PublishRecordedFireRiskReducer),
   __reducerSchema("publish_risk_assessments", PublishRiskAssessmentsReducer),
   __reducerSchema("publish_risk_pipeline_status", PublishRiskPipelineStatusReducer),
+  __reducerSchema("publish_unit_route", PublishUnitRouteReducer),
   __reducerSchema("record_situation", RecordSituationReducer),
   __reducerSchema("register_agent", RegisterAgentReducer),
   __reducerSchema("release_weather_lock", ReleaseWeatherLockReducer),
@@ -534,6 +544,8 @@ type __SchemaWithTableAccessorAliases = Omit<typeof tablesSchema.schemaType, "ta
     readonly "ops_risk": Omit<typeof tablesSchema.schemaType.tables["opsRisk"], "accessorName"> & { readonly accessorName: "ops_risk" };
     /** @deprecated Use `opsTravel` instead. This alias will be removed in the next major version. */
     readonly "ops_travel": Omit<typeof tablesSchema.schemaType.tables["opsTravel"], "accessorName"> & { readonly accessorName: "ops_travel" };
+    /** @deprecated Use `opsUnitRoute` instead. This alias will be removed in the next major version. */
+    readonly "ops_unit_route": Omit<typeof tablesSchema.schemaType.tables["opsUnitRoute"], "accessorName"> & { readonly accessorName: "ops_unit_route" };
   };
 };
 
@@ -564,6 +576,7 @@ const tableAccessorAliases = {
   "ops_request": "opsRequest",
   "ops_risk": "opsRisk",
   "ops_travel": "opsTravel",
+  "ops_unit_route": "opsUnitRoute",
 } as const;
 
 function __withTableAccessorAliases<T extends object>(target: T, freeze = false): T {
@@ -608,6 +621,8 @@ export type DbView = __DbViewBase & {
   readonly "ops_risk": __DbViewBase["opsRisk"];
   /** @deprecated Use `opsTravel` instead. This alias will be removed in the next major version. */
   readonly "ops_travel": __DbViewBase["opsTravel"];
+  /** @deprecated Use `opsUnitRoute` instead. This alias will be removed in the next major version. */
+  readonly "ops_unit_route": __DbViewBase["opsUnitRoute"];
 };
 
 type __TablesBase = __QueryBuilder<typeof tablesSchema.schemaType>;
@@ -636,6 +651,8 @@ export type Tables = __TablesBase & {
   readonly "ops_risk": __TablesBase["opsRisk"];
   /** @deprecated Use `opsTravel` instead. This alias will be removed in the next major version. */
   readonly "ops_travel": __TablesBase["opsTravel"];
+  /** @deprecated Use `opsUnitRoute` instead. This alias will be removed in the next major version. */
+  readonly "ops_unit_route": __TablesBase["opsUnitRoute"];
 };
 
 /** The tables available in this remote SpacetimeDB module. Each table reference doubles as a query builder. */
@@ -684,3 +701,4 @@ export class DbConnection extends __DbConnectionImpl<typeof REMOTE_MODULE> {
     return new SubscriptionBuilder(this);
   };
 }
+

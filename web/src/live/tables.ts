@@ -31,6 +31,7 @@ import type OpsReportRow from '../module_bindings/ops_report_table';
 import type OpsRequestRow from '../module_bindings/ops_request_table';
 import type OpsRiskRow from '../module_bindings/ops_risk_table';
 import type OpsTravelRow from '../module_bindings/ops_travel_table';
+import type OpsUnitRouteRow from '../module_bindings/ops_unit_route_table';
 import type RiskPipelineRow from '../module_bindings/risk_pipeline_table';
 import type ReplayObservationRow from '../module_bindings/replay_observation_table';
 import type RoadClosureRow from '../module_bindings/road_closure_table';
@@ -70,6 +71,7 @@ type Schemas = {
   ops_request: typeof OpsRequestRow;
   ops_queue: typeof OpsQueueRow;
   ops_travel: typeof OpsTravelRow;
+  ops_unit_route: typeof OpsUnitRouteRow;
   ops_flag: typeof OpsFlagRow;
   ops_report: typeof OpsReportRow;
   ops_assessment: typeof OpsAssessmentRow;
@@ -112,6 +114,7 @@ export const ACCESSOR = {
   ops_request: 'opsRequest',
   ops_queue: 'opsQueue',
   ops_travel: 'opsTravel',
+  ops_unit_route: 'opsUnitRoute',
   ops_flag: 'opsFlag',
   ops_report: 'opsReport',
   ops_assessment: 'opsAssessment',
@@ -141,14 +144,14 @@ export const QUERIES: { caller: QueryGroups; command: QueryGroups; responder: Qu
   responder: {
     core: [
       'sim_clock', 'grid', 'station', 'unit', 'weather', 'fire_cell', 'forecast_cell', 'road_closure', 'incident', 'agent',
-      'ops_request', 'ops_queue',
+      'ops_request', 'ops_queue', 'ops_unit_route',
     ],
     extra: ['my_operator', 'crew_presence', 'ops_risk', 'ops_assessment', 'ops_report', 'ops_message', 'fire_risk_meta', 'fire_concern', 'risk_pipeline'],
   },
   command: {
     core: [
       'sim_clock', 'grid', 'station', 'unit', 'weather', 'fire_cell', 'forecast_cell', 'forecast_meta', 'world_version',
-      'road_closure', 'incident', 'agent', 'event_log', 'ops_request', 'ops_queue', 'ops_travel', 'ops_flag',
+      'road_closure', 'incident', 'agent', 'event_log', 'ops_request', 'ops_queue', 'ops_travel', 'ops_flag', 'ops_unit_route',
     ],
     // fire_risk_cell stays off the phones: up to 40k cells x 8 horizons.
     extra: [

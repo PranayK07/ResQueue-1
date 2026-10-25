@@ -115,6 +115,15 @@ export const crewPresence = table(
   }
 );
 
+export const RoadPoint = t.object('RoadPoint', { lon: t.f64(), lat: t.f64(), name: t.string() });
+/** A private, shared route: it contains a resident's destination. */
+export const unitRoute = table({ name: 'unit_route' }, {
+  unitId: t.u32().primaryKey(), requestId: t.u64(), targetLat: t.f64(), targetLon: t.f64(),
+  points: t.array(RoadPoint), durationS: t.f64(), departS: t.f64(), arriveS: t.f64(),
+  status: t.string(), reason: t.string(), signature: t.string(), updatedAt: t.timestamp(),
+  fireVersion: t.u64().default(0n), roadsVersion: t.u64().default(0n),
+});
+
 // ─── Fire, weather, forecast, roads ─────────────────────────────────────────
 
 /** Singleton (id = 0). `locked` = commander/judge has taken manual control of
@@ -728,6 +737,7 @@ const spacetimedb = schema(
     station,
     unit,
     crewPresence,
+    unitRoute,
     weather,
     fireCell,
     forecastCell,

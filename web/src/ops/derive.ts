@@ -46,9 +46,9 @@ export const clockHMSTz = (ms: number) => hmsTz.format(ms);
 /** "+6 min" / "−3 min" (true minus sign for legibility). */
 export function formatSlack(slackS: number | null) {
   if (slackS === null) return '—';
-  if (Math.abs(slackS) > 1e8) return 'No ground route';
+  if (slackS < -1e7) return 'No safe route';
   const m = Math.round(slackS / 60);
-  if (slackS < 0 && m === 0) return '−<1 min';
+  if (slackS !== null && slackS < 0 && m === 0) return '−<1 min';
   return m < 0 ? `−${Math.abs(m)} min` : `+${m} min`;
 }
 

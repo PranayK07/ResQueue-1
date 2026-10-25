@@ -146,7 +146,6 @@ input.cbtn {
 .cbadge--unreachable { background: var(--c-red-bg); color: var(--c-red); }
 .cbadge--high { background: #fff3dc; color: var(--c-amber); }
 .cbadge--moderate,
-.cbadge--low,
 .cbadge--unknown { background: var(--c-soft); color: var(--c-muted); }
 .cbadge--green { background: var(--c-green-bg); color: var(--c-green); }
 
@@ -553,7 +552,6 @@ input.cbtn {
 .cslack-text--critical { color: var(--c-red); }
 .cslack-text--high { color: var(--c-amber); }
 .cslack-text--moderate,
-.cslack-text--low,
 .cslack-text--unknown { color: var(--c-green); }
 
 .cfootnote {
@@ -662,8 +660,8 @@ input.cbtn {
 .ckey--high { background: var(--c-amber); }
 .ckey--moderate { background: #79816f; }
 .ckey--fire { width: 15px; height: 9px; background: #ec2917; border: 1px solid #a9160b; }
-.ckey--forecast { width: 30px; height: 9px; background: linear-gradient(90deg, #ff8522, #f2e535); }
-.ckey--closed { width: 15px; height: 3px; background: var(--c-red); }
+.ckey--forecast { width: 28px; height: 9px; background: linear-gradient(90deg, #ff8522, #f2e535); }
+.ckey--closed { width: 18px; height: 5px; border: 1px solid #bcbcbc; background: repeating-linear-gradient(90deg, #c61e2e 0 4px, white 4px 8px); }
 .ckey--route { width: 15px; height: 3px; background: #2d5b73; }
 
 .cwind {
@@ -1995,3 +1993,7 @@ input.cbtn {
   display: grid;
   grid-template-columns: 70px 110px 1fr;
 }
+
+
+.cbadge--low, .qlevel--low { color: #276447; background: #e4f2e9; }
+.cslack-text--low { color: #276447; }

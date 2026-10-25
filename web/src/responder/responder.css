@@ -110,7 +110,6 @@
 .level--unreachable { color: var(--r-red); }
 .level--high { color: var(--r-amber); }
 .level--moderate,
-.level--low,
 .level--unknown { color: var(--r-muted); }
 
 .slack-box {
@@ -957,3 +956,6 @@ button.stoprow__body {
     padding: 20px;
   }
 }
+.rchip:disabled { opacity: .45; cursor: default; }
+
+.level--low { color: #276447; background: #e4f2e9; }

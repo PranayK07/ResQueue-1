@@ -67,11 +67,11 @@ def risk_snapshot(now_s, scenario, versions, units, meta=None, pipeline=None):
 
 
 def compose_risks(
-    snapshot, requests, assessments, travel, units, weighed, *, meta=None, cells=(), pipeline=None, responses=None, context=None
+    snapshot, requests, assessments, travel, units, weighed, *, meta=None, cells=(), pipeline=None, responses=None, context=None, committed=None
 ):
     """Return one complete risk record for each physically assessed active request.
 
-    Travel/wait are the earliest station-unit option, not a dispatch promise.
+    Travel/wait use the committed truck when supplied, otherwise the earliest station-unit option.
     Missing units/routes and unknown exposure remain explicit optional values.
     Accepted evidence has already adjusted assessments; it is not applied twice.
     """
@@ -122,8 +122,13 @@ def compose_risks(
         r, w = reqs[rid], weighed.get(rid)
         legs = routes.get(rid, [])
         leg = min(legs, key=lambda t: free[t["station_id"]] + t["travel_s"]) if legs else None
+        assigned = (committed or {}).get(rid)
+        if assigned:
+            leg = assigned if assigned['reachable'] else None
         drive = leg["travel_s"] if leg else None
         wait = max(0.0, free[leg["station_id"]] - now) if leg else None
+        if assigned and leg:
+            wait = 0.0
         if responses is not None:
             leg = responses.get(rid)
             drive = leg['travel_s'] if leg else None
@@ -153,13 +158,12 @@ def compose_risks(
                         lower_slack = window["lower_s"] - duration if window["lower_s"] is not None else None
                         upper_slack = window["upper_s"] - duration if window["upper_s"] is not None else None
         reason = (
-            (f"Physical risk {danger['level']}; immediate slack {danger['slack_s'] / 60:.1f} min. "
-             if abs(danger['slack_s']) < 1e8 else "Ground approach unavailable. ")
+            f"Physical risk {danger['level']}; immediate slack {danger['slack_s'] / 60:.1f} min. "
             + (
                 f"{leg.get('callsign', 'Station ' + str(leg['station_id']))}: travel {drive / 60:.1f} min, wait {wait / 60:.1f} min, "
                 f"extraction {danger['extract_s'] / 60:.1f} min; scheduled slack {scheduled / 60:.1f} min. "
                 if leg
-                else (danger.get("route_reason") or "No eligible station-unit route is currently available.") + " "
+                else "No station-unit route is currently available. "
             )
             + (
                 f"Learned exposure {probabilities[-1]:.1%} by {product.horizons_s[-1] / 3600:g} h; "

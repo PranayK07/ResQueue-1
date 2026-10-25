@@ -136,31 +136,11 @@ export function peopleNeedsLong(r: HelpRequest) {
 export const slackMin = (slackS: number | null) => (slackS === null ? null : Math.round(slackS / 60));
 
 export function slackText(slackS: number | null) {
-  if (slackS !== null && Math.abs(slackS) > 1e8) return 'No safe route';
+  if (slackS !== null && slackS < -1e7) return 'No safe route';
   const m = slackMin(slackS);
   if (m === null) return '—';
   if (slackS !== null && slackS < 0 && m === 0) return '−<1 min';
   return m < 0 ? `−${Math.abs(m)} min` : `+${m} min`;
-}
-
-export function commandSlack(row: CommandRow, s: CommandSnapshot) {
-  const risk = s.live?.risks.get(row.request.id);
-  if (risk && !risk.current) return 'Reassessing';
-  return slackText(row.request.slackS);
-}
-
-/** A committed plan's original reason/ETA can outlive the input forecast. */
-export function commandReason(row: CommandRow, s: CommandSnapshot) {
-  const risk = s.live?.risks.get(row.request.id);
-  return risk ? risk.current ? risk.reason : risk.staleReason : row.entry.reason;
-}
-
-export function commandEta(row: CommandRow, s: CommandSnapshot) {
-  const risk = s.live?.risks.get(row.request.id);
-  if (row.unit?.status === 'on_scene') return 'On scene';
-  if (row.pending || row.escalated || (risk?.current && !risk.reachable)) return '—';
-  if (row.entry.etaS <= s.clock.simS) return row.unit?.status === 'assigned' ? 'Not departed' : row.unit?.status === 'en_route' ? 'ETA overdue' : 'Replanning';
-  return `${Math.ceil((row.entry.etaS - s.clock.simS) / 60)} min`;
 }
 
 /** "S02 / E21" ("S03 / Review" for escalations). */
@@ -178,7 +158,7 @@ export function stationUnit(row: CommandRow) {
 export function slackBreakdown(row: CommandRow, s: CommandSnapshot, marginS: number) {
   const { request: r, entry } = row;
   const risk = s.live?.risks.get(r.id);
-  if (r.fireEtaS === null || (risk?.current && !risk.reachable)) return null;
+  if (r.fireEtaS === null) return null;
   const now = s.clock.simS;
   const toFire = Math.round((r.fireEtaS - now) / 60);
   const wait = Math.round((risk?.current ? risk.waitS ?? 0 : entry.waitS) / 60);
@@ -213,6 +193,27 @@ export const mps = (mphValue: number) => mphValue / 2.23694;
 /** Short station label for tight spots: the first word ("S02 Canyon" → "S02"), or "St. 1" for names such as
  *  "Synthetic station 1", whose first words repeat. */
 export function stationShort(name: string) {
-  const m = /^(?:synthetic )?station (\S+)$/i.exec(name.trim());
+  const m = /^synthetic station (\S+)$/i.exec(name.trim());
   return m ? `St. ${m[1]}` : name.split(' ')[0];
 }
+
+export function commandSlack(row: CommandRow, s: CommandSnapshot) {
+  const risk = s.live?.risks.get(row.request.id);
+  if (risk && !risk.current) return 'Reassessing';
+  return slackText(row.request.slackS);
+}
+
+/** A committed plan's original reason/ETA can outlive the input forecast. */
+export function commandReason(row: CommandRow, s: CommandSnapshot) {
+  const risk = s.live?.risks.get(row.request.id);
+  return risk ? risk.current ? risk.reason : risk.staleReason : row.entry.reason;
+}
+
+export function commandEta(row: CommandRow, s: CommandSnapshot) {
+  const risk = s.live?.risks.get(row.request.id);
+  if (row.unit?.status === 'on_scene') return 'On scene';
+  if (row.pending || row.escalated || (risk?.current && !risk.reachable)) return '—';
+  if (row.entry.etaS <= s.clock.simS) return row.unit?.status === 'assigned' ? 'Not departed' : row.unit?.status === 'en_route' ? 'ETA overdue' : 'Replanning';
+  return `${Math.ceil((row.entry.etaS - s.clock.simS) / 60)} min`;
+}
+
