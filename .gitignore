@@ -16,7 +16,6 @@ agents/exports/
 .venv-risk/
 .pytest_cache/
 .ruff_cache/
-*.pt
 *.pth
 *.zip
 tmp/
