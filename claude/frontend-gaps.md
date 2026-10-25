@@ -344,3 +344,11 @@ New:
 10. **Sathvik:** a `my_operator` view (G3), and whether `onDisconnect` should mark agents offline as `base.py` claims (G12).
 11. **Sathvik (optional):** server-side status checks for `unit_on_scene`, `complete_mission` and `decline_mission`, and rejecting pins on locked requests (G16).
 12. **Evan:** delete `.claude/frontend-shapes.md` so the one copy in `claude/` can't drift.
+## Known frontend issues (low, from the shell review)
+
+- After a phone sleeps, "Last updated" shows when the drop was noticed (the wake time), not when data last arrived (`web/src/lib/stdb/connection.ts`, onDrop and the offline handler).
+- A subscription error is recorded but doesn't change the connection state; the screen can sit on stale rows until the next reconnect.
+- The window online/offline handlers can overwrite a config error (missing `VITE_*` vars) with connecting/offline.
+- `useCall` treats a second call with different arguments as a repeat tap while one is in flight (the second is dropped silently).
+- Guide: on `cmd.drawer.pin` the tip shows while the drawer is open but the arrow keys are ignored there (Next and Back still work); the tip card remounts per step, so keyboard focus returns to the page.
+- The shadcn dialog, sheet and drawer overlays weren't given the React 18 forwardRef patch; open and close work in tests, exit animations may be skipped.
