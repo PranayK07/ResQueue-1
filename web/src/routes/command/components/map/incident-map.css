@@ -1,0 +1,52 @@
+/* Dark skin for MapLibre's built-in UI, scoped to the /command incident map. */
+
+.incident-map .maplibregl-map {
+  font-family: var(--font-sans);
+}
+
+/* Keeps marker z-indexes (stacking by urgency) below the controls and overlays. */
+.incident-map .maplibregl-canvas-container {
+  isolation: isolate;
+}
+
+.incident-map .maplibregl-ctrl-group,
+.incident-map .maplibregl-ctrl-group:not(:empty) {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  box-shadow: none;
+}
+
+.incident-map .maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--border);
+}
+
+.incident-map .maplibregl-ctrl-group button:not(:disabled):hover {
+  background-color: rgb(255 255 255 / 0.06);
+}
+
+.incident-map .maplibregl-ctrl-group button:focus:focus-visible,
+.incident-map .maplibregl-ctrl-attrib-button:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--guide);
+}
+
+/* The stock icons are dark SVGs. */
+.incident-map .maplibregl-ctrl-icon {
+  filter: invert(1);
+  opacity: 0.85;
+}
+
+.incident-map .maplibregl-ctrl-attrib,
+.incident-map .maplibregl-ctrl-attrib.maplibregl-compact {
+  background-color: rgb(12 14 17 / 0.85);
+  color: var(--muted-foreground);
+}
+
+.incident-map .maplibregl-ctrl-attrib a {
+  color: var(--muted-foreground);
+}
+
+.incident-map .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
