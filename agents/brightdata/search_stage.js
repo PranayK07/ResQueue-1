@@ -1,3 +1,5 @@
+// WARNING: this collector targets cnn.com. Do NOT run it: the hackathon disqualifies scraping paywalled sites.
+// Kept only as a reference for the date-prefilter idea (skip articles outside a date window before loading them).
 // Bright Data Scraper Studio: stage 1 (search listing). Reference copy of the team's collector,
 // extended with date-window inputs. UNTESTED in the IDE: paste it in, run one small test job,
 // and compare the Runs tab page-load count with and without date_from/date_to.

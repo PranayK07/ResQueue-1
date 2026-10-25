@@ -23,10 +23,11 @@ import asyncio
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 from uagents import Context
 
-from ..config import AGENTS_ROOT, settings
+from ..config import AGENTS_ROOT, STATE_DIR, settings
 from ..data import brightdata
 from ..messages import NewsItem, NewsRefreshRequest, NewsRefreshResult, NewsReport, NewsReportRequest
 from ..news.signals import extract
@@ -61,6 +62,10 @@ class NewsAgent(MeshAgent):
             if self._lock.locked():
                 await ctx.send(sender, NewsRefreshResult(ok=False, message="a scrape is already running"))
                 return
+            allowed, why = self.scrape_allowance()
+            if not allowed:
+                await ctx.send(sender, NewsRefreshResult(ok=False, message=why))
+                return
             # Reply right away; Bright Data runs take 30-90 s. The commander sees
             # results via the news report / event feed when the run lands.
             self._spawn(self.fetch(ctx))
@@ -93,8 +98,9 @@ class NewsAgent(MeshAgent):
         inc = self.incident_row()
         if self._historical():
             n = len(self._rows_for(inc))
-            self.set_status("online", f"{inc['name']}: {n} articles on file" + ("" if n else "; say 'refresh news' to scrape (costs page loads)"))
-            ctx.logger.info(f"news: incident '{inc['key']}' selected, {n} articles on file; scraping only on 'refresh news'")
+            label = inc["name"] if inc else "live news"
+            self.set_status("online", f"{label}: {n} articles on file; scraping is manual" + ("" if n else " (say 'refresh news': costs Bright Data credits)"))
+            ctx.logger.info(f"news: {n} articles on file; scraping only on 'refresh news' (NEWS_AUTO_SCRAPE off or incident selected)")
             return
         newest = max((r["fetched_at"] for r in self._rows_for(inc)), default=0)  # micros
         age_s = datetime.now(timezone.utc).timestamp() - newest / 1e6 if newest else float("inf")
@@ -108,9 +114,36 @@ class NewsAgent(MeshAgent):
     def incident_row(self) -> dict | None:
         return self.db.table("incident").one()
 
+    def scrape_allowance(self) -> tuple[bool, str]:
+        """Hard daily cap on Bright Data runs, counted per UTC day in a file so restarting the agent can't reset it."""
+        if settings.news_source != "brightdata":
+            return True, ""
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        used = self._scrape_count(today)
+        if used >= settings.news_max_scrapes_per_day:
+            return False, (f"daily Bright Data cap reached ({used}/{settings.news_max_scrapes_per_day} runs today, UTC). "
+                           "Raise NEWS_MAX_SCRAPES_PER_DAY in .env if you really want more.")
+        return True, ""
+
+    @staticmethod
+    def _counter_path() -> Path:
+        return STATE_DIR / "news-scrapes.json"
+
+    def _scrape_count(self, today: str) -> int:
+        try:
+            st = json.loads(self._counter_path().read_text())
+        except (OSError, json.JSONDecodeError):
+            return 0
+        return int(st.get("count", 0)) if st.get("date") == today else 0
+
+    def _count_scrape(self) -> None:
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        self._counter_path().write_text(json.dumps({"date": today, "count": self._scrape_count(today) + 1}))
+
     def _historical(self) -> bool:
-        """An incident is selected and we'd have to pay to scrape: never do that automatically."""
-        return self.incident_row() is not None and settings.news_source == "brightdata"
+        """True when scraping costs money and nobody asked for it: an incident is selected (a historical window
+        never changes), or NEWS_AUTO_SCRAPE is off (the default). Then only 'refresh news' scrapes."""
+        return settings.news_source == "brightdata" and (self.incident_row() is not None or not settings.news_auto_scrape)
 
     def _rows_for(self, inc: dict | None) -> list[dict]:
         """Stored articles belonging to the current incident (or live mode)."""
@@ -148,6 +181,13 @@ class NewsAgent(MeshAgent):
         if settings.news_source not in ("file", "brightdata") or self._lock.locked():
             return
         async with self._lock:
+            allowed, why = self.scrape_allowance()
+            if not allowed:
+                ctx.logger.warning(f"news: {why}")
+                self.set_status("online", why[:200])
+                return
+            if settings.news_source == "brightdata":
+                self._count_scrape()  # before the call: a failed run is still billed
             self._last_run = asyncio.get_running_loop().time()
             self.set_status("fetching", f"scraping via {settings.news_source}")
             try:
@@ -175,7 +215,7 @@ class NewsAgent(MeshAgent):
                         continue
                 sig = extract(a.title, a.content, a.published_micros, places, fixed_recency=1.0 if inc else None)
                 articles.append({
-                    "url": a.url, "source": "cnn" if "cnn.com" in a.url else "web",
+                    "url": a.url, "source": urlparse(a.url).netloc.removeprefix("www.") or "web",
                     "incident": inc["key"] if inc else "", "title": a.title,
                     "author": a.author, "published_raw": a.published_raw, "published_micros": a.published_micros,
                     "category": a.category, "tags": a.tags, "summary": sig.summary, "content": a.content,

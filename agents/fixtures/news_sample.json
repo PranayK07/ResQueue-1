@@ -1,0 +1,29 @@
+[
+  {
+    "title": "SYNTHETIC TEST: Evacuations ordered in Paradise and Magalia as wildfire spreads rapidly",
+    "url": "https://example.invalid/fixture/2018/11/08/us/paradise-evacuation",
+    "author": "Synthetic test article",
+    "published_date": "Nov 8, 2018, 6:00 PM ET",
+    "category": "US",
+    "article_content": "SYNTHETIC TEST FIXTURE, not a real article. Mandatory evacuation orders were issued for Paradise and Magalia as the fire grew to 20,000 acres with 0% containment. Skyway was closed between Paradise and Chico, and Pentz Road was shut down near Pentz.",
+    "tags": ["Wildfires"]
+  },
+  {
+    "title": "SYNTHETIC TEST: Glass Fire forces evacuations in Calistoga and St. Helena",
+    "url": "https://example.invalid/fixture/2020/09/28/us/glass-fire-napa",
+    "author": "Synthetic test article",
+    "published_date": "Sep 28, 2020, 8:15 AM ET",
+    "category": "US",
+    "article_content": "SYNTHETIC TEST FIXTURE, not a real article. The fire grew to 11,000 acres overnight in Napa County. Mandatory evacuation orders were issued for Calistoga and St. Helena. Highway 29 was closed between St. Helena and Calistoga, and the Silverado Trail was shut down. The fire was 0% contained.",
+    "tags": ["Wildfires"]
+  },
+  {
+    "title": "SYNTHETIC TEST: Seasonal outlook for coastal fog",
+    "url": "https://example.invalid/fixture/2022/01/23/weather/fog-outlook",
+    "author": "Synthetic test article",
+    "published_date": "Jan 23, 2022, 2:47 AM ET",
+    "category": "Weather",
+    "article_content": "SYNTHETIC TEST FIXTURE, not a real article. Morning fog is expected along the central coast this week, with light winds and no fire concern.",
+    "tags": ["Weather"]
+  }
+]

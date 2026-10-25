@@ -258,7 +258,7 @@ export const newsArticle = table(
   {
     id: t.u64().primaryKey().autoInc(),
     url: t.string().unique(),
-    source: t.string(), // cnn | ...
+    source: t.string(), // site domain, e.g. example.com
     title: t.string(),
     author: t.string(),
     publishedRaw: t.string(), // as printed by the site

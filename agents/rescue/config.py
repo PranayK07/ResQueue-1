@@ -71,11 +71,15 @@ class Settings:
     news_location: str = _env("NEWS_LOCATION", "Paradise California")
     news_places: str = _env("NEWS_PLACES", "Paradise,Magalia,Pentz,Concow,Chico,Butte County")
     news_poll_s: float = float(_env("NEWS_POLL_S", "1800"))
+    # Bright Data costs real money per page load. Automatic scraping (on startup, on a timer) is OFF unless you set
+    # NEWS_AUTO_SCRAPE=1; otherwise it scrapes only when asked ("refresh news"), and never more than the daily cap.
+    news_auto_scrape: bool = _env("NEWS_AUTO_SCRAPE", "0") in ("1", "true", "yes")
+    news_max_scrapes_per_day: int = int(_env("NEWS_MAX_SCRAPES_PER_DAY", "2"))
     # Send date_from/date_to (YYYY-MM-DD) to the Bright Data collector. Leave 0 unless the collector
     # declares those inputs: an input the collector doesn't know about is rejected (HTTP 422).
     news_send_dates: bool = _env("NEWS_SEND_DATES", "0") in ("1", "true", "yes")
     news_archive_dir: str = _env("NEWS_ARCHIVE_DIR", "news_archive")
-    news_fixture: str = _env("NEWS_FIXTURE", "fixtures/brightdata_cnn_sample.json")
+    news_fixture: str = _env("NEWS_FIXTURE", "fixtures/news_sample.json")
     nws_user_agent: str = _env("NWS_USER_AGENT", "wildfire-rescue-queue (calhacks demo)")
 
     @property
