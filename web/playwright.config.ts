@@ -12,7 +12,8 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:5173',
-    trace: 'retain-on-failure',
+    // Traces record typed values in cleartext (including the operator passcode), so they stay off.
+    trace: 'off',
     screenshot: 'only-on-failure',
   },
   projects: [

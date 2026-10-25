@@ -11,6 +11,7 @@ import { helpSteps } from '@/lib/guide/steps/help';
 import { useCall, useConnection, useSingleton, useView, type ResidentCard } from '@/lib/stdb';
 import { formatClock, minsFromNow, tsToMs, useNow, useSimNow } from '@/lib/time/sim';
 import { ConnectionBanner } from '@/lib/ui/ConnectionBanner';
+import { Input } from '@/lib/ui/input';
 import { CardSkeleton } from './components/card/CardSkeleton';
 import { ConsentTimer } from './components/card/ConsentTimer';
 import { SafeActions } from './components/card/SafeActions';
@@ -81,6 +82,8 @@ export function HelpPage() {
   const fieldsEdited = useRef(false);
   const [parsed, setParsed] = useState<IntakeResult | null>(null);
   const [parsing, setParsing] = useState(false);
+  // Claude's summary, shown to the resident as an editable field before Send.
+  const [summary, setSummary] = useState('');
   const [closing, setClosing] = useState<'safe' | 'revoked' | null>(null);
 
   const submit = useCall('submit_help_request');
@@ -94,6 +97,7 @@ export function HelpPage() {
     setHeadcount(1);
     setNeeds([]);
     setParsed(null);
+    setSummary('');
     setProblem(null);
     fieldsEdited.current = false;
     location.current = null;
@@ -139,8 +143,7 @@ export function HelpPage() {
       return;
     }
     const text = note.trim();
-    const usable = parsed && parsed.note === text ? parsed : null;
-    const body = composeSubmission(text, needs, usable);
+    const body = composeSubmission(text, needs, parsed?.source === 'claude' && parsed.note === text ? summary : '');
     const ok = await submit.run({ lat: here.lat, lon: here.lon, headcount, needs: body.needs, note: body.note, consentMinutes: minutes });
     if (ok) resetFlow();
   }
@@ -167,9 +170,12 @@ export function HelpPage() {
         if (ctrl.signal.aborted) return;
         setParsing(false);
         setParsed(result);
-        if (result.source === 'claude' && !fieldsEdited.current) {
-          setHeadcount(result.headcount);
-          setNeeds(parsedNeeds(result));
+        if (result.source === 'claude') {
+          setSummary(result.summary);
+          if (!fieldsEdited.current) {
+            setHeadcount(result.headcount);
+            setNeeds(parsedNeeds(result));
+          }
         }
       });
     }, INTAKE_DEBOUNCE_MS);
@@ -290,6 +296,17 @@ export function HelpPage() {
         intake={intakeState}
       />
     );
+    if (intakeState?.state === 'filled' && summary) {
+      content = (
+        <>
+          {content}
+          <label className="grid gap-1.5 text-sm">
+            <span className="text-muted-foreground">Summary for crews (from your note). Change it if it's wrong.</span>
+            <Input value={summary} onChange={e => setSummary(e.target.value)} maxLength={200} className="h-12" />
+          </label>
+        </>
+      );
+    }
   } else if (card) {
     content = <StatusCard card={card} etaMin={etaMin} stale={grayed} lastUpdated={lastUpdated} onAskAgain={() => setStep('consent')} />;
   } else {

@@ -54,20 +54,23 @@ export async function parseIntake(note: string, headcount: number | undefined, s
   }
 }
 
-/** Needs from a Claude parse, for prefilling the editable chips. */
+/**
+ * Needs from a Claude parse, for prefilling the editable chips. A language
+ * other than en becomes the "language" chip, so the resident sees and can drop it.
+ */
 export function parsedNeeds(result: IntakeResult): Need[] {
-  return result.source === 'claude' ? parseNeeds(result.needs) : [];
+  if (result.source !== 'claude') return [];
+  const extra = result.language !== 'en' && result.language !== 'unknown' ? ',language' : '';
+  return parseNeeds(result.needs + extra);
 }
 
 /**
- * What gets submitted (shapes): add "language" to needs when the parse found a
- * language other than en, and send note = summary + " | " + original, cut to 500.
- * Pass parsed only if it was made from the current note.
+ * What gets submitted (shapes): note = summary + " | " + original, cut to 500.
+ * The summary is the one the resident saw and could edit; "language" arrives
+ * through the needs chips. Claude output never reaches the server unseen.
  */
-export function composeSubmission(original: string, needs: readonly Need[], parsed: IntakeResult | null): { note: string; needs: string } {
-  const claude = parsed?.source === 'claude' ? parsed : null;
-  const list: string[] = [...needs];
-  if (claude && claude.language !== 'en' && claude.language !== 'unknown') list.push('language');
-  const note = claude?.summary ? `${claude.summary} | ${original}` : original;
-  return { note: note.slice(0, NOTE_MAX), needs: joinNeeds(list) };
+export function composeSubmission(original: string, needs: readonly Need[], summary: string): { note: string; needs: string } {
+  const s = summary.trim();
+  const note = s ? `${s} | ${original}` : original;
+  return { note: note.slice(0, NOTE_MAX), needs: joinNeeds(needs) };
 }

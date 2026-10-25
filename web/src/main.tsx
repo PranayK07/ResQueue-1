@@ -30,11 +30,13 @@ function devRoutes(): RouteObject[] {
 }
 
 function Root() {
-  const { search } = useLocation();
+  const { pathname, search } = useLocation();
+  // On /help the guide layer (overlay included) exists only in demo mode.
+  const anchors = anchorsOverlayRequested(search) && (!pathname.startsWith('/help') || new URLSearchParams(search).get('demo') === '1');
   return (
     <>
       <Outlet />
-      {anchorsOverlayRequested(search) && <AnchorOverlay />}
+      {anchors && <AnchorOverlay />}
       <Toaster position="top-center" />
     </>
   );
