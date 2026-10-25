@@ -27,6 +27,7 @@ from uagents import Context
 
 from ..config import settings
 from ..core.policy import POLICIES
+from ..forecast_ml.live import dispatch_policy_name
 from ..core.situation import Situation
 from ..messages import HazardReport, HazardReportRequest, NewsReport, NewsReportRequest
 from ..planning import build_plan_input, plan_signature, plan_to_reducer_args, validate_plan
@@ -66,11 +67,12 @@ class DelegationAgent(MeshAgent):
         self._recorded_at = -1e9
         self.recorded_count = 0
         # The dispatch policy: B0 / B1 / lookahead heuristics, or the RL teammate's model (see core/policy.py).
-        if settings.policy == "rl":  # the RL teammate's model: rescue/rl_policy.py
+        dispatch = dispatch_policy_name(settings.policy, settings.fire_forecast_backend)
+        if dispatch == "rl":  # separate experimental assignment model
             from ..rl_policy import RLPolicy
             self.policy = RLPolicy()
-        elif settings.policy in POLICIES:
-            self.policy = POLICIES[settings.policy]()
+        elif dispatch in POLICIES:
+            self.policy = POLICIES[dispatch]()
         else:
             raise SystemExit(f"POLICY={settings.policy!r} is not one of {sorted([*POLICIES, 'rl'])}")
         self._last_error = ""

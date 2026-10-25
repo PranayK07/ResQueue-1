@@ -1,0 +1,16 @@
+# Optional supervised forecasting dependencies; application dependencies remain separate.
+numpy
+pandas
+pyarrow
+geopandas
+pyogrio
+shapely
+pyproj
+rasterio
+scipy
+scikit-learn
+matplotlib
+torch
+pytest
+ruff
+affine

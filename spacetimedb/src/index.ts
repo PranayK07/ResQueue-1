@@ -22,6 +22,7 @@ import spacetimedb, {
   NewsInput,
   SituationInput,
   ForecastCellInput,
+  FireRiskCellInput,
   PlanEntryInput,
   StationInput,
   TravelInput,
@@ -354,6 +355,8 @@ export const load_scenario = spacetimedb.reducer(
     for (const r of [...ctx.db.consentTimer.iter()]) ctx.db.consentTimer.scheduledId.delete(r.scheduledId);
     for (const r of [...ctx.db.fireCell.iter()]) ctx.db.fireCell.cellId.delete(r.cellId);
     for (const r of [...ctx.db.forecastCell.iter()]) ctx.db.forecastCell.cellId.delete(r.cellId);
+    for (const r of [...ctx.db.fireRiskCell.iter()]) ctx.db.fireRiskCell.key.delete(r.key);
+    ctx.db.fireRiskMeta.id.delete(0);
     for (const r of [...ctx.db.roadClosure.iter()]) ctx.db.roadClosure.id.delete(r.id);
     for (const r of [...ctx.db.incident.iter()]) ctx.db.incident.id.delete(r.id);
     for (const r of [...ctx.db.unit.iter()]) ctx.db.unit.id.delete(r.id);
@@ -470,6 +473,11 @@ export const publish_forecast = spacetimedb.reducer(
   },
   (ctx, a) => {
     requireAgent(ctx, 'forecast', 'hazard');
+    const inputs = ctx.db.worldVersion.id.find(0)!;
+    if (a.weatherVersion !== inputs.weather || a.fireVersion !== inputs.fire)
+      throw new SenderError('stale physical forecast snapshot; recompute from current world');
+    if (!Number.isFinite(a.computedAtS) || a.computedAtS > ctx.db.simClock.id.find(0)!.simS)
+      throw new SenderError('physical forecast issue is ahead of simulation clock');
     const keep = new Set<number>();
     for (const c of a.cells) {
       keep.add(c.cellId);
@@ -484,6 +492,62 @@ export const publish_forecast = spacetimedb.reducer(
       id: 0, version, computedAtS: a.computedAtS, horizonS: a.horizonS, members: a.members,
       weatherVersion: a.weatherVersion, fireVersion: a.fireVersion, updatedAt: ctx.timestamp,
     });
+  }
+);
+
+/** Optional historical probability layer. Existing forecast_cell remains the
+ * short-horizon physics contract consumed by danger/routing/Lookahead.
+ * Reject stale snapshots atomically rather than publishing mixed world state.
+ */
+export const publish_fire_risk = spacetimedb.reducer(
+  {
+    weatherVersion: t.u64(), fireVersion: t.u64(), expectedClockS: t.f64(),
+    schemaVersion: t.string(), modelId: t.string(), source: t.string(), timeBasis: t.string(),
+    issueS: t.f64(), observationAgeS: t.f64(), horizonsS: t.array(t.f64()),
+    crs: t.string(), westM: t.f64(), southM: t.f64(), cellSizeM: t.f64(),
+    rows: t.u32(), cols: t.u32(), qualityFlags: t.array(t.string()),
+    cells: t.array(FireRiskCellInput),
+  },
+  (ctx, a) => {
+    requireAgent(ctx, 'forecast', 'hazard');
+    const v = ctx.db.worldVersion.id.find(0)!;
+    const clock = ctx.db.simClock.id.find(0)!;
+    if (v.weather !== a.weatherVersion || v.fire !== a.fireVersion || clock.simS !== a.expectedClockS)
+      throw new SenderError('stale risk snapshot; recompute from current world');
+    if (a.schemaVersion !== 'wildfire-risk-v1' || !['learned', 'simulation', 'persistence'].includes(a.source))
+      throw new SenderError('unsupported risk schema/source');
+    if (!['historical_utc', 'simulation'].includes(a.timeBasis)) throw new SenderError('explicit time basis required');
+    if (a.timeBasis === 'simulation' && a.issueS > clock.simS) throw new SenderError('risk issue ahead of simulation clock');
+    if (!a.modelId || !a.crs || a.rows === 0 || a.cols === 0 || a.rows * a.cols > 40000)
+      throw new SenderError('invalid risk model/geographic grid');
+    if (![a.issueS, a.observationAgeS, a.westM, a.southM, a.cellSizeM].every(Number.isFinite)
+        || a.observationAgeS < 0 || a.cellSizeM <= 0) throw new SenderError('invalid risk units');
+    if (a.horizonsS.length === 0 || a.horizonsS.length > 8 || a.horizonsS.some((h, i) =>
+      !Number.isFinite(h) || h <= 0 || (i > 0 && h <= a.horizonsS[i - 1]))) throw new SenderError('invalid risk horizons');
+    const byCell = new Map<number, Map<number, number>>();
+    const keys = new Set<string>();
+    for (const c of a.cells) {
+      const key = `${c.cellId}:${c.horizonS}`;
+      if (keys.has(key) || c.cellId >= a.rows * a.cols || !a.horizonsS.includes(c.horizonS)
+          || !Number.isFinite(c.probability) || c.probability < 0 || c.probability > 1)
+        throw new SenderError('invalid/duplicate risk probability');
+      keys.add(key);
+      if (!byCell.has(c.cellId)) byCell.set(c.cellId, new Map());
+      byCell.get(c.cellId)!.set(c.horizonS, c.probability);
+    }
+    for (const probabilities of byCell.values()) {
+      if (probabilities.size !== a.horizonsS.length) throw new SenderError('incomplete cell horizons');
+      for (let i = 1; i < a.horizonsS.length; i++)
+        if (probabilities.get(a.horizonsS[i])! < probabilities.get(a.horizonsS[i - 1])!)
+          throw new SenderError('cumulative risk must not decrease');
+    }
+    for (const row of [...ctx.db.fireRiskCell.iter()]) ctx.db.fireRiskCell.key.delete(row.key);
+    for (const c of a.cells) ctx.db.fireRiskCell.insert({ key: `${c.cellId}:${c.horizonS}`, ...c });
+    const { cells: _cells, expectedClockS: _clock, ...metadata } = a;
+    const row = { id: 0, ...metadata, updatedAt: ctx.timestamp };
+    if (ctx.db.fireRiskMeta.id.find(0)) ctx.db.fireRiskMeta.id.update(row);
+    else ctx.db.fireRiskMeta.insert(row);
+    log(ctx, 'hazard', 'fire_risk_published', `Supplementary ${a.source} risk, ${a.cells.length} cells; ${a.timeBasis}, no minute ETA`);
   }
 );
 

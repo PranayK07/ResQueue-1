@@ -1,0 +1,140 @@
+{
+  "architecture_weight_selection": "training/validation only; final threshold fixed before test",
+  "base_commit": "dcaaf5b",
+  "bootstrap_resamples": 2000,
+  "bootstrap_seed": 20261024,
+  "bootstrap_unit": "whole incident group",
+  "branch": "rl-fixed-codex",
+  "calibration_bins": 10,
+  "class_weight": "min(50, training susceptible negative / positive count)",
+  "classification_domain": "fixed valid cells, plus separate valid&~current and boundary diagnostics",
+  "dataset_canonical_sha256": "44e497626c14418237453afaf44d456e139e98a21f1699f16cc71f0540d5b727",
+  "depth": 3,
+  "domain_algorithm": "first-observation-utm-square-margin0.5extent-clipped2to10km-mpp-ceil10m-v1",
+  "early_stopping_patience": 5,
+  "example_selection": "three lowest lexical frozen pair IDs before scoring",
+  "feature_schema": "wildfire-supervised-known-perimeters-v2",
+  "forecast_example_pair_ids": [
+    "0050955e72f0ad1924ea5432",
+    "00e5220afb63a8e3eb455b47",
+    "025d74ab93ad924e243b17df"
+  ],
+  "forecast_use": "supplementary historical risk; existing three-hour physical timing and Lookahead retained",
+  "grid_shape": [
+    128,
+    128
+  ],
+  "growth_both_empty": "undefined descriptive; excluded primary; no-growth FP reported",
+  "historical_weather": "unavailable; physical baseline assumes zero wind",
+  "horizon_range_s": [
+    21600,
+    259200
+  ],
+  "horizons_s": [
+    21600,
+    259200
+  ],
+  "loss": "train-weighted growth-domain BCE +0.2softDice",
+  "main_horizon_bucket_s": [
+    43200,
+    129600
+  ],
+  "max_epochs": 20,
+  "missing_inputs": [
+    "historicalwind",
+    "vegetation",
+    "terrain",
+    "information_release_time"
+  ],
+  "model_family": "time_conditioned_unet",
+  "model_shape": [
+    8,
+    128,
+    128
+  ],
+  "neural_ensemble": null,
+  "new_budget_seconds": 2876.602906957967,
+  "orientation": "row0_south_col0_west",
+  "other_baselines": [
+    "persistence",
+    "historical_growth_extrapolation"
+  ],
+  "parameters": 482753,
+  "physical_baseline": {
+    "fuel": "main synthetic seed1",
+    "members": 16,
+    "ros_mps": 0.08,
+    "seeds": [
+      17001,
+      17002,
+      17003,
+      17004,
+      17005,
+      17006,
+      17007,
+      17008,
+      17009,
+      17010,
+      17011,
+      17012,
+      17013,
+      17014,
+      17015,
+      17016
+    ],
+    "wind": "0m/s assumption, no historical observations"
+  },
+  "physical_ensemble_seeds": [
+    17001,
+    17002,
+    17003,
+    17004,
+    17005,
+    17006,
+    17007,
+    17008,
+    17009,
+    17010,
+    17011,
+    17012,
+    17013,
+    17014,
+    17015,
+    17016
+  ],
+  "physical_ensemble_size": 16,
+  "primary_metric": "incident-macro growthIoU on common actual-growth-positive pairs",
+  "primary_population": "common actual-growth-positive pairs for all methods",
+  "primary_threshold": 0.5,
+  "prior_consumed_seconds": 1623.3970930420328,
+  "probability": "sigmoid(logits-log(train_pos_weight)), current retained; approximate with Dice",
+  "probability_calibration": {
+    "approximate_because": "fixed 0.2 soft Dice auxiliary and finite model optimization; assess empirical Brier/ECE",
+    "fit_partition": "train",
+    "fitted_calibration_parameters": false,
+    "logit_subtraction": 3.912023005428146,
+    "method": "analytic_weighted_bce_logit_prior_correction",
+    "pos_weight": 50.0
+  },
+  "rasterization": "rasterio-all-touched-positive-y-south-up-v1",
+  "schema_version": "supervised-wildfire-protocol-v1",
+  "secondary_threshold": "native validation-selected fixed grid[.05,.1,.2,.3,.4,.5]",
+  "seeds": [
+    101,
+    202,
+    303
+  ],
+  "selection": "validation incident-macro actual-growth-positive IoU over fixed thresholds, lower full-footprint Brier tie-break",
+  "split": "test",
+  "split_manifest_sha256": "4371e4cf785c4472bf4f08b79ff09aa6692d3d2b34c19eeacc79de7dc7a48707",
+  "target": "raw_later_observed_component_footprint",
+  "test_groups": 105,
+  "test_pair_manifest_sha256": "0cbba5648b0df028e705b182a34fce02be4fc9a1d2f20c87ca210a4698181dcc",
+  "test_pairs": 303,
+  "test_status": "previously inspected; reused diagnostic panel",
+  "threshold": 0.5,
+  "total_training_cap_seconds": 4500,
+  "unet_uncertainty": "deterministic probability head; no ensemble arrivals",
+  "unet_validation_selected_threshold": 0.05,
+  "width": 16
+}

@@ -1,0 +1,12 @@
+{
+  "activation_scope": "supplementary historical risk with compatible known history only",
+  "app_settings_changed": false,
+  "checkpoint_sha256": "40dff57a49da752513f51ec8bbe27c1f85d3725c9e4098a08f8bb9e9f5a997ca",
+  "fallback_reasons": [],
+  "inference_timing_passed": true,
+  "metadata_sha256": "23b1ad4b72b2283d78c7757a17a6e46527fc07c78faf15846c7b8b92a203ea98",
+  "model": "/Users/pranaykakkar/.codex/worktrees/fire-rl-codex/wildfire-rescue/runs/supervised/export/model.pt",
+  "optimizer_updates": 0,
+  "schema_version": "supervised-export-receipt-v1",
+  "validation_quality_passed": true
+}

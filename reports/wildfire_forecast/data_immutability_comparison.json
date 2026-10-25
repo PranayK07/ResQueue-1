@@ -1,0 +1,24 @@
+{
+  "added_files": [],
+  "after_file_count": 1828,
+  "before_file_count": 1828,
+  "changed_files": [],
+  "checks": {
+    "all_clean_geoparquet_files_identical": true,
+    "all_data_files_identical": true,
+    "all_npz_files_identical": true,
+    "dataset_bytes_identical": true,
+    "original_archive_identical": true,
+    "split_bytes_identical": true,
+    "test_pair_membership_identical": true
+  },
+  "clean_geoparquet_files": 737,
+  "dataset_canonical_sha256": "44e497626c14418237453afaf44d456e139e98a21f1699f16cc71f0540d5b727",
+  "dataset_file_sha256": "434d17e064ca762906943ff30e9b7bd8f70890df7a7dc2a4302c48c7f1587b1c",
+  "npz_files": 1077,
+  "removed_files": [],
+  "schema_version": "immutable-historical-data-comparison-v1",
+  "split_file_sha256": "4371e4cf785c4472bf4f08b79ff09aa6692d3d2b34c19eeacc79de7dc7a48707",
+  "status": "passed",
+  "test_pair_membership_sha256": "0cbba5648b0df028e705b182a34fce02be4fc9a1d2f20c87ca210a4698181dcc"
+}

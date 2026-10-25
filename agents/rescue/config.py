@@ -56,6 +56,11 @@ class Settings:
     # the scenario/commander wind alone and only report.
     weather_source: str = _env("WEATHER_SOURCE", "nws")
     weather_poll_s: float = float(_env("WEATHER_POLL_S", "300"))
+    # Learned forecasting is an optional coarse historical risk layer. The
+    # existing physical forecast still supplies short-horizon route timing.
+    fire_forecast_backend: str = _env("FIRE_FORECAST_BACKEND", "simulation")
+    fire_forecast_checkpoint: str = _env("FIRE_FORECAST_CHECKPOINT")
+    fire_forecast_metadata: str = _env("FIRE_FORECAST_METADATA")
 
     # News agent: "file" replays NEWS_FIXTURE (free), "brightdata" runs the
     # Scraper Studio collector (billed per page load), "off" disables it.

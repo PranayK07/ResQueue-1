@@ -41,6 +41,8 @@ PRIMARY_KEYS: dict[str, str] = {
     "fire_cell": "cell_id",
     "forecast_cell": "cell_id",
     "forecast_meta": "id",
+    "fire_risk_meta": "id",
+    "fire_risk_cell": "key",
     "world_version": "id",
     "road_closure": "id",
     "event_log": "id",

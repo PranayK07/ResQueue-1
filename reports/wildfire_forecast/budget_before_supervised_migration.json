@@ -1,0 +1,1 @@
+{"schema_version":"supervised-training-budget-v1","maximum_total_training_seconds":4500,"prior_consumed_training_seconds":1623.3970930420328,"remaining_authorized_training_seconds":2876.602906957967,"initial_supervised_invocation_cap_seconds":2820,"note":"Prior forecasting work was removed; consumed compute still counts toward the existing authorization."}

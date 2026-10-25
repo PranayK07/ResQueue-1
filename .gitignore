@@ -10,3 +10,25 @@ spacetimedb/dist/
 .DS_Store
 agents/news_archive/
 agents/exports/
+# Agent-isolated historical data, native weights and transient experiment logs.
+/data/
+/runs/
+.venv-forecast/
+.pytest_cache/
+.ruff_cache/
+*.pt
+*.pth
+*.zip
+tmp/
+reports/wildfire_forecast/forecast_predictions.parquet
+reports/wildfire_forecast/pair_metrics.json
+reports/wildfire_forecast/resident_outputs.json
+reports/wildfire_forecast/growth_classification_metrics.json
+reports/wildfire_forecast/frozen_operating_point/pair_metrics.json
+reports/wildfire_forecast/frozen_operating_point/per_incident_metrics.json
+# Full local manifests/raw diagnostic tables are preserved with hash receipts.
+reports/wildfire_forecast/data_quality_history/dataset.json
+reports/wildfire_forecast/data_quality_history/split_manifest.json
+reports/wildfire_forecast/split_manifest.json
+reports/wildfire_forecast/diagnostics/boundary_metrics.json
+reports/wildfire_forecast/validation_threshold_metrics.json

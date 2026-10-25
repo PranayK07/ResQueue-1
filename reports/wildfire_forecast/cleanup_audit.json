@@ -1,0 +1,1508 @@
+{
+  "schema_version": "supervised-forecast-cleanup-audit-v1",
+  "recorded_utc": "2026-10-25T05:31:24.206292+00:00",
+  "scope": "read-only audit of this Codex worktree only; no deletion, source edit, Git mutation, model forward pass or training",
+  "status": "passed",
+  "checks": {
+    "package_AST_has_no_forbidden_imports": true,
+    "old_experiment_paths_absent": true,
+    "only_native_supervised_UNet_checkpoints": true,
+    "requirements_have_no_controller_runtime_dependencies": true,
+    "core_and_legacy_files_unchanged": true,
+    "local_main_matches_starting_baseline": true,
+    "local_main_ref_unchanged_during_audit": true,
+    "no_scoped_PPO_trainer_process": true,
+    "no_scoped_known_training_process": true,
+    "only_permitted_PPO_word_mentions": true,
+    "all_historical_data_and_original_archive_unchanged": true
+  },
+  "branch": "rl-fixed-codex",
+  "starting_base": "dcaaf5baa1f8ab8150bf94f49132284e41a54e24",
+  "refs_before": {
+    "HEAD": "dcaaf5baa1f8ab8150bf94f49132284e41a54e24",
+    "refs/heads/main": "dcaaf5baa1f8ab8150bf94f49132284e41a54e24",
+    "refs/remotes/origin/main": "23ae53800e497f0058f5613c9709a2b324704cc7"
+  },
+  "refs_after": {
+    "HEAD": "dcaaf5baa1f8ab8150bf94f49132284e41a54e24",
+    "refs/heads/main": "dcaaf5baa1f8ab8150bf94f49132284e41a54e24",
+    "refs/remotes/origin/main": "23ae53800e497f0058f5613c9709a2b324704cc7"
+  },
+  "origin_main_note": "Remote-tracking ref is recorded read-only; it differs from the requested starting baseline and was not fetched, reset or reconciled by this audit.",
+  "source_files_parsed": 22,
+  "AST_import_count": 239,
+  "AST_imports": [
+    {
+      "path": "agents/rescue/forecast_ml/archive.py",
+      "line": 3,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/archive.py",
+      "line": 4,
+      "module": "hashlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/archive.py",
+      "line": 5,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/archive.py",
+      "line": 6,
+      "module": "shutil"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/archive.py",
+      "line": 7,
+      "module": "stat"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/archive.py",
+      "line": 8,
+      "module": "time"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/archive.py",
+      "line": 9,
+      "module": "zipfile"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/baselines.py",
+      "line": 10,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/baselines.py",
+      "line": 12,
+      "module": "math"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/baselines.py",
+      "line": 13,
+      "module": "time"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/baselines.py",
+      "line": 14,
+      "module": "typing"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/baselines.py",
+      "line": 16,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/baselines.py",
+      "line": 30,
+      "module": "scipy.ndimage"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/baselines.py",
+      "line": 57,
+      "module": "data"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/baselines.py",
+      "line": 58,
+      "module": "physical"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 8,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 10,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 11,
+      "module": "collections"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 12,
+      "module": "datetime"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 13,
+      "module": "hashlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 14,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 15,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 17,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 18,
+      "module": "scipy.ndimage"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 20,
+      "module": "growth_diagnostics"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 21,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 22,
+      "module": "reports"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 274,
+      "module": "matplotlib.colors"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 275,
+      "module": "matplotlib.patches"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/boundary_diagnostics.py",
+      "line": 375,
+      "module": "pyarrow.parquet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/bridge.py",
+      "line": 8,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/bridge.py",
+      "line": 10,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/bridge.py",
+      "line": 12,
+      "module": "risk"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/bridge.py",
+      "line": 19,
+      "module": "geo_contract"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/bridge.py",
+      "line": 60,
+      "module": "spatial"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/bridge.py",
+      "line": 61,
+      "module": "geo_contract"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 9,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 11,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 12,
+      "module": "collections"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 13,
+      "module": "dataclasses"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 14,
+      "module": "hashlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 15,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 16,
+      "module": "re"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 17,
+      "module": "time"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 18,
+      "module": "unicodedata"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 19,
+      "module": "uuid"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 20,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 22,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 23,
+      "module": "pandas"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 25,
+      "module": "archive"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 26,
+      "module": "spatial"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 27,
+      "module": "spatial"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 236,
+      "module": "pyogrio"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 237,
+      "module": "shapely"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 238,
+      "module": "shapely.geometry"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 239,
+      "module": "shapely.ops"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 596,
+      "module": "matplotlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data.py",
+      "line": 599,
+      "module": "matplotlib.pyplot"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "line": 8,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "line": 10,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "line": 11,
+      "module": "collections"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "line": 12,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "line": 13,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "line": 14,
+      "module": "re"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "line": 16,
+      "module": "pandas"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "line": 18,
+      "module": "data"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/data_audit.py",
+      "line": 79,
+      "module": "pyogrio"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 8,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 9,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 10,
+      "module": "csv"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 11,
+      "module": "hashlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 12,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 13,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 14,
+      "module": "resource"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 15,
+      "module": "sys"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 16,
+      "module": "time"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 17,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 18,
+      "module": "baselines"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 19,
+      "module": "metrics"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 20,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 117,
+      "module": "pyarrow"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 118,
+      "module": "pyarrow.parquet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 119,
+      "module": "torch"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 120,
+      "module": "data"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/evaluation.py",
+      "line": 121,
+      "module": "unet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 2,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 4,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 5,
+      "module": "importlib.metadata"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 6,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 7,
+      "module": "os"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 8,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 9,
+      "module": "shutil"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 11,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 13,
+      "module": "metrics"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 14,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/export.py",
+      "line": 35,
+      "module": "unet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/geo_contract.py",
+      "line": 3,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/geo_contract.py",
+      "line": 5,
+      "module": "math"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/geo_contract.py",
+      "line": 15,
+      "module": "pyproj"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/geo_contract.py",
+      "line": 16,
+      "module": "spatial"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 9,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 11,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 12,
+      "module": "collections"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 13,
+      "module": "hashlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 14,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 15,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 17,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 19,
+      "module": "metrics"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 20,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/growth_diagnostics.py",
+      "line": 151,
+      "module": "pyarrow.parquet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 10,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 12,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 13,
+      "module": "asyncio"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 14,
+      "module": "dataclasses"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 15,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 16,
+      "module": "math"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 17,
+      "module": "urllib.parse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 19,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 21,
+      "module": "core.danger"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 22,
+      "module": "core.fire"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 23,
+      "module": "core.geo"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 24,
+      "module": "core.policy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 25,
+      "module": "planning"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 26,
+      "module": "bridge"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 27,
+      "module": "data"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 28,
+      "module": "evaluation"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 29,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 30,
+      "module": "risk"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 132,
+      "module": "stdb"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/integration.py",
+      "line": 345,
+      "module": "unet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 9,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 11,
+      "module": "dataclasses"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 12,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 13,
+      "module": "math"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 14,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 15,
+      "module": "typing"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 17,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 19,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 20,
+      "module": "risk"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 63,
+      "module": "geo_contract"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/live.py",
+      "line": 124,
+      "module": "unet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/metrics.py",
+      "line": 9,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/metrics.py",
+      "line": 11,
+      "module": "collections"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/metrics.py",
+      "line": 12,
+      "module": "typing"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/metrics.py",
+      "line": 14,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/metrics.py",
+      "line": 89,
+      "module": "scipy.ndimage"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/metrics.py",
+      "line": 90,
+      "module": "sklearn.metrics"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/physical.py",
+      "line": 8,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/physical.py",
+      "line": 10,
+      "module": "functools"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/physical.py",
+      "line": 11,
+      "module": "math"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/physical.py",
+      "line": 13,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/physical.py",
+      "line": 14,
+      "module": "scipy.sparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/physical.py",
+      "line": 15,
+      "module": "scipy.sparse.csgraph"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/physical.py",
+      "line": 17,
+      "module": "core.fire"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 3,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 5,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 6,
+      "module": "hashlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 7,
+      "module": "importlib.metadata"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 8,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 9,
+      "module": "platform"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 10,
+      "module": "subprocess"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 11,
+      "module": "tempfile"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 12,
+      "module": "os"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 13,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/provenance.py",
+      "line": 14,
+      "module": "datetime"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 8,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 9,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 10,
+      "module": "base64"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 11,
+      "module": "datetime"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 12,
+      "module": "html"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 13,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 14,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 15,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 52,
+      "module": "matplotlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 55,
+      "module": "matplotlib.pyplot"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 123,
+      "module": "metrics"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 255,
+      "module": "pyarrow.parquet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/reports.py",
+      "line": 256,
+      "module": "matplotlib.colors"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 8,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 10,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 11,
+      "module": "collections"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 12,
+      "module": "hashlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 13,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 14,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 16,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 18,
+      "module": "data"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 19,
+      "module": "metrics"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 20,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 21,
+      "module": "risk"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/resident_eval.py",
+      "line": 216,
+      "module": "pyarrow.parquet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/risk.py",
+      "line": 8,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/risk.py",
+      "line": 10,
+      "module": "dataclasses"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/risk.py",
+      "line": 11,
+      "module": "hashlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/risk.py",
+      "line": 12,
+      "module": "math"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/risk.py",
+      "line": 13,
+      "module": "typing"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/risk.py",
+      "line": 15,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/risk.py",
+      "line": 17,
+      "module": "core.slack"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "line": 8,
+      "module": "dataclasses"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "line": 9,
+      "module": "functools"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "line": 10,
+      "module": "math"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "line": 12,
+      "module": "affine"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "line": 13,
+      "module": "pyproj"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "line": 14,
+      "module": "rasterio.features"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "line": 15,
+      "module": "shapely.ops"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "line": 17,
+      "module": "core.geo"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/spatial.py",
+      "line": 89,
+      "module": "shapely.geometry"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/threshold_diagnostics.py",
+      "line": 9,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/threshold_diagnostics.py",
+      "line": 11,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/threshold_diagnostics.py",
+      "line": 12,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/threshold_diagnostics.py",
+      "line": 13,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/threshold_diagnostics.py",
+      "line": 15,
+      "module": "metrics"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/threshold_diagnostics.py",
+      "line": 16,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 8,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 10,
+      "module": "argparse"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 11,
+      "module": "collections"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 12,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 13,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 14,
+      "module": "signal"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 15,
+      "module": "time"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 17,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 18,
+      "module": "torch"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 19,
+      "module": "torch.utils.data"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 21,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 28,
+      "module": "unet"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 74,
+      "module": "evaluation"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/train_supervised.py",
+      "line": 210,
+      "module": "data"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 11,
+      "module": "__future__"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 13,
+      "module": "hashlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 14,
+      "module": "json"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 15,
+      "module": "os"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 16,
+      "module": "pathlib"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 18,
+      "module": "numpy"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 19,
+      "module": "torch"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 20,
+      "module": "torch"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 21,
+      "module": "torch.nn"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 22,
+      "module": "torch.utils.data"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 24,
+      "module": "provenance"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 222,
+      "module": "data"
+    },
+    {
+      "path": "agents/rescue/forecast_ml/unet.py",
+      "line": 332,
+      "module": "time"
+    }
+  ],
+  "forbidden_AST_imports": [],
+  "syntax_errors": [],
+  "removed_paths_absent": {
+    "agents/rescue/fire_rl": true,
+    "runs/codex": true,
+    "reports/fire_rl_benchmark": true
+  },
+  "core_and_legacy_blob_proof": [
+    {
+      "path": "agents/rescue/core/fire.py",
+      "working_blob": "eec47e6d3b9d36a6c2991a560cb1c0b770d103a3",
+      "HEAD_blob": "eec47e6d3b9d36a6c2991a560cb1c0b770d103a3",
+      "baseline_blob": "eec47e6d3b9d36a6c2991a560cb1c0b770d103a3",
+      "sha256": "0ce3996956fdbee678c1b7b8f7c2920ddb55703a7816f8cff641cd6445720da9",
+      "unchanged_from_HEAD": true,
+      "unchanged_from_starting_main": true
+    },
+    {
+      "path": "agents/rescue/core/routing.py",
+      "working_blob": "33d62ccd2d4be0e2a7fb9075d8e525b42e8646c4",
+      "HEAD_blob": "33d62ccd2d4be0e2a7fb9075d8e525b42e8646c4",
+      "baseline_blob": "33d62ccd2d4be0e2a7fb9075d8e525b42e8646c4",
+      "sha256": "82925f2ccaaa49b6b441e125c6016d83a6a4049f18d3581a13a6c799c8d8d06a",
+      "unchanged_from_HEAD": true,
+      "unchanged_from_starting_main": true
+    },
+    {
+      "path": "agents/rescue/core/slack.py",
+      "working_blob": "b5106220ffdb040b52c0677c0f88aa099e8f3d38",
+      "HEAD_blob": "b5106220ffdb040b52c0677c0f88aa099e8f3d38",
+      "baseline_blob": "b5106220ffdb040b52c0677c0f88aa099e8f3d38",
+      "sha256": "35f50b3d2b1f05c0a1bc2d13d47cc6f6daedd24f7b346b2922511d49c18caa40",
+      "unchanged_from_HEAD": true,
+      "unchanged_from_starting_main": true
+    },
+    {
+      "path": "agents/rescue/core/policy.py",
+      "working_blob": "9e565dc8cfeb5b04ece557d76d89f21d4bb73ef4",
+      "HEAD_blob": "9e565dc8cfeb5b04ece557d76d89f21d4bb73ef4",
+      "baseline_blob": "9e565dc8cfeb5b04ece557d76d89f21d4bb73ef4",
+      "sha256": "1941e34c2e9a165fdb977bfb0c9dc86074d6fc32a44c40e4a2bd7d82c2a5316e",
+      "unchanged_from_HEAD": true,
+      "unchanged_from_starting_main": true
+    },
+    {
+      "path": "agents/rescue/rl_policy.py",
+      "working_blob": "519bde21a6d9938d706961cdc8327422d6d3ccea",
+      "HEAD_blob": "519bde21a6d9938d706961cdc8327422d6d3ccea",
+      "baseline_blob": "519bde21a6d9938d706961cdc8327422d6d3ccea",
+      "sha256": "006c268b8d1b60d165f16738a7fb2894b376e2e34429d0dcbcef69827032994d",
+      "unchanged_from_HEAD": true,
+      "unchanged_from_starting_main": true
+    },
+    {
+      "path": "docs/RL_INTEGRATION.md",
+      "working_blob": "fe8d52068fc4a52436df32938bd04cfc66c42b3b",
+      "HEAD_blob": "fe8d52068fc4a52436df32938bd04cfc66c42b3b",
+      "baseline_blob": "fe8d52068fc4a52436df32938bd04cfc66c42b3b",
+      "sha256": "db015abf2328d33ddbdf0e3b300e4ac109565ca577723b60e22bf851de83af67",
+      "unchanged_from_HEAD": true,
+      "unchanged_from_starting_main": true
+    }
+  ],
+  "checkpoints": [
+    {
+      "path": "runs/supervised/export/model.pt",
+      "format": "native PyTorch state dictionary",
+      "sha256": "40dff57a49da752513f51ec8bbe27c1f85d3725c9e4098a08f8bb9e9f5a997ca",
+      "bytes": 5856309,
+      "native_supervised_unet": true,
+      "architecture": {
+        "width": 16,
+        "depth": 3,
+        "input_channels": 8,
+        "grid_shape": [
+          128,
+          128
+        ]
+      },
+      "feature_schema": "wildfire-supervised-known-perimeters-v2",
+      "trained": true,
+      "state_tensor_count": 36,
+      "unexpected_policy_state_keys": [],
+      "unchanged_after_read": true,
+      "matching_seed_checkpoint_files": [
+        "runs/supervised/seed-202/best.pt"
+      ]
+    },
+    {
+      "path": "runs/supervised/seed-101/best.pt",
+      "format": "native PyTorch state dictionary",
+      "sha256": "587b15a2513a2840abed5fa36b9e502c58ee10e02c1e0145bb7d994d05db210e",
+      "bytes": 5856309,
+      "native_supervised_unet": true,
+      "architecture": {
+        "width": 16,
+        "depth": 3,
+        "input_channels": 8,
+        "grid_shape": [
+          128,
+          128
+        ]
+      },
+      "feature_schema": "wildfire-supervised-known-perimeters-v2",
+      "trained": true,
+      "state_tensor_count": 36,
+      "unexpected_policy_state_keys": [],
+      "unchanged_after_read": true
+    },
+    {
+      "path": "runs/supervised/seed-101/latest.pt",
+      "format": "native PyTorch state dictionary",
+      "sha256": "24a58d85ea50d57e94dcba76c6c59f93a47e70b94ef702c009bc4eae08af1b0c",
+      "bytes": 5866978,
+      "native_supervised_unet": true,
+      "architecture": {
+        "width": 16,
+        "depth": 3,
+        "input_channels": 8,
+        "grid_shape": [
+          128,
+          128
+        ]
+      },
+      "feature_schema": "wildfire-supervised-known-perimeters-v2",
+      "trained": true,
+      "state_tensor_count": 36,
+      "unexpected_policy_state_keys": [],
+      "unchanged_after_read": true
+    },
+    {
+      "path": "runs/supervised/seed-202/best.pt",
+      "format": "native PyTorch state dictionary",
+      "sha256": "40dff57a49da752513f51ec8bbe27c1f85d3725c9e4098a08f8bb9e9f5a997ca",
+      "bytes": 5856309,
+      "native_supervised_unet": true,
+      "architecture": {
+        "width": 16,
+        "depth": 3,
+        "input_channels": 8,
+        "grid_shape": [
+          128,
+          128
+        ]
+      },
+      "feature_schema": "wildfire-supervised-known-perimeters-v2",
+      "trained": true,
+      "state_tensor_count": 36,
+      "unexpected_policy_state_keys": [],
+      "unchanged_after_read": true
+    },
+    {
+      "path": "runs/supervised/seed-202/latest.pt",
+      "format": "native PyTorch state dictionary",
+      "sha256": "0d7cf756821c47f0f95c45b4a05767f57fc8904336a560c7915fe2d97242fef0",
+      "bytes": 5866978,
+      "native_supervised_unet": true,
+      "architecture": {
+        "width": 16,
+        "depth": 3,
+        "input_channels": 8,
+        "grid_shape": [
+          128,
+          128
+        ]
+      },
+      "feature_schema": "wildfire-supervised-known-perimeters-v2",
+      "trained": true,
+      "state_tensor_count": 36,
+      "unexpected_policy_state_keys": [],
+      "unchanged_after_read": true
+    },
+    {
+      "path": "runs/supervised/seed-303/best.pt",
+      "format": "native PyTorch state dictionary",
+      "sha256": "5c6a475fd31db10dc336ce140f9dbdce6731b8fe2f337e353f4d25feb0bc5c6b",
+      "bytes": 5856309,
+      "native_supervised_unet": true,
+      "architecture": {
+        "width": 16,
+        "depth": 3,
+        "input_channels": 8,
+        "grid_shape": [
+          128,
+          128
+        ]
+      },
+      "feature_schema": "wildfire-supervised-known-perimeters-v2",
+      "trained": true,
+      "state_tensor_count": 36,
+      "unexpected_policy_state_keys": [],
+      "unchanged_after_read": true
+    },
+    {
+      "path": "runs/supervised/seed-303/latest.pt",
+      "format": "native PyTorch state dictionary",
+      "sha256": "8666cf7051c23b33b34466e107c253abf73b74dbe34d83c305bb7257a535e53f",
+      "bytes": 5866466,
+      "native_supervised_unet": true,
+      "architecture": {
+        "width": 16,
+        "depth": 3,
+        "input_channels": 8,
+        "grid_shape": [
+          128,
+          128
+        ]
+      },
+      "feature_schema": "wildfire-supervised-known-perimeters-v2",
+      "trained": true,
+      "state_tensor_count": 36,
+      "unexpected_policy_state_keys": [],
+      "unchanged_after_read": true
+    }
+  ],
+  "requirements": {
+    "agents/requirements-forecast.in": {
+      "sha256": "5c0d4f35821f6eb57e6c089870f83ce6846aa7afdb107dd2aa55111ae9239910",
+      "forbidden_runtime_dependencies": []
+    },
+    "agents/requirements-forecast.lock": {
+      "sha256": "923cd64934c361c401b87055fb4246e9b75cf303b8f58533d97e5fc30c68faec",
+      "forbidden_runtime_dependencies": []
+    }
+  },
+  "PPO_word_matches": [
+    {
+      "path": "docs/ML_MIGRATION_SUMMARY.md",
+      "line": 1,
+      "text": "# Migration from forecasting PPO to supervised U-Net",
+      "allowed_historical_or_negative_test_reference": true
+    },
+    {
+      "path": "docs/ML_MIGRATION_SUMMARY.md",
+      "line": 3,
+      "text": "The user explicitly stopped forecasting PPO. Its controller environment,",
+      "allowed_historical_or_negative_test_reference": true
+    },
+    {
+      "path": "docs/ML_MIGRATION_SUMMARY.md",
+      "line": 6,
+      "text": "removed. No PPO job is active. `stable-baselines3` and `gymnasium` are absent",
+      "allowed_historical_or_negative_test_reference": true
+    }
+  ],
+  "python_process_inventory": [],
+  "bare_stdin_python_processes": [],
+  "process_inventory_note": "Only Python executable processes associated with this worktree are included; the audit interpreter itself is excluded. This is a point-in-time command inventory, not a claim about unrelated worktrees.",
+  "data_immutability": {
+    "added_files": [],
+    "after_file_count": 1828,
+    "before_file_count": 1828,
+    "changed_files": [],
+    "checks": {
+      "all_clean_geoparquet_files_identical": true,
+      "all_data_files_identical": true,
+      "all_npz_files_identical": true,
+      "dataset_bytes_identical": true,
+      "original_archive_identical": true,
+      "split_bytes_identical": true,
+      "test_pair_membership_identical": true
+    },
+    "clean_geoparquet_files": 737,
+    "dataset_canonical_sha256": "44e497626c14418237453afaf44d456e139e98a21f1699f16cc71f0540d5b727",
+    "dataset_file_sha256": "434d17e064ca762906943ff30e9b7bd8f70890df7a7dc2a4302c48c7f1587b1c",
+    "npz_files": 1077,
+    "removed_files": [],
+    "schema_version": "immutable-historical-data-comparison-v1",
+    "split_file_sha256": "4371e4cf785c4472bf4f08b79ff09aa6692d3d2b34c19eeacc79de7dc7a48707",
+    "status": "passed",
+    "test_pair_membership_sha256": "0cbba5648b0df028e705b182a34fce02be4fc9a1d2f20c87ca210a4698181dcc"
+  },
+  "final_data_snapshot": "reports/wildfire_forecast/data_immutability_final.json",
+  "optimizer_steps_executed": 0,
+  "training_started": false,
+  "model_inference_executed": false,
+  "checkpoint_inventory_note": "Six seed best/latest native checkpoints plus one native deployment export created during cleanup; export identity verified against the seed checkpoint bytes."
+}

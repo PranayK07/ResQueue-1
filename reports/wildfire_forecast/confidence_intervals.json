@@ -1,0 +1,242 @@
+[
+  {
+    "admitted_groups": 105,
+    "baseline": "persistence",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      0.02310587687128835,
+      0.041817638162707844
+    ],
+    "difference": 0.03234060284192557,
+    "limitation": null,
+    "metric": "new_growth_iou",
+    "model": "unet",
+    "paired_defined_groups": 102,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "persistence",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      0.03914314784717096,
+      0.06859966672024989
+    ],
+    "difference": 0.05376739158970473,
+    "limitation": null,
+    "metric": "new_growth_dice",
+    "model": "unet",
+    "paired_defined_groups": 102,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "persistence",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      -0.0019833510236500944,
+      -0.0007277410761860684
+    ],
+    "difference": -0.0013024552301312592,
+    "limitation": null,
+    "metric": "brier",
+    "model": "unet",
+    "paired_defined_groups": 105,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "persistence",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      -0.0010856323379391253,
+      0.0005728899157056023
+    ],
+    "difference": -0.0002515576696200934,
+    "limitation": null,
+    "metric": "f1",
+    "model": "unet",
+    "paired_defined_groups": 105,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "persistence",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      0.04692103003166979,
+      0.06436168891476016
+    ],
+    "difference": 0.05563186810902326,
+    "limitation": null,
+    "metric": "average_precision",
+    "model": "unet",
+    "paired_defined_groups": 105,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "existing_physical",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      -0.01425622347989299,
+      0.015833770672482886
+    ],
+    "difference": 0.0010329500345029503,
+    "limitation": null,
+    "metric": "new_growth_iou",
+    "model": "unet",
+    "paired_defined_groups": 102,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "existing_physical",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      -0.02347828312453442,
+      0.023127091595362817
+    ],
+    "difference": -3.2867676281856373e-06,
+    "limitation": null,
+    "metric": "new_growth_dice",
+    "model": "unet",
+    "paired_defined_groups": 102,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "existing_physical",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      -0.7826027207761387,
+      -0.7041813562886712
+    ],
+    "difference": -0.7444353367428489,
+    "limitation": null,
+    "metric": "brier",
+    "model": "unet",
+    "paired_defined_groups": 105,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "existing_physical",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      0.6331433443214477,
+      0.7119794402386527
+    ],
+    "difference": 0.6723963665960426,
+    "limitation": null,
+    "metric": "f1",
+    "model": "unet",
+    "paired_defined_groups": 105,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "existing_physical",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      0.7633260722526042,
+      0.8224761965107563
+    ],
+    "difference": 0.7931825811130565,
+    "limitation": null,
+    "metric": "average_precision",
+    "model": "unet",
+    "paired_defined_groups": 105,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "growth_extrapolation",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      0.0046627764450607465,
+      0.023206946539818207
+    ],
+    "difference": 0.01377473577679469,
+    "limitation": null,
+    "metric": "new_growth_iou",
+    "model": "unet",
+    "paired_defined_groups": 102,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "growth_extrapolation",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      0.010807216006716651,
+      0.038523352827642056
+    ],
+    "difference": 0.024460137374291473,
+    "limitation": null,
+    "metric": "new_growth_dice",
+    "model": "unet",
+    "paired_defined_groups": 102,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "growth_extrapolation",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      -0.008487434522006999,
+      -0.0020639643648788586
+    ],
+    "difference": -0.004880859247988403,
+    "limitation": null,
+    "metric": "brier",
+    "model": "unet",
+    "paired_defined_groups": 105,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "growth_extrapolation",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      0.001808708595078016,
+      0.008760370776632345
+    ],
+    "difference": 0.005160707849241689,
+    "limitation": null,
+    "metric": "f1",
+    "model": "unet",
+    "paired_defined_groups": 105,
+    "resamples": 2000,
+    "seed": 20261024
+  },
+  {
+    "admitted_groups": 105,
+    "baseline": "growth_extrapolation",
+    "bootstrap_unit": "incident_group",
+    "ci95": [
+      0.055690615465832725,
+      0.07923789978429284
+    ],
+    "difference": 0.0672430785033341,
+    "limitation": null,
+    "metric": "average_precision",
+    "model": "unet",
+    "paired_defined_groups": 105,
+    "resamples": 2000,
+    "seed": 20261024
+  }
+]

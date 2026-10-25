@@ -18,6 +18,8 @@ from uagents import Context
 from ..core.fire import FUEL_SEED, Ensemble, FuelMap, Wind, ensemble_arrival
 from ..core.geo import Grid
 from ..stdb import Debouncer, ReducerError, Update
+from ..config import settings
+from ..forecast_ml.live import LearnedForecastBackend
 
 if TYPE_CHECKING:
     from ..agents.hazard import HazardAgent
@@ -41,6 +43,8 @@ class ForecastEngine:
         self._grid: Grid | None = None
         self._last_fire_run = 0.0
         self._debounce: Debouncer | None = None
+        self.learned = LearnedForecastBackend(settings.fire_forecast_backend,
+            settings.fire_forecast_checkpoint, settings.fire_forecast_metadata)
 
     async def on_ready(self, ctx: Context) -> None:
         self._debounce = Debouncer(self.tick)
@@ -96,4 +100,19 @@ class ForecastEngine:
             self.log.warning("forecast publish failed (%s); will retry on the next fire/wind change", type(e).__name__)
             return
         self.host.set_part("forecast", "online", f"{len(cells)} cells at risk within {HORIZON_S / 3600:.0f} h")
+        # Main's simulation does not possess timestamped NIROPS observation
+        # history. Report an explicit fallback instead of guessing daily inputs
+        # from minute-level fire ticks or loading a random policy into danger.
+        supplementary = self.learned.forecast(None)
+        self.host.set_part("historical_risk", "degraded" if supplementary.requested != "simulation" else "online",
+                           supplementary.reason)
         self.log.info("published forecast: %d cells, wind %.1f m/s from %.0f°", len(cells), wind.speed_mps, wind.from_deg)
+
+    async def publish_supplementary(self, product, grid_record, *, versions, clock_s,
+                                    time_basis="historical_utc") -> None:
+        """Explicit replay/inference integration; no conversion to forecast_cell ETAs."""
+        from ..forecast_ml.bridge import risk_arguments
+        # Caller captures these BEFORE inference. Reading fresh versions here
+        # would falsely label an old prediction as current after a wind change.
+        await self.db.call("publish_fire_risk", *risk_arguments(product, grid_record, versions,
+                           clock_s, time_basis=time_basis), timeout=PUBLISH_TIMEOUT_S)

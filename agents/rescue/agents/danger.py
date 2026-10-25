@@ -28,16 +28,20 @@ class DangerAgent(MeshAgent):
         "SELECT * FROM sim_clock", "SELECT * FROM grid", "SELECT * FROM station", "SELECT * FROM unit",
         "SELECT * FROM fire_cell", "SELECT * FROM forecast_cell", "SELECT * FROM road_closure",
         "SELECT * FROM ops_request", "SELECT * FROM world_version",
+        "SELECT * FROM fire_risk_meta", "SELECT * FROM fire_risk_cell",
     ]
 
     def __init__(self) -> None:
         super().__init__("danger")
         self._published: dict[int, tuple] = {}  # request_id -> signature of the last published assessment
         self._debounce: Debouncer | None = None
+        self.supplementary_risk: list[dict] = []
+        self.supplementary_risk_state = "unavailable"
 
     async def on_ready(self, ctx: Context) -> None:
         self._debounce = Debouncer(self.assess, delay=0.3, min_interval=RECOMPUTE_MIN_S)
-        self.db.on_update(["forecast_cell", "ops_request", "road_closure", "unit", "sim_clock", "grid"], self._changed)
+        self.db.on_update(["forecast_cell", "ops_request", "road_closure", "unit", "sim_clock", "grid",
+                           "fire_risk_meta", "fire_risk_cell"], self._changed)
         self._debounce.trigger()
 
     def _changed(self, upd) -> None:
@@ -72,6 +76,37 @@ class DangerAgent(MeshAgent):
         by_req: dict[int, list[dict]] = {}
         for t in travel:
             by_req.setdefault(t["request_id"], []).append(t)
+        self.supplementary_risk = []
+        self.supplementary_risk_state = "unavailable"
+        risk_meta = self.db.table("fire_risk_meta").one()
+        if risk_meta:
+            from ..forecast_ml.bridge import product_from_rows
+            from ..forecast_ml.risk import assess_residents
+            # Coarse UTC historical products may be displayed alongside this
+            # simulation, but cannot be subtracted from its scenario clock.
+            versions = self.db.table("world_version").one()
+            fresh = (versions and risk_meta["weather_version"] == versions["weather"]
+                     and risk_meta["fire_version"] == versions["fire"])
+            self.supplementary_risk_state = "historical_clock_review" if fresh else "stale_snapshot_review"
+            if fresh and risk_meta["time_basis"] == "simulation":
+                try:
+                    product = product_from_rows(risk_meta, list(self.db.table("fire_risk_cell")))
+                    residents = []
+                    for r in reqs:
+                        cell = product.grid.locate(r["lat"], r["lon"])
+                        if cell is not None:
+                            a = next((a for a in assessments if a["request_id"] == r["id"]), None)
+                            if a is None:
+                                continue  # supplemental/routing domains can differ
+                            residents.append({"request_id": r["id"], "lat": r["lat"], "lon": r["lon"],
+                                              "cell_id": cell, "extract_s": a["extract_s"]})
+                    routes = {rid: min(t["travel_s"] for t in ts if t["reachable"])
+                              for rid, ts in by_req.items() if any(t["reachable"] for t in ts)}
+                    self.supplementary_risk = assess_residents(product, residents, travel_s=routes, now_s=clock["sim_s"])
+                    self.supplementary_risk_state = "coarse_risk_supplement"
+                except (ValueError, KeyError, ImportError, RuntimeError, OverflowError) as exc:
+                    self.supplementary_risk_state = "invalid_forecast_review"
+                    self.log.warning("supplementary risk requires review: %s", type(exc).__name__)
         changed_a, changed_t, sigs = [], [], {}
         for a in assessments:
             ts = by_req.get(a["request_id"], [])
@@ -88,7 +123,8 @@ class DangerAgent(MeshAgent):
                 self._published.update({rid: sigs[rid] for rid in ids})
         levels = [a["level"] for a in assessments]
         self.set_status("online", f"{len(assessments)} requests assessed: " + ", ".join(
-            f"{n} {k}" for k in ("unreachable", "critical", "high", "moderate") if (n := levels.count(k))))
+            f"{n} {k}" for k in ("unreachable", "critical", "high", "moderate") if (n := levels.count(k)))
+            + f"; supplementary risk: {self.supplementary_risk_state}")
 
 
 if __name__ == "__main__":

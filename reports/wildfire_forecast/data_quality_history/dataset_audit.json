@@ -1,0 +1,106 @@
+{
+  "schema_version": "nirops-dataset-audit-v1",
+  "agent": "codex",
+  "archive_sha256": "2eee127eb733696deab8657bd6fb95560f380c696c0cd8b5901512b947fa6c21",
+  "source_records": 12706,
+  "accepted_records": 12704,
+  "excluded_records": 2,
+  "counts": {
+    "geometry_repaired": 288,
+    "conflicting_same_time": 2
+  },
+  "source_components": 737,
+  "incident_groups": 692,
+  "partitions": {
+    "train": 486,
+    "validation": 101,
+    "test": 105
+  },
+  "sequence_counts": {
+    "train": 778,
+    "validation": 144,
+    "test": 155
+  },
+  "eligible_pairs": {
+    "train": 7501,
+    "validation": 1600,
+    "test": 1588
+  },
+  "test_selected_pairs": 302,
+  "test_eligible_groups": 103,
+  "observations_by_year": {
+    "2020": 2333,
+    "2021": 3223,
+    "2022": 2030,
+    "2023": 1383,
+    "2024": 3737
+  },
+  "region_counts": {
+    "unknown": 692
+  },
+  "duration_hours_quantiles": {
+    "0": 27.1,
+    "0.25": 165.06666666666666,
+    "0.5": 385.1,
+    "0.75": 912.0,
+    "1": 2756.0333333333333
+  },
+  "observation_gap_hours_quantiles": {
+    "0": 0.08333333333333333,
+    "0.25": 23.25,
+    "0.5": 24.433333333333334,
+    "0.75": 30.5,
+    "1": 1391.95
+  },
+  "growth_area_m2_quantiles": {
+    "0": -22952191.743329287,
+    "0.25": 431.66588764847256,
+    "0.5": 222557.66705869138,
+    "0.75": 2321524.412076124,
+    "1": 1131936642.5699492
+  },
+  "coverage_fraction_quantiles": {
+    "0": 0.010533427625634731,
+    "0.25": 0.9669941261652221,
+    "0.5": 0.9999999999999992,
+    "0.75": 1.0,
+    "1": 1.0
+  },
+  "area_m2_quantiles": {
+    "0": 144.1675909692746,
+    "0.25": 5122806.176013352,
+    "0.5": 26127812.6784771,
+    "0.75": 133606067.73434508,
+    "1": 4180798164.757477
+  },
+  "available_history_length_quantiles": {
+    "0": 3.0,
+    "0.25": 4.0,
+    "0.5": 7.0,
+    "0.75": 13.0,
+    "1": 75.0
+  },
+  "timestamp_confidence": "unknown; source documentation permits reconstructed timestamps",
+  "information_availability": "not supplied; idealized acquisition-time benchmark only",
+  "rasterization": "rasterio-all-touched-positive-y-south-up-v1",
+  "domain_algorithm": "first-observation-utm-square-margin0.5extent-clipped2to10km-mpp-ceil10m-v1",
+  "canonical_group_count": 692,
+  "split_manifest_sha256": "50b169602f05605ae3bd905c6702b8244043195abd295d49b09d2d0d617d9301",
+  "prep_elapsed_s": 300.5614751660032,
+  "scientific_limitations": [
+    "active perimeters can shrink; raw targets preserved",
+    "weather/terrain/vegetation not supplied",
+    "regions not present in inspected attributes",
+    "later footprints clipped to fixed initial domain; excluded area recorded",
+    "parent grouping identifier links may remain ambiguous",
+    "component sequences do not assert complete complex coverage",
+    "Exterior negative labels are component-footprint evaluation assumptions, not independently surveyed absence of fire."
+  ],
+  "archive_preflight_elapsed_s": 522.383,
+  "etl_raster_elapsed_s": 300.5614751660032,
+  "total_preparation_elapsed_s": 822.9444751660033,
+  "preflight_timing_evidence": "Elapsed duration from actual outer+inner zipfile.testzip and selected extraction command, recorded before build_dataset invocation.",
+  "valid_domain_assumption": "Within the fixed domain, raw component perimeter interior is positive and its exterior is negative for this component footprint task; exterior is not independently surveyed fire absence or complete complex coverage.",
+  "coverage_roundoff_correction": "Clipped computed coverage fraction to [0,1]; no masks, grids, groups or selected pairs changed.",
+  "dataset_sha256": "676b63dc21c85ecd27208b39333d8bc0bdd3692a3376eed263af089d04299a83"
+}

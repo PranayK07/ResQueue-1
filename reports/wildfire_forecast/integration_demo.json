@@ -1,0 +1,37 @@
+{
+  "checks": {
+    "committed_missions_preserved": true,
+    "consent_withdrawal_purges_location": true,
+    "en_route_status_receipt": true,
+    "hazard_cannot_read_people": true,
+    "no_duplicate_queue_requests": true,
+    "pin_preserved": true,
+    "plan_published": true,
+    "resident_view_scoped": true,
+    "stale_clock_rejected": true,
+    "stale_physical_forecast_rejected": true,
+    "stale_snapshot_rejected": true,
+    "station_views_scoped": true,
+    "subscription_queue_update_received": true,
+    "subscription_risk_update_received": true,
+    "unauthorized_risk_write_rejected": true
+  },
+  "completed_handoffs": null,
+  "consent_expiry_timer": "source inspected; fifteen-minute timer not wall-clock waited",
+  "database": "wrq-codex-supervised",
+  "full_uagents_asi1_frontend": "not launched; uagents dependency/Agentverse credentials/frontend unavailable",
+  "handoff_reason": "station agents are stubs; no execution/handoff simulator on this main baseline",
+  "initial_queue_entries": 23,
+  "queue_after_wind_change": 23,
+  "server": "http://127.0.0.1:3143",
+  "static_extraction_projection": {
+    "late": 2,
+    "mean_slack_min": 53.408768115942024,
+    "people_in_time": 52,
+    "policy": "lookahead",
+    "unreachable": 1,
+    "weighted_in_time": 61.20000000000001
+  },
+  "status": "passed",
+  "synthetic_requests": 24
+}

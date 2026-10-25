@@ -1,0 +1,458 @@
+[
+  {
+    "elapsed_seconds": 35.991091208998114,
+    "epoch": 1,
+    "mean_training_loss": 0.9135925569359562,
+    "processed_pairs": 7095,
+    "updates": 444,
+    "validation": {
+      "complete": true,
+      "groups": 109,
+      "macro_brier": 0.012328364053378307,
+      "macro_new_growth_iou": 0.12921257399926825,
+      "macro_raw_sigmoid_brier": 0.0773665468624036,
+      "pairs": 316,
+      "positive_growth_groups": 104,
+      "positive_growth_pairs": 226,
+      "selection": "incident macro actual-positive-growth IoU, lower full-footprint Brier, lower threshold for exact ties",
+      "threshold": 0.1,
+      "threshold_grid_scores": [
+        {
+          "macro_brier": 0.012328364053378307,
+          "macro_new_growth_iou": 0.11946061627977686,
+          "positive_growth_groups": 104,
+          "threshold": 0.05
+        },
+        {
+          "macro_brier": 0.012328364053378307,
+          "macro_new_growth_iou": 0.12921257399926825,
+          "positive_growth_groups": 104,
+          "threshold": 0.1
+        },
+        {
+          "macro_brier": 0.012328364053378307,
+          "macro_new_growth_iou": 0.12245950916308655,
+          "positive_growth_groups": 104,
+          "threshold": 0.2
+        },
+        {
+          "macro_brier": 0.012328364053378307,
+          "macro_new_growth_iou": 0.10663179880640902,
+          "positive_growth_groups": 104,
+          "threshold": 0.3
+        },
+        {
+          "macro_brier": 0.012328364053378307,
+          "macro_new_growth_iou": 0.09530576759436035,
+          "positive_growth_groups": 104,
+          "threshold": 0.4
+        },
+        {
+          "macro_brier": 0.012328364053378307,
+          "macro_new_growth_iou": 0.0799239401341142,
+          "positive_growth_groups": 104,
+          "threshold": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "elapsed_seconds": 60.45100945897866,
+    "epoch": 2,
+    "mean_training_loss": 0.7335236481497874,
+    "processed_pairs": 14190,
+    "updates": 888,
+    "validation": {
+      "complete": true,
+      "groups": 109,
+      "macro_brier": 0.014696835392787213,
+      "macro_new_growth_iou": 0.13155889441144206,
+      "macro_raw_sigmoid_brier": 0.11584069236752027,
+      "pairs": 316,
+      "positive_growth_groups": 104,
+      "positive_growth_pairs": 226,
+      "selection": "incident macro actual-positive-growth IoU, lower full-footprint Brier, lower threshold for exact ties",
+      "threshold": 0.2,
+      "threshold_grid_scores": [
+        {
+          "macro_brier": 0.014696835392787213,
+          "macro_new_growth_iou": 0.09820781009143614,
+          "positive_growth_groups": 104,
+          "threshold": 0.05
+        },
+        {
+          "macro_brier": 0.014696835392787213,
+          "macro_new_growth_iou": 0.11784430227932476,
+          "positive_growth_groups": 104,
+          "threshold": 0.1
+        },
+        {
+          "macro_brier": 0.014696835392787213,
+          "macro_new_growth_iou": 0.13155889441144206,
+          "positive_growth_groups": 104,
+          "threshold": 0.2
+        },
+        {
+          "macro_brier": 0.014696835392787213,
+          "macro_new_growth_iou": 0.13150516942033424,
+          "positive_growth_groups": 104,
+          "threshold": 0.3
+        },
+        {
+          "macro_brier": 0.014696835392787213,
+          "macro_new_growth_iou": 0.12724324131358256,
+          "positive_growth_groups": 104,
+          "threshold": 0.4
+        },
+        {
+          "macro_brier": 0.014696835392787213,
+          "macro_new_growth_iou": 0.11978983500723593,
+          "positive_growth_groups": 104,
+          "threshold": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "elapsed_seconds": 85.44808379199822,
+    "epoch": 3,
+    "mean_training_loss": 0.715569368678974,
+    "processed_pairs": 21285,
+    "updates": 1332,
+    "validation": {
+      "complete": true,
+      "groups": 109,
+      "macro_brier": 0.011747717998182824,
+      "macro_new_growth_iou": 0.13462559368519006,
+      "macro_raw_sigmoid_brier": 0.0652814867926241,
+      "pairs": 316,
+      "positive_growth_groups": 104,
+      "positive_growth_pairs": 226,
+      "selection": "incident macro actual-positive-growth IoU, lower full-footprint Brier, lower threshold for exact ties",
+      "threshold": 0.1,
+      "threshold_grid_scores": [
+        {
+          "macro_brier": 0.011747717998182824,
+          "macro_new_growth_iou": 0.1333762570811639,
+          "positive_growth_groups": 104,
+          "threshold": 0.05
+        },
+        {
+          "macro_brier": 0.011747717998182824,
+          "macro_new_growth_iou": 0.13462559368519006,
+          "positive_growth_groups": 104,
+          "threshold": 0.1
+        },
+        {
+          "macro_brier": 0.011747717998182824,
+          "macro_new_growth_iou": 0.11453627750456277,
+          "positive_growth_groups": 104,
+          "threshold": 0.2
+        },
+        {
+          "macro_brier": 0.011747717998182824,
+          "macro_new_growth_iou": 0.09478151100927786,
+          "positive_growth_groups": 104,
+          "threshold": 0.3
+        },
+        {
+          "macro_brier": 0.011747717998182824,
+          "macro_new_growth_iou": 0.07718219489056355,
+          "positive_growth_groups": 104,
+          "threshold": 0.4
+        },
+        {
+          "macro_brier": 0.011747717998182824,
+          "macro_new_growth_iou": 0.06092582233162757,
+          "positive_growth_groups": 104,
+          "threshold": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "elapsed_seconds": 109.98353983392008,
+    "epoch": 4,
+    "mean_training_loss": 0.7101075552986742,
+    "processed_pairs": 28380,
+    "updates": 1776,
+    "validation": {
+      "complete": true,
+      "groups": 109,
+      "macro_brier": 0.012389650562707183,
+      "macro_new_growth_iou": 0.11877544760265116,
+      "macro_raw_sigmoid_brier": 0.06927112120683322,
+      "pairs": 316,
+      "positive_growth_groups": 104,
+      "positive_growth_pairs": 226,
+      "selection": "incident macro actual-positive-growth IoU, lower full-footprint Brier, lower threshold for exact ties",
+      "threshold": 0.05,
+      "threshold_grid_scores": [
+        {
+          "macro_brier": 0.012389650562707183,
+          "macro_new_growth_iou": 0.11877544760265116,
+          "positive_growth_groups": 104,
+          "threshold": 0.05
+        },
+        {
+          "macro_brier": 0.012389650562707183,
+          "macro_new_growth_iou": 0.11741908282489696,
+          "positive_growth_groups": 104,
+          "threshold": 0.1
+        },
+        {
+          "macro_brier": 0.012389650562707183,
+          "macro_new_growth_iou": 0.09321180117071903,
+          "positive_growth_groups": 104,
+          "threshold": 0.2
+        },
+        {
+          "macro_brier": 0.012389650562707183,
+          "macro_new_growth_iou": 0.06961571272249446,
+          "positive_growth_groups": 104,
+          "threshold": 0.3
+        },
+        {
+          "macro_brier": 0.012389650562707183,
+          "macro_new_growth_iou": 0.051657097286312084,
+          "positive_growth_groups": 104,
+          "threshold": 0.4
+        },
+        {
+          "macro_brier": 0.012389650562707183,
+          "macro_new_growth_iou": 0.041103473398895383,
+          "positive_growth_groups": 104,
+          "threshold": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "elapsed_seconds": 134.68267374997959,
+    "epoch": 5,
+    "mean_training_loss": 0.7315150716928128,
+    "processed_pairs": 35475,
+    "updates": 2220,
+    "validation": {
+      "complete": true,
+      "groups": 109,
+      "macro_brier": 0.012190108435584126,
+      "macro_new_growth_iou": 0.1251726294077997,
+      "macro_raw_sigmoid_brier": 0.05635124471093786,
+      "pairs": 316,
+      "positive_growth_groups": 104,
+      "positive_growth_pairs": 226,
+      "selection": "incident macro actual-positive-growth IoU, lower full-footprint Brier, lower threshold for exact ties",
+      "threshold": 0.05,
+      "threshold_grid_scores": [
+        {
+          "macro_brier": 0.012190108435584126,
+          "macro_new_growth_iou": 0.1251726294077997,
+          "positive_growth_groups": 104,
+          "threshold": 0.05
+        },
+        {
+          "macro_brier": 0.012190108435584126,
+          "macro_new_growth_iou": 0.11353140820467446,
+          "positive_growth_groups": 104,
+          "threshold": 0.1
+        },
+        {
+          "macro_brier": 0.012190108435584126,
+          "macro_new_growth_iou": 0.08611441805206882,
+          "positive_growth_groups": 104,
+          "threshold": 0.2
+        },
+        {
+          "macro_brier": 0.012190108435584126,
+          "macro_new_growth_iou": 0.0663209985256982,
+          "positive_growth_groups": 104,
+          "threshold": 0.3
+        },
+        {
+          "macro_brier": 0.012190108435584126,
+          "macro_new_growth_iou": 0.05135920905486262,
+          "positive_growth_groups": 104,
+          "threshold": 0.4
+        },
+        {
+          "macro_brier": 0.012190108435584126,
+          "macro_new_growth_iou": 0.04318025550508964,
+          "positive_growth_groups": 104,
+          "threshold": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "elapsed_seconds": 165.42688895890024,
+    "epoch": 6,
+    "mean_training_loss": 0.7135644070693857,
+    "processed_pairs": 42570,
+    "updates": 2664,
+    "validation": {
+      "complete": true,
+      "groups": 109,
+      "macro_brier": 0.011778962832773566,
+      "macro_new_growth_iou": 0.1313805910852007,
+      "macro_raw_sigmoid_brier": 0.07399377176788213,
+      "pairs": 316,
+      "positive_growth_groups": 104,
+      "positive_growth_pairs": 226,
+      "selection": "incident macro actual-positive-growth IoU, lower full-footprint Brier, lower threshold for exact ties",
+      "threshold": 0.1,
+      "threshold_grid_scores": [
+        {
+          "macro_brier": 0.011778962832773566,
+          "macro_new_growth_iou": 0.11996978963328585,
+          "positive_growth_groups": 104,
+          "threshold": 0.05
+        },
+        {
+          "macro_brier": 0.011778962832773566,
+          "macro_new_growth_iou": 0.1313805910852007,
+          "positive_growth_groups": 104,
+          "threshold": 0.1
+        },
+        {
+          "macro_brier": 0.011778962832773566,
+          "macro_new_growth_iou": 0.10889425994393795,
+          "positive_growth_groups": 104,
+          "threshold": 0.2
+        },
+        {
+          "macro_brier": 0.011778962832773566,
+          "macro_new_growth_iou": 0.0819780314681161,
+          "positive_growth_groups": 104,
+          "threshold": 0.3
+        },
+        {
+          "macro_brier": 0.011778962832773566,
+          "macro_new_growth_iou": 0.05442555524592906,
+          "positive_growth_groups": 104,
+          "threshold": 0.4
+        },
+        {
+          "macro_brier": 0.011778962832773566,
+          "macro_new_growth_iou": 0.040043732685756714,
+          "positive_growth_groups": 104,
+          "threshold": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "elapsed_seconds": 194.10572816699278,
+    "epoch": 7,
+    "mean_training_loss": 0.7071755246472577,
+    "processed_pairs": 49665,
+    "updates": 3108,
+    "validation": {
+      "complete": true,
+      "groups": 109,
+      "macro_brier": 0.012531348742001874,
+      "macro_new_growth_iou": 0.12734462436277344,
+      "macro_raw_sigmoid_brier": 0.10714615292467047,
+      "pairs": 316,
+      "positive_growth_groups": 104,
+      "positive_growth_pairs": 226,
+      "selection": "incident macro actual-positive-growth IoU, lower full-footprint Brier, lower threshold for exact ties",
+      "threshold": 0.2,
+      "threshold_grid_scores": [
+        {
+          "macro_brier": 0.012531348742001874,
+          "macro_new_growth_iou": 0.10055033862467543,
+          "positive_growth_groups": 104,
+          "threshold": 0.05
+        },
+        {
+          "macro_brier": 0.012531348742001874,
+          "macro_new_growth_iou": 0.12571127985487193,
+          "positive_growth_groups": 104,
+          "threshold": 0.1
+        },
+        {
+          "macro_brier": 0.012531348742001874,
+          "macro_new_growth_iou": 0.12734462436277344,
+          "positive_growth_groups": 104,
+          "threshold": 0.2
+        },
+        {
+          "macro_brier": 0.012531348742001874,
+          "macro_new_growth_iou": 0.10640078898176183,
+          "positive_growth_groups": 104,
+          "threshold": 0.3
+        },
+        {
+          "macro_brier": 0.012531348742001874,
+          "macro_new_growth_iou": 0.0872454149229229,
+          "positive_growth_groups": 104,
+          "threshold": 0.4
+        },
+        {
+          "macro_brier": 0.012531348742001874,
+          "macro_new_growth_iou": 0.06822646473042908,
+          "positive_growth_groups": 104,
+          "threshold": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "elapsed_seconds": 221.32382324989885,
+    "epoch": 8,
+    "mean_training_loss": 0.70609535413195,
+    "processed_pairs": 56760,
+    "updates": 3552,
+    "validation": {
+      "complete": true,
+      "groups": 109,
+      "macro_brier": 0.011968258287440433,
+      "macro_new_growth_iou": 0.13028508941336236,
+      "macro_raw_sigmoid_brier": 0.09928959768214143,
+      "pairs": 316,
+      "positive_growth_groups": 104,
+      "positive_growth_pairs": 226,
+      "selection": "incident macro actual-positive-growth IoU, lower full-footprint Brier, lower threshold for exact ties",
+      "threshold": 0.1,
+      "threshold_grid_scores": [
+        {
+          "macro_brier": 0.011968258287440433,
+          "macro_new_growth_iou": 0.11084398203419626,
+          "positive_growth_groups": 104,
+          "threshold": 0.05
+        },
+        {
+          "macro_brier": 0.011968258287440433,
+          "macro_new_growth_iou": 0.13028508941336236,
+          "positive_growth_groups": 104,
+          "threshold": 0.1
+        },
+        {
+          "macro_brier": 0.011968258287440433,
+          "macro_new_growth_iou": 0.106368970697332,
+          "positive_growth_groups": 104,
+          "threshold": 0.2
+        },
+        {
+          "macro_brier": 0.011968258287440433,
+          "macro_new_growth_iou": 0.07453452027719921,
+          "positive_growth_groups": 104,
+          "threshold": 0.3
+        },
+        {
+          "macro_brier": 0.011968258287440433,
+          "macro_new_growth_iou": 0.0530664786641509,
+          "positive_growth_groups": 104,
+          "threshold": 0.4
+        },
+        {
+          "macro_brier": 0.011968258287440433,
+          "macro_new_growth_iou": 0.03921074425022376,
+          "positive_growth_groups": 104,
+          "threshold": 0.5
+        }
+      ]
+    }
+  }
+]

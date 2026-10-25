@@ -158,6 +158,39 @@ export const forecastMeta = table(
   }
 );
 
+/** Supplementary coarse historical risk; never minute-level route ETAs.
+ * Public geographic cells contain no resident identifiers or locations.
+ * Coordinates use the stated projected CRS, row zero south, column zero west.
+ */
+export const fireRiskMeta = table({ name: 'fire_risk_meta', public: true }, {
+  id: t.u8().primaryKey(),
+  schemaVersion: t.string(),
+  modelId: t.string(),
+  source: t.string(),
+  timeBasis: t.string(),
+  issueS: t.f64(),
+  observationAgeS: t.f64(),
+  horizonsS: t.array(t.f64()),
+  crs: t.string(),
+  westM: t.f64(),
+  southM: t.f64(),
+  cellSizeM: t.f64(),
+  rows: t.u32(),
+  cols: t.u32(),
+  qualityFlags: t.array(t.string()),
+  weatherVersion: t.u64(),
+  fireVersion: t.u64(),
+  updatedAt: t.timestamp(),
+});
+
+export const fireRiskCell = table({ name: 'fire_risk_cell', public: true }, {
+  key: t.string().primaryKey(),
+  cellId: t.u32(),
+  horizonS: t.f64(),
+  probability: t.f64(),
+  observed: t.bool(),
+});
+
 /** Singleton (id = 0). Monotonic counters bumped on every write to that
  *  layer. Agents compare these against what their last output was built
  *  from to decide if they are stale — no polling, no guessing. */
@@ -411,6 +444,10 @@ export const ForecastCellInput = t.object('ForecastCellInput', {
   arrivalMedianS: t.f64(),
 });
 
+export const FireRiskCellInput = t.object('FireRiskCellInput', {
+  cellId: t.u32(), horizonS: t.f64(), probability: t.f64(), observed: t.bool(),
+});
+
 export const DangerInput = t.object('DangerInput', {
   requestId: t.u64(),
   level: t.string(),
@@ -507,6 +544,8 @@ const spacetimedb = schema(
     fireCell,
     forecastCell,
     forecastMeta,
+    fireRiskMeta,
+    fireRiskCell,
     worldVersion,
     roadClosure,
     newsArticle,

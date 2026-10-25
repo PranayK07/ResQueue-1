@@ -9,9 +9,14 @@ out how long each person has before the fire reaches them, and builds a separate
 queue for each fire station. Residents, responders and the incident commander all
 see the same live state through SpacetimeDB.
 
-> **RL teammate: start at [docs/RL_INTEGRATION.md](docs/RL_INTEGRATION.md).** It says exactly what to implement and how to plug it in.
+> **Fire forecasting workstream:** [ML architecture](docs/ML_ARCHITECTURE.md),
+> [reproduction runbook](docs/FORECAST_RUNBOOK.md) and
+> [benchmark report](reports/wildfire_forecast/BENCHMARK_REPORT.md).
+> A supervised time-conditioned U-Net predicts affected-area probabilities; existing Lookahead assigns rescue units.
+> The older [dispatch plug-in guide](docs/RL_INTEGRATION.md) remains experimental.
 
-> **Everything here is simulated.** Synthetic residents, a simplified fire model,
+> **The rescue workflow is simulated.** The historical forecast benchmark uses
+> real NIROPS perimeter observations. Synthetic residents, a simplified fire model,
 > no real dispatch. This is decision support for a human incident commander. It
 > never replaces 911.
 
@@ -70,7 +75,8 @@ agents/rescue/core/           pure models shared with the RL simulator
     fire.py                   wind-driven spread, 16-member ensemble -> p10/p50 arrival grid
     routing.py                time-dependent travel times (road "closes" before the fire gets there)
     slack.py                  slack formula, levels, extraction time, vulnerability weight
-    policy.py                 Policy interface + B0/B1 baselines + Lookahead placeholder
+    policy.py                 Policy interface + B0/B1 baselines + implemented Lookahead
+agents/rescue/forecast_ml/        NIROPS ETL, supervised time-conditioned U-Net, frozen evaluation, risk adapter
 agents/rescue/agents/         one module per agent (base.py = registration/subscription/heartbeat)
 agents/rescue/hazard/         the hazard agent's engines: fire.py, weather.py, forecast.py
 agents/rescue/data/           external feeds: nws.py (wind), firms.py (NASA satellite fire detections), brightdata.py (news scraper)
@@ -94,9 +100,9 @@ scripts/dev.sh                start DB -> publish -> seed -> run all agents
 | `hazard` agent (fire + weather + forecast) | **done**: simulated fire spread every tick (NASA FIRMS detections with `FIRE_SOURCE=firms`, untested without a key); live NWS wind that defers to the commander's manual wind; ensemble arrival forecast; answers the commander's `HazardReportRequest` |
 | `commander` agent (ASI:One) | working: pools the hazard agent's fire + weather report and the news agent's headlines with queue state; `news`, `refresh news`; login, status, fire, weather, wind, release wind, pause/resume, pin/unpin |
 | `news` agent (Bright Data) | **done**: runs your Scraper Studio collector (or replays `fixtures/`), scores relevance to the incident, extracts evacuations/closures/containment/acres, stores in `news_article`; answers `NewsReportRequest` / `NewsRefreshRequest`. Real API untested without a key (mock-tested) |
-| `delegation` agent (the **head agent**) | **synthesis done, policy TODO**: every `SITUATION_PERIOD_S` it asks the hazard and news agents for their typed reports, merges them into one `Situation` (`rescue/core/situation.py`), keeps it as `self.latest` for the policy, and records it in the `situation` table when something material changes. Records nothing, and reports `degraded`, if the hazard agent is silent |
+| `delegation` agent (the **head agent**) | synthesis and Lookahead planning implemented; asks hazard/news for typed reports and records material situation changes |
 | `danger` agent | slack + level + travel time per request, via `rescue/core/danger.py` (written; end-to-end run on a throwaway database: 24 requests scored, 24 queued, 5 units dispatched) |
-| `delegation` planning loop | builds `PlanInput` from the database, runs the policy chosen by `POLICY` (`lookahead` placeholder by default, `rl` = the RL teammate's `rescue/rl_policy.py`), publishes the plan; not yet exercised with a real model. See `docs/RL_INTEGRATION.md` |
+| `delegation` planning loop | builds `PlanInput`, uses existing `POLICY=lookahead` by default and publishes plans. The supervised fire model uses a separate forecast interface, independent of the dispatch plug-in |
 | `station` | **stubs**: dispatched units do not progress yet |
 | Frontend | not started; generate bindings with `spacetime generate --lang typescript --out-dir <web>/src/module_bindings --module-path spacetimedb` |
 
@@ -202,27 +208,36 @@ submitting.
  hazard agent (fire + weather + forecast) ──FireReport/WeatherReport──┐
                                                                       ├─▶ delegation (head) ──▶ Situation ──▶ SpacetimeDB `situation` table
  news agent (Bright Data → news_article)  ──NewsReport────────────────┘            │                             (typed columns, newest 2000 rows)
-                                                                                   └─▶ self.latest ─▶ dispatch policy (RL workstream)
+                                                                                   └─▶ self.latest ─▶ existing Lookahead dispatcher
  commander (ASI:One console) asks the same two agents on demand, only to show a human the picture
 ```
 
-### How context reaches the RL policy
+### Supervised wildfire forecasting
 
-- **Live (inference):** the policy runs *inside* the delegation agent's Python process: the RL teammate implements
-  `RLPolicy.plan` in `agents/rescue/rl_policy.py` and runs with `POLICY=rl` (see `docs/RL_INTEGRATION.md`). It receives one typed
-  object, `core.policy.PlanInput`: the requests, units and stations plus `situation`, the head agent's `Situation` (fire, wind,
-  news, with data freshness). `situation.feature_vector()` is a fixed 24-number encoding (`FEATURE_NAMES`, `FEATURE_VERSION`); it
-  is a starting point: change it, bump the version, and store the version with any trained model.
-- **Log / dataset:** every `Situation` the head agent records lands in the `situation` table. Export it with
-  `agents/scripts/export_situations.py [--features]` (JSONL; empty-world rows dropped).
-- **Training:** offline in the RL workstream's simulator, which builds the same `PlanInput` / `Situation`
-  from `rescue/core`. Live rows are for replay, evaluation and sanity checks, not online learning.
-- **Where things run:** SpacetimeDB hosts the database and the rule-enforcing module (TypeScript, no Python, no PyTorch).
-  The Fetch agents and the RL model are ordinary Python processes (your laptop now, a small VM later) that connect to it.
+Historical NIROPS current/previous perimeters, observed growth, real elapsed time,
+requested horizon and valid-area masks feed a compact time-conditioned U-Net.
+Its probability maps provide supplementary geographic exposure and coarse
+arrival brackets. The existing danger/slack code and Lookahead keep resource
+assignment separate from prediction. SpacetimeDB publishes both layers.
 
-The subagents answer with typed uAgents messages (`rescue/messages.py`), not text. Only the head agent writes `situation`
-(`record_situation` is delegation-only). The RL workstream can export that table as training / evaluation data, or build the
-same `Situation` from the simulator. Live data does not train anything by itself: training happens offline in the simulator.
+`FIRE_FORECAST_BACKEND=simulation` remains the default. Learned operation requires
+native weights, matching features/grid metadata, validation and timing gates,
+and explicit configuration. Six-to-72-hour historical targets do not validate
+minute-level dispatch forecasts. Missing historical weather/vegetation are
+explicit limitations; synthetic fuel is not measured vegetation.
+
+The 24-feature news/situation representation remains part of the live agent
+mesh. It is not inserted retrospectively into NIROPS model inputs. The legacy
+assignment experiment and its [guide](docs/RL_INTEGRATION.md) are preserved for
+its owners; they are independent of this supervised forecasting pipeline.
+
+The frozen operating point is **seed 202, epoch 4, threshold 0.05**, selected on
+validation. See the [frozen evaluation](reports/wildfire_forecast/frozen_operating_point/REPORT.md)
+for new-growth metrics, paired incident-group intervals, a fixed 1 km fire-front
+region and error maps. Threshold 0.50 is diagnostic only. The preserved test
+panel was previously inspected, so these are reused held-out results rather
+than an untouched confirmation set. Rebuilding this report uses saved predictions
+and performs no training or new model inference.
 
 ## Checking the orchestration layer
 
@@ -240,9 +255,11 @@ report whose weather source is `none`. Before this fix a restart could log a fir
 
 ## Notes for teammates
 
-- **RL workstream:** build the Gym env on `rescue/core`. Use the same fire model,
-  router, and slack, and use `policy.PlanInput`/`Plan`/`evaluate()`. Plug the
-  model in at `agents/rescue/rl_policy.py` (`POLICY=rl`); the full guide is `docs/RL_INTEGRATION.md`.
+- **Supervised fire workstream:** start at [ML architecture](docs/ML_ARCHITECTURE.md).
+  `FIRE_FORECAST_BACKEND=simulation` remains the default; learned historical risk
+  requires a checkpoint, matching export metadata, validation and timing gates.
+  Keep `POLICY=lookahead`. Coarse historical risk is supplementary to the physical
+  three-hour timing forecast. No model trains from live resident data.
 - **Frontend:** subscribe to the public tables and `my_requests` (residents) or
   `ops_*` (operators, after the `claim_operator` reducer). The wind slider calls
   `set_weather`. Column names on the wire are snake_case.
