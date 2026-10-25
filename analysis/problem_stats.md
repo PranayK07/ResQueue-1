@@ -42,7 +42,12 @@ Rule: these show the problem is real. They don't prove our product works. Our pr
 - Oakland 1991: the fire spread about 1.67 meters per second, about 6 km/h. ([NFPA][nfpa]) That's faster than a typical walk (~1.4 m/s, a general figure, not from the report).
 - Camp Fire 2018: it spread up to 80 football fields a minute and took 4 hours to burn through Paradise. ([PBS][pbs])
 - Oakland 1991: 10 key reservoirs were dry by 5 PM on the first day. ([NFPA][nfpa])
-- Our data: paste the lines from section 8 of `nirops_eda.ipynb` here once it runs on the real zip.
+- In California, 2020-2024, 30.7% of mapped fire-days saw one fire grow more than the entire 1991 Oakland Hills fire (1,520 acres).
+- Biggest one-day jump: the North Complex Fire added 205,757 acres in 27 hours, 135x the Oakland Hills fire.
+- Fastest: the North Complex Fire burned about 97 football fields a minute for 27 hours.
+- The North Complex Fire's edge moved 38 km in 27 hours.
+- 5 mapped fires burned within 100 km of Berkeley since 2020; the biggest, SCU Lightning Complex (2020), reached 396,492 acres.
+- Source: NIROPS daily fire perimeters (Magstadt, O'Connor et al., Mendeley Data, doi:10.17632/95rj5d379g.1, CC BY 4.0).
 
 ## Local stakes: Berkeley and Oakland Hills
 
