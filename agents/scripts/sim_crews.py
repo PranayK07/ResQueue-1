@@ -246,6 +246,25 @@ class Crews:
             return Move(back, f"released, back at {st['name']}")
         return Move([], LABELS.get(status, status))
 
+    def continuation(self, u, now, stations):
+        from rescue.core.continuation import next_request
+        from rescue.core.assistance import position_along
+        from rescue.core.geo import Grid
+        db = self.db
+        at = {**u}
+        route_table = db.tables.get('ops_unit_route')
+        route = route_table.get(u['id']) if route_table else None
+        if route and route.get('status', 'ready') == 'ready' and route.get('points') and u['status'] == 'returning':
+            at.update(position_along(route['points'], (now-route['depart_s'])/max(1,route['arrive_s']-route['depart_s'])))
+        elif u['status'] == 'returning' and stations.get(u['station_id']):
+            home = stations[u['station_id']]
+            f = max(0,min(1,(now-u.get('leg_depart_s',now))/max(1,u['free_at_s']-u.get('leg_depart_s',now))))
+            at.update(lat=u['lat']+(home['lat']-u['lat'])*f, lon=u['lon']+(home['lon']-u['lon'])*f)
+        closures=[(c.get('lat1',c.get('lat_1')),c.get('lon1',c.get('lon_1')),c.get('lat2',c.get('lat_2')),c.get('lon2',c.get('lon_2')))
+                  for c in db.table('road_closure') if c['active']]
+        return next_request(at, now, list(db.table('ops_request')), list(db.table('unit')), list(db.table('ops_risk')),
+                            Grid.from_row(db.table('grid').one()), {c['cell_id'] for c in db.table('fire_cell')}, closures)
+
     def dwell(self, req: dict) -> float:
         if self.a.dwell_s is not None:
             return self.a.dwell_s
