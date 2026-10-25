@@ -73,9 +73,10 @@ agents/rescue/core/           pure models shared with the RL simulator
     policy.py                 Policy interface + B0/B1 baselines + Lookahead placeholder
 agents/rescue/agents/         one module per agent (base.py = registration/subscription/heartbeat)
 agents/rescue/hazard/         the hazard agent's engines: fire.py, weather.py, forecast.py
-agents/rescue/data/           external feeds: nws.py (wind), firms.py (NASA satellite fire detections), brightdata.py (news scraper)
-agents/rescue/news/           signals.py: evacuations, road closures, containment, acres, relevance from article text
-agents/fixtures/              saved Bright Data export for free/offline news testing
+agents/rescue/data/           external feeds: nws.py (wind), firms.py (NASA satellite fire detections), brightdata.py (X posts scraper)
+agents/rescue/news/           sources.py: trusted X accounts near the incident; signals.py: evacuations, closures, shelters, containment, acres, relevance
+agents/news_sources.json      trusted X accounts (kind, official, area covered) the news agent can follow
+agents/fixtures/              synthetic posts in Bright Data's X output format, for free/offline news testing
 agents/rescue/mesh.py         roster: names, ports, seed-derived addresses, local resolver
 agents/scenarios/             demo worlds (synthetic)
 agents/scripts/seed_scenario.py
@@ -92,8 +93,8 @@ scripts/dev.sh                start DB -> publish -> seed -> run all agents
 | `forecast` agent | **done**: re-forecasts on wind/fire change (~0.1 s) |
 | `intake` agent (ASI:One) | working: form card → submit → status → "I'm safe"; proactive updates |
 | `hazard` agent (fire + weather + forecast) | **done**: simulated fire spread every tick (NASA FIRMS detections with `FIRE_SOURCE=firms`, untested without a key); live NWS wind that defers to the commander's manual wind; ensemble arrival forecast; answers the commander's `HazardReportRequest` |
-| `commander` agent (ASI:One) | working: pools the hazard agent's fire + weather report and the news agent's headlines with queue state; `news`, `refresh news`; login, status, fire, weather, wind, release wind, pause/resume, pin/unpin |
-| `news` agent (Bright Data) | **done**: runs your Scraper Studio collector (or replays `fixtures/`), scores relevance to the incident, extracts evacuations/closures/containment/acres, stores in `news_article`; answers `NewsReportRequest` / `NewsRefreshRequest`. Real API untested without a key (mock-tested) |
+| `commander` agent (ASI:One) | working: pools the hazard agent's fire + weather report and the news agent's headlines with queue state; `news`, `refresh news`, `track <x.com post>`, `ping <lat> <lon> [place]`, `window <from> <to>` / `window live`; login, status, fire, weather, wind, release wind, pause/resume, pin/unpin |
+| `news` agent (Bright Data X) | **done**: follows trusted wildfire accounts on X near the incident (`news_sources.json`) through Bright Data's X Posts scraper (or replays `fixtures/`), scores relevance (incident name/places, recency, account trust and locality), extracts evacuations/closures/shelters & relief/containment/acres, stores in `news_article`; answers `NewsReportRequest` / `NewsRefreshRequest` / `NewsTrackRequest`. Real API untested without a key (mock-tested: `scripts/test_news.py`) |
 | `delegation` agent (the **head agent**) | **synthesis done, policy TODO**: every `SITUATION_PERIOD_S` it asks the hazard and news agents for their typed reports, merges them into one `Situation` (`rescue/core/situation.py`), keeps it as `self.latest` for the policy, and records it in the `situation` table when something material changes. Records nothing, and reports `degraded`, if the hazard agent is silent |
 | `danger` agent | slack + level + travel time per request, via `rescue/core/danger.py` (written; end-to-end run on a throwaway database: 24 requests scored, 24 queued, 5 units dispatched) |
 | `delegation` planning loop | builds `PlanInput` from the database, runs the policy chosen by `POLICY` (`lookahead` placeholder by default, `rl` = the RL teammate's `rescue/rl_policy.py`), publishes the plan; not yet exercised with a real model. See `docs/RL_INTEGRATION.md` |
@@ -138,23 +139,51 @@ wiping data. Switch back to `STDB_SERVER=local` for offline work.
 
 ### Bright Data news
 
-The news agent drives a Bright Data **Scraper Studio** collector (the CNN
-search → article scraper) through the batch API: `POST /dca/trigger` with one
-input per keyword, then poll `GET /dca/dataset` until rows are ready (30–90 s).
+The news agent follows **trusted wildfire accounts on X** (CAL FIRE units, sheriffs / county OES, NWS
+offices, Caltrans districts, Red Cross, PG&E, NIFC) through Bright Data's pre-built **X (formerly Twitter) -
+Posts** scraper (dataset `gd_lwxkxvnf1cynvib9co`, Web Scraper API):
 
-1. In Scraper Studio, save the scraper to production ("Finish editing").
-2. `.env`: `NEWS_SOURCE=brightdata`, `BRIGHTDATA_API_KEY` (brightdata.com/cp/setting/users →
-   Add API key), `BRIGHTDATA_COLLECTOR_ID` (the `c_...` id from brightdata.com/cp/scrapers).
-3. Tune `NEWS_KEYWORDS`, `NEWS_LOCATION`, `NEWS_PLACES`, `NEWS_POLL_S` (billing is per page
-   load, so keep polling slow; the commander can say `refresh news`).
+- **Discover by profile url**: `POST /datasets/v3/trigger?...&type=discover_new&discover_by=profile_url` with
+  one `https://x.com/<handle>` input per account and `limit_per_input` posts each, then poll
+  `/datasets/v3/progress/<snapshot>` and download `/datasets/v3/snapshot/<snapshot>`.
+- **Collect by URL**: `POST /datasets/v3/scrape` (synchronous) for single posts: the incident catalog's `posts`,
+  and any post the commander hands over with `track https://x.com/<account>/status/<id>`.
 
-`NEWS_SOURCE=file` (default) replays `agents/fixtures/brightdata_cnn_sample.json`
-for free; drop a fresh export from the Bright Data UI there to test new data.
+`agents/news_sources.json` lists each account with its kind (fire, emergency, relief, weather, transport,
+utility, tracker), whether it is an official agency, and the area it covers. For an incident the agent follows
+the accounts covering it: the most local fire agency, evacuation authority, relief org and forecaster first,
+then the most local of the rest (`NEWS_MAX_ACCOUNTS`). Official accounts and local accounts score higher.
+
+1. `.env`: `NEWS_SOURCE=brightdata`, `BRIGHTDATA_API_KEY` (brightdata.com/cp/setting/users → Add API key).
+2. Check the handles in `news_sources.json` on x.com (written from memory; a wrong one shows up as an
+   input error in the news agent's log and status) and add your area's accounts, or list extras in `NEWS_ACCOUNTS`.
+3. Tune `NEWS_MAX_ACCOUNTS`, `NEWS_POSTS_PER_ACCOUNT` (Bright Data bills per post returned), `NEWS_PLACES`.
+
+**Where and when (plug-in points).** Two shared rows steer the news agent, so any component can drive it with
+one reducer call and read the results from `news_article` by subscription:
+
+| Want | Call | Who can call it |
+|---|---|---|
+| look at a location | `ping_news(lat, lon, label)` → `news_focus` row | operators (web app), registered agents, commander `ping 38.58 -122.58 Calistoga` |
+| stop pinning a location | `clear_news_focus()` | same |
+| a past time window | `set_incident(...)`: a catalog fire (`incident glass-fire-2020`) or any range (`window 2020-09-27 2020-10-20`) | commander, scenario loader |
+| back to now | `clear_incident()` (`window live`) | same |
+
+On every change the agent re-scores stored posts for the new place (free) and pulls the trusted accounts near it
+that aren't on file yet for that window (`NEWS_FETCH_ON_PING`). Live mode keeps the last `NEWS_LIVE_LOOKBACK_H`
+hours. Posts are tagged with the incident key (`''` = live); the `news` report and `NewsReport.focus` say where and
+when it is looking. `scripts/ping_news.py` makes the same calls from the shell and watches the result;
+`scripts/try_brightdata.py` calls Bright Data directly (no mesh) to check a key, handles and date inputs.
+
+`NEWS_SOURCE=file` (default) replays `agents/fixtures/news_sample.json` (synthetic posts in the X
+scraper's output format) for free; point `NEWS_FIXTURE` at a `news_archive/<incident>.jsonl` to replay a real
+scrape. `agents/scripts/test_news.py` checks account selection, scoring and the API flow with a mocked Bright Data.
 
 ### Replaying a real incident (news date window)
 
 `agents/incidents.json` lists real fires (Glass Fire 2020, LNU Lightning Complex 2020, Camp Fire 2018) with the
-real time sim T+0 stands for, a news date window, search queries and place names. Pick one:
+real time sim T+0 stands for, a news date window, the fire's name(s), place names, and a center that picks the
+nearby X accounts. Pick one:
 
 ```bash
 cd agents
@@ -162,13 +191,13 @@ cd agents
 ../venv/bin/python scripts/set_incident.py glass-fire-2020      # or: seed_scenario.py <scenario> --incident glass-fire-2020
 ```
 
-or tell the commander `incident glass-fire-2020` in ASI:One. With an incident selected the news agent uses that
-incident's queries, keeps only articles published inside its window, and tags them so incidents never mix.
-It **never scrapes automatically** in this mode (a historical window doesn't change, and each query costs
-~100 Bright Data page loads); say `refresh news` once, and the raw results are saved to
-`agents/news_archive/<incident>.jsonl` (gitignored: it holds full article text). `agents/brightdata/search_stage.js`
-is a reference copy of the scraper that skips out-of-window articles before loading them.
-Dates and queries in the catalog are from memory of public coverage: verify them.
+or tell the commander `incident glass-fire-2020` in ASI:One. With an incident selected the news agent follows the
+X accounts near it, keeps only posts published inside its window, and tags them so incidents never mix.
+It **never scrapes automatically** in this mode (a historical window doesn't change); say `refresh news` once,
+and the raw results are saved to `agents/news_archive/<incident>.jsonl` (gitignored). Profile discovery returns
+an account's newest posts, so for a past fire list known status posts under the incident's `posts` (collected by
+URL, any date) or, once you've confirmed the date input fields in the Bright Data dashboard, set `NEWS_SEND_DATES=1`.
+Dates, names and centers in the catalog are from memory of public coverage: verify them.
 
 ### Connecting to Agentverse / ASI:One
 
@@ -189,7 +218,7 @@ submitting.
 | Agent | Role | What it owns |
 |---|---|---|
 | wildfire-hazard | hazard | fire perimeter → `fire_cell`, NWS wind → `weather` (ignored while commander has manual control), ensemble arrival times → `forecast_cell` |
-| wildfire-news | news | Bright Data news scrape → `news_article` (signals are hints for the commander, never auto-applied) |
+| wildfire-news | news | trusted X accounts near the incident, via Bright Data's X scraper → `news_article` (signals are hints for the commander, never auto-applied) |
 | wildfire-danger | danger | time-dependent routing + slack → `help_request.level/slack_s`, `travel_estimate` |
 | wildfire-delegation | delegation | per-station queues via policy → `publish_plan` |
 | wildfire-station-1..3 | station | unit missions for one station |
