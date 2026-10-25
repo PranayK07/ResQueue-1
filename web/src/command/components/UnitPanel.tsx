@@ -86,7 +86,7 @@ function UnitDetail({ snapshot: s, source, rows, unit, nowMs, onSelectUnit, onSe
 
   // Anything not already dispatched can be given to this unit, including
   // escalations (a deliberate ground attempt against the forecast).
-  const candidates = rows.filter(r => !r.committed && r.entry.unitId !== unit.id);
+  const candidates = rows.filter(r => !r.committed && r.entry.unitId !== unit.id && (!s.live || r.request.headcount <= unit.capacity));
   const others = s.units.filter(u => u.id !== unit.id);
   const pinnedHere = rows.some(r => r.request.pinnedUnitId === unit.id && !r.committed);
   const last = stops[stops.length - 1] ?? current;
@@ -159,13 +159,13 @@ function UnitDetail({ snapshot: s, source, rows, unit, nowMs, onSelectUnit, onSe
                     ETA {clockHM(simToMs(s.clock, r.entry.etaS))} · {r.entry.reason}
                   </p>
                   <div className="cstop__actions">
-                    <button type="button" className="cbtn cbtn--small" disabled={busy || i === 0} aria-label={`Move ${requestCode(r.request.id)} earlier`} onClick={() => move(i, -1)}>
+                    <button type="button" className="cbtn cbtn--small" disabled={busy || !!s.live || i === 0} aria-label={`Move ${requestCode(r.request.id)} earlier`} onClick={() => move(i, -1)}>
                       ↑
                     </button>
                     <button
                       type="button"
                       className="cbtn cbtn--small"
-                      disabled={busy || i === stops.length - 1}
+                      disabled={busy || !!s.live || i === stops.length - 1}
                       aria-label={`Move ${requestCode(r.request.id)} later`}
                       onClick={() => move(i, 1)}
                     >
@@ -215,7 +215,7 @@ function UnitDetail({ snapshot: s, source, rows, unit, nowMs, onSelectUnit, onSe
           <button
             type="button"
             className="cbtn cbtn--dark"
-            disabled={busy || !adding}
+            disabled={busy || !adding || (!!s.live && (unit.status !== 'available' || unit.currentRequest !== 0n))}
             onClick={() =>
               run(async () => {
                 await source.assignToUnit(BigInt(adding), unit.id);
@@ -223,7 +223,7 @@ function UnitDetail({ snapshot: s, source, rows, unit, nowMs, onSelectUnit, onSe
               })
             }
           >
-            Assign
+            {s.live ? 'Dispatch' : 'Assign'}
           </button>
         </div>
       </section>

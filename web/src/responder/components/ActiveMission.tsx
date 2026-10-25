@@ -27,7 +27,7 @@ export function ActiveMission({ item, clock, nowS, onScene, busy, error, onCompl
   return (
     <section className="mission" aria-label={`Active mission ${requestCode(request.id)}`}>
       <p className="mission__eyebrow">
-        ACTIVE MISSION · {item.unitCallsign} · {onScene ? 'ON SCENE' : 'EN ROUTE'}
+        ACTIVE MISSION · {item.unitCallsign} · {onScene ? 'ON SCENE' : request.status === 'assigned' ? 'ASSIGNED' : 'EN ROUTE'}
       </p>
       <div className="mission__identity">
         <h2 className="mono">{requestCode(request.id)}</h2>

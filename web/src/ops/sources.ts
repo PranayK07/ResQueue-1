@@ -45,7 +45,7 @@ export interface ResponderSource extends Store<ResponderSnapshot> {
 }
 
 export interface CommandCapabilities {
-  /** Commit a request to one unit, reorder or release a unit's stops (SIM-ONLY: live can only pin a station). */
+  /** Commit an unassigned request to a particular unit. */
   unitAssignment: boolean;
   /** What-if ranking preview and applying policy parameters / position pins (SIM-ONLY). */
   planPreview: boolean;
@@ -89,13 +89,11 @@ export interface CommandSource extends Store<CommandSnapshot> {
   releaseWeatherLock(): Promise<void>;
   /** override_assignment (stationId 0 unpins) */
   overrideAssignment(requestId: bigint, stationId: number, note: string): Promise<void>;
-  /**
-   * SIM-ONLY unit management (the backend can pin a station, not a unit, and
-   * has no stop-order field). A live version needs a reducer such as
-   * `assign_unit(requestId, unitId)` plus queue_entry position pins.
-   */
+  /** Live: atomically dispatch an available unit. Simulation: assign a planned stop. */
   assignToUnit(requestId: bigint, unitId: number): Promise<void>;
+  /** Simulated queue ordering only; the live planning agent owns stop order. */
   setUnitOrder(unitId: number, requestIds: bigint[]): Promise<void>;
+  /** Simulated assignment pins only. Live committed missions use the lifecycle reducers. */
   releaseUnit(unitId: number): Promise<void>;
   /** flag_request */
   flagRequest(requestId: bigint, kind: FlagKind, detail: string): Promise<void>;

@@ -22,6 +22,8 @@ import { useCommandData } from '../ops/hooks';
 import type { PlanPreview } from '../ops/sim/world';
 import type { CommandSnapshot, DangerLevel, PlanPolicy, PositionPin } from '../ops/types';
 import { useNow } from '../lib/useNow';
+import { isLive } from '../live/config';
+import { LiveQueuePage } from './LiveQueuePage';
 import { CommandNav, SafetyFooter } from './components/CommandNav';
 import { alertStatus, commandRows, counts, mph, mps, pad2, peopleNeedsLong, slackText, stationShort, type CommandRow } from './derive';
 
@@ -62,6 +64,10 @@ function applyPins(order: bigint[], pins: Map<bigint, number>, firstMovable: num
 
 /** Figma 8:1397 "Rescue queue management". */
 export function QueuePage() {
+  return isLive ? <LiveQueuePage /> : <SimulatedQueuePage />;
+}
+
+function SimulatedQueuePage() {
   const { snapshot: s, source } = useCommandData();
   const nowMs = useNow(1000);
   const rows = useMemo(() => commandRows(s), [s]);

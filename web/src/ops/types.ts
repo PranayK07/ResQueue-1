@@ -320,7 +320,7 @@ export interface RiskCard {
   staleReason: string;
   assessmentId: string;
   level: DangerLevel;
-  slackS: number;
+  slackS: number | null;
   fireEtaS: number;
   extractS: number;
   /** Earliest estimated station option, including the unit's wait; not a dispatch promise. */

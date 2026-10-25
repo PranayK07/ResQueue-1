@@ -66,7 +66,7 @@ Give the agents ~30 s to come online (`hazard`, `news`, `intake`, `commander`, p
 |---|---|---|
 | Incident command (main screen, live) | `http://localhost:5173/#/command` | name + `OPERATOR_PASSCODE` |
 | Responder phone (live) | `http://localhost:5173/#/responder/1` (units 1–4: SIM-1..SIM-4) | name + `OPERATOR_PASSCODE` |
-| Resident ("I need help") | `http://localhost:5173/#/` | none. **Not wired to the backend yet**: it is Sharon's UI flow with simulated dispatch. Show it as the resident experience; the live pings come from Mock pings below. |
+| Resident ("I need help") | `http://localhost:5173/#/` | none. Submits to SpacetimeDB and follows its own private request. The pin must be inside the active incident area; use Adjust location → Show active incident area → Place entrance pin for the demo. |
 
 Use separate browser windows for command and responder. Each keeps its own identity, so they don't clash.
 
@@ -105,8 +105,25 @@ Keep everything on one laptop. Phones on the LAN would need SpacetimeDB listenin
 
 ## Not done yet (say so if asked)
 
-- The resident screen still runs Sharon's simulated dispatch; the backend reducers it needs exist
-  (`submit_help_request`, `my_requests`, `update_my_location`, `close_my_request`).
 - The learned forecast shows as a status line, not as a map layer (its grid is UTM; the map needs a projection step).
-- Queue tools that only the simulation has (assign to a specific unit, reorder stops, what-if preview) answer with an
-  error live: the backend can pin a request to a station, not to a unit.
+- Reordering planned stops and the what-if preview remain simulation-only. Live command can dispatch a specific unit.
+
+## Map and rescue slack
+
+Command defaults to USGS/USDA aerial imagery, with road labels and translucent red fire / amber forecast overlays.
+The Satellite / Streets switch keeps the current operational layers and selection; unavailable imagery falls back to
+streets. The photographic background is reference imagery, not a current photograph of the fire.
+
+Map callouts show **slack in minutes**, not distance. A request without a safe ground route has no numeric slack.
+The physical forecast projects forward from the observed perimeter at the current simulation time and refreshes
+as the replay clock advances. Recovered ground assignments clear their automatic unreachable escalation.
+
+## Browser call → command → crew
+
+1. Open the caller and command views in separate tabs. Send a help alert with a pin inside the active incident area.
+2. Command immediately shows the call as **Received / assessing** in the table and map, even before the agents plan it. Use **Review caller alert** to find the latest app call.
+3. Select it, choose an available unit under **Dispatch a ground unit**, and press **Dispatch unit**. Busy units and parties above a unit's capacity cannot be dispatched.
+4. Open that unit's responder view using the link on the request. Its mission pin, route, turn instructions and Google Maps destination use the caller's coordinates. **Show entire route** frames the trip.
+5. Moving the caller's pin updates command and recalculates the responder route. Canceling closes the shared request and removes the location. Reloading the caller restores server status under its saved identity.
+
+Live caller text, headcount, needs and entrance edits are supported. Local photo/video uploads remain unavailable in live mode; the app does not claim to upload them. `VITE_DATA_SOURCE=sim` retains the standalone simulated caller flow.

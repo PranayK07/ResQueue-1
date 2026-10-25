@@ -68,6 +68,7 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     onUserMoveRef.current = onUserMove;
   });
   const [ready, setReady] = useState(false);
+  const [sizeKey, setSizeKey] = useState('');
 
   useEffect(() => {
     const map = new maplibregl.Map({
@@ -103,7 +104,10 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     map.on('zoomstart', e => {
       if ((e as { originalEvent?: Event }).originalEvent) onUserMoveRef.current();
     });
-    const ro = new ResizeObserver(() => map.resize());
+    const ro = new ResizeObserver(([entry]) => {
+      map.resize();
+      setSizeKey(`${entry.contentRect.width}:${entry.contentRect.height}`);
+    });
     ro.observe(containerRef.current!);
     mapRef.current = map;
     const markers = markersRef.current;
@@ -200,7 +204,7 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
       let m = markers[key];
       if (!m || !m.getElement().classList.contains(spec.className.split(' ')[0])) {
         m?.remove();
-        m = markers[key] = new maplibregl.Marker({ element: el(spec.className, spec.html), anchor: spec.anchor, offset: spec.offset }).setLngLat(spec.at).addTo(map);
+        m = markers[key] = new maplibregl.Marker({ element: el(spec.className, spec.html), anchor: spec.anchor, offset: spec.offset, subpixelPositioning: true }).setLngLat(spec.at).addTo(map);
       }
       m.setLngLat(spec.at);
       if (m.getElement().innerHTML !== spec.html) m.getElement().innerHTML = spec.html;
@@ -220,7 +224,7 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     map.easeTo({ center: position, zoom: Math.max(map.getZoom(), FOLLOW_ZOOM), duration: 800 });
     // posKey captures position changes; position itself is a fresh array each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, follow, posKey]);
+  }, [ready, follow, posKey, sizeKey, padding.top, padding.bottom]);
 
   // Not following: show the whole trip when it changes.
   const routeKey = route ? `${route.coords.length}:${route.distanceM}` : '';
@@ -230,9 +234,9 @@ export function NavMap({ snapshot, target, route, position, positionLabel, gps, 
     const pts = [...route.coords, ...(position ? [position] : [])];
     const b = pts.reduce((acc, p) => acc.extend(p), new maplibregl.LngLatBounds(pts[0], pts[0]));
     map.fitBounds(b, { maxZoom: 16, duration: 600 });
-    // Re-frame only on a new route (or when following stops), not on every position update.
+    // Re-frame on a new route or layout, not on every position update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, routeKey, follow]);
+  }, [ready, routeKey, follow, sizeKey, padding.top, padding.bottom]);
 
   return <div ref={containerRef} className="nav-map" />;
 }

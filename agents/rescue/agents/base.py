@@ -13,12 +13,14 @@ import asyncio
 import logging
 from pathlib import Path
 
+import httpx
+
 from uagents import Agent, Context, Model, Protocol
 
 from ..config import AGENTS_ROOT, settings
 from ..mesh import MeshResolver, address_of, spec
 from ..messages import StatusQuery, StatusReply
-from ..stdb import SpacetimeClient
+from ..stdb import SpacetimeClient, ReducerError
 
 ASK_TIMEOUT_S = 8
 READY_WAIT_S = 6.0
@@ -81,10 +83,19 @@ class MeshAgent:
 
     async def _join(self, ctx: Context) -> None:
         ctx.logger.info(f"{self.name} ({self.role}) address {self.agent.address}")
-        await self.db.call(
-            "register_agent", settings.agent_join_key, self.role, self.name, self.spec.station_id, self.agent.address
-        )
-        await self.db.connect(self.queries)
+        delay = 1.0
+        while True:
+            try:
+                await self.db.call(
+                    "register_agent", settings.agent_join_key, self.role, self.name, self.spec.station_id, self.agent.address
+                )
+                await self.db.connect(self.queries)
+                break
+            except (OSError, httpx.HTTPError, ReducerError) as error:
+                self.set_status("degraded", "waiting for database registration and initial subscription")
+                self.log.warning("database startup not ready (%s); retrying in %.0fs", type(error).__name__, delay)
+                await asyncio.sleep(delay)
+                delay = min(30.0, delay * 2)
         self.status = "online"
         await self.on_ready(ctx)
         self.ready.set()

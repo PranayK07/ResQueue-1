@@ -1,4 +1,4 @@
-/* Responder phone: dark, high-contrast field UI. */
+/* Responder workspace: dark, high-contrast field UI. */
 
 .rapp {
   --r-bg: #0b0f12;
@@ -14,10 +14,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 390px;
   height: 100vh;
   height: 100dvh;
-  margin: 0 auto;
   overflow: hidden;
   background: var(--r-bg);
   color: var(--r-ink);
@@ -52,13 +50,24 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  min-width: 0;
   overflow: hidden;
   font-size: 12px;
+}
+
+.rbar__updated img,
+.rbar__updated b {
+  flex-shrink: 0;
+}
+
+.rbar__time {
+  overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .rbar__right {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 6px;
 }
@@ -209,8 +218,8 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  height: 58px;
-  padding: 0 12px;
+  min-height: 58px;
+  padding: 10px 12px;
   background: var(--r-panel);
   border: none;
   border-bottom: 1px solid var(--r-line);
@@ -236,6 +245,7 @@
 
 .mbar__line {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   font-size: 13px;
@@ -461,6 +471,7 @@
 
 .stoprow {
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   background: var(--r-panel);
   border: 1px solid var(--r-line);
@@ -473,7 +484,7 @@
 
 .stoprow__body {
   display: flex;
-  flex: 1;
+  flex: 1 1 260px;
   align-items: center;
   gap: 10px;
   min-width: 0;
@@ -512,8 +523,9 @@ button.stoprow__body {
 
 .stoprow__top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
 }
 
 .stoprow__top .level {
@@ -553,8 +565,10 @@ button.stoprow__body {
 
 .stoprow__controls {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 2px;
+  margin-left: auto;
   padding-right: 4px;
 }
 
@@ -688,6 +702,13 @@ button.stoprow__body {
   user-select: none;
 }
 
+.dsheet__heading {
+  margin-bottom: 16px !important;
+  color: var(--r-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .dsheet__handle {
   display: block;
   width: 40px;
@@ -793,7 +814,7 @@ button.stoprow__body {
 
 .dsheet__steps li {
   display: grid;
-  grid-template-columns: 28px 1fr auto;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   min-height: 42px;
@@ -836,4 +857,102 @@ button.stoprow__body {
 .dsheet__arrived {
   flex-direction: column;
   align-items: stretch;
+}
+
+/* Same breakpoint as ResponderApp: the map gets all remaining width. */
+@media (min-width: 1000px) {
+  .rapp {
+    --r-sidebar: clamp(340px, 30vw, 440px);
+  }
+
+  .rbar,
+  .mbar {
+    padding-inline: 24px;
+  }
+
+  .rapp__stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--r-sidebar);
+  }
+
+  .rapp__stage > .nav-map {
+    position: relative;
+    inset: auto;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .dsheet--docked {
+    position: relative;
+    inset: auto;
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 0;
+    border: none;
+    border-left: 1px solid var(--r-line);
+    border-radius: 0;
+    box-shadow: none;
+    transition: none;
+  }
+
+  .dsheet--docked .dsheet__grab {
+    height: auto;
+    padding: 20px;
+    border-bottom: 1px solid var(--r-line);
+    touch-action: auto;
+    cursor: auto;
+    user-select: auto;
+  }
+
+  .dsheet--docked .dsheet__next {
+    flex-wrap: wrap;
+  }
+
+  .dsheet--docked .dsheet__text {
+    flex-basis: calc(100% - 64px);
+  }
+
+  .dsheet--docked .dsheet__eta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    margin-left: 64px;
+    text-align: left;
+  }
+
+  .dsheet--docked .dsheet__body {
+    padding: 20px;
+  }
+
+  .recenter {
+    right: calc(var(--r-sidebar) + 16px);
+  }
+
+  .rapp__stage--queue-open .dsheet {
+    visibility: hidden;
+  }
+
+  .qdrop-scrim {
+    display: none;
+  }
+
+  .qdrop-wrap {
+    left: auto;
+    right: 0;
+    bottom: 0;
+    width: var(--r-sidebar);
+    max-height: none;
+    border: none;
+    border-left: 1px solid var(--r-line);
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+  }
+
+  .qdrop-panel {
+    padding: 20px;
+  }
 }

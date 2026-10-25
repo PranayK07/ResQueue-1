@@ -129,7 +129,7 @@ export interface QueryGroups {
 
 export const QUERIES: { caller: QueryGroups; command: QueryGroups; responder: QueryGroups } = {
   caller: {
-    core: ['sim_clock', 'grid', 'incident', 'my_requests', 'ops_message'],
+    core: ['sim_clock', 'grid', 'station', 'incident', 'my_requests', 'ops_message'],
     extra: ['my_risk', 'ops_assessment'],
   },
   responder: {

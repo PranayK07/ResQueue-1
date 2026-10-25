@@ -45,7 +45,7 @@ export const clockHMSTz = (ms: number) => hmsTz.format(ms);
 
 /** "+6 min" / "−3 min" (true minus sign for legibility). */
 export function formatSlack(slackS: number | null) {
-  if (slackS === null) return '—';
+  if (slackS === null || !Number.isFinite(slackS) || Math.abs(slackS) >= 1e8) return '—';
   const m = Math.round(slackS / 60);
   return m < 0 ? `−${Math.abs(m)} min` : `+${m} min`;
 }
@@ -120,7 +120,11 @@ export function queueItems(s: QueueRows): QueueItem[] {
 export function activeMission(s: ResponderSnapshot, items: QueueItem[]) {
   const me = s.units.find(u => u.id === s.me.unitId);
   if (!me || me.currentRequest === 0n) return null;
-  return items.find(i => i.request.id === me.currentRequest) ?? null;
+  const planned = items.find(i => i.request.id === me.currentRequest);
+  if (planned) return planned;
+  const request = s.requests.find(r => r.id === me.currentRequest);
+  return request ? { request, rank: 0, unitId: me.id, unitCallsign: me.callsign,
+    etaS: me.trip?.arriveS ?? s.clock.simS, reason: 'Current unit assignment', committed: true } : null;
 }
 
 // ─── Grid geometry ─────────────────────────────────────────────────────────

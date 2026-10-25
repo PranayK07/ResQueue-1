@@ -31,6 +31,7 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
 
   const [mode, setMode] = useState<'none' | 'override' | 'flag'>('none');
   const [stationId, setStationId] = useState<number>(r.pinnedStationId);
+  const [dispatchUnitId, setDispatchUnitId] = useState(0);
   const [note, setNote] = useState('');
   const [kind, setKind] = useState<FlagKind>('escalation');
   const [busy, setBusy] = useState(false);
@@ -78,7 +79,7 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
         <div>
           <p className="cdetail__address">{place ? place.street : 'Finding address…'}</p>
           <p className="mono cdetail__coords">
-            {r.lat.toFixed(4)}, {r.lon.toFixed(4)} · synthetic location
+            {r.lat.toFixed(4)}, {r.lon.toFixed(4)} · {r.channel === 'app' ? 'caller-shared location' : 'incident location'}
           </p>
         </div>
 
@@ -91,7 +92,7 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
             <p className="mono cdetail__strong">
               {row.station.name} /{' '}
               {row.escalated || !row.unit ? (
-                'Review'
+                row.pending ? 'Awaiting dispatch' : 'Review'
               ) : (
                 <button type="button" className="clinkbtn" onClick={() => onSelectUnit(row.unit!.id)}>
                   {row.unit.callsign}
@@ -99,7 +100,7 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
               )}
             </p>
             <p className="cdetail__sub">
-              {row.escalated ? 'No ground unit committed' : row.committed ? `${row.unit?.status === 'on_scene' ? 'On scene' : 'En route'} to this request` : unitAvailability(row.unit, snapshot, nowMs)}
+              {row.escalated ? 'No ground unit committed' : row.committed ? `${row.unit?.status === 'on_scene' ? 'On scene' : row.unit?.status === 'assigned' ? 'Assigned' : 'En route'} to this request` : unitAvailability(row.unit, snapshot, nowMs)}
               {r.pinnedStationId > 0 && ` · pinned to ${stationName(r.pinnedStationId)}`}
             </p>
           </div>
@@ -132,7 +133,7 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
               <p className="mono cslack__value">{slackText(r.slackS)}</p>
               <p className="cslack__label">Safety-adjusted slack</p>
             </div>
-            {!row.escalated && (
+            {!row.escalated && !row.pending && (
               <div className="cslack__eta">
                 <p className="mono">
                   ETA {clockHM(simToMs(snapshot.clock, row.entry.etaS))} · {Math.max(0, Math.round((row.entry.etaS - snapshot.clock.simS) / 60))} min
@@ -221,6 +222,21 @@ export function RequestDetails({ row, rank, total, snapshot, source, nowMs, onSe
             <p className="cdetail__logged">Actions are logged</p>
           </div>
         )}
+        {source.capabilities.unitAssignment && !row.committed && (
+          <div className="cform">
+            <label className="cform__label" htmlFor="dispatch-unit">Dispatch a ground unit</label>
+            <select id="dispatch-unit" value={dispatchUnitId} onChange={e => setDispatchUnitId(Number(e.target.value))} disabled={busy}>
+              <option value={0}>Choose an available unit…</option>
+              {snapshot.units.filter(u => u.status === 'available' && u.currentRequest === 0n && u.capacity >= r.headcount).map(u => (
+                <option key={u.id} value={u.id}>{u.callsign} · {stationName(u.stationId)} · {u.capacity} seats</option>
+              ))}
+            </select>
+            <button type="button" className="cbtn cbtn--dark" disabled={busy || !dispatchUnitId} onClick={() => run(() => source.assignToUnit(r.id, dispatchUnitId))}>
+              {busy ? 'Dispatching…' : 'Dispatch unit'}
+            </button>
+          </div>
+        )}
+        {row.unit && row.committed && <a className="cbtn" href={`#/responder/${row.unit.id}`}>Open {row.unit.callsign} responder view →</a>}
         {error && <p className="cerror">{error}</p>}
       </div>
 

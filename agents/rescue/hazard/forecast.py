@@ -35,6 +35,8 @@ FIRE_REFORECAST_S = 45.0
 # Arrival times are quantised so tiny shifts don't rewrite thousands of unchanged rows.
 QUANTUM_S = 30.0
 PUBLISH_TIMEOUT_S = 90.0
+PUBLISH_RETRY_S = 2.0
+FORECAST_REFRESH_SIM_S = 15 * 60.0
 
 
 class ForecastEngine:
@@ -45,18 +47,28 @@ class ForecastEngine:
         self._fuel: FuelMap | None = None
         self._grid: Grid | None = None
         self._last_fire_run = 0.0
+        self._clock_trigger_s = -math.inf
         self._risk_busy = False
         self._risk_sig = None
         self._risk_status = None
         self._risk_error = ""
         self._debounce: Debouncer | None = None
+        self._retry: asyncio.TimerHandle | None = None
         self.learned = LearnedForecastBackend(settings.fire_forecast_backend,
             settings.fire_forecast_checkpoint, settings.fire_forecast_metadata)
 
     async def on_ready(self, ctx: Context) -> None:
+        if self._retry:
+            self._retry.cancel()
+            self._retry = None
         self._debounce = Debouncer(self.tick)
-        self.db.on_update(["weather", "fire_cell", "grid"], self._changed)
+        self.db.on_update(["weather", "fire_cell", "grid", "sim_clock"], self._changed)
         self._debounce.trigger()
+
+    def _retry_forecast(self) -> None:
+        self._retry = None
+        if self._debounce:
+            self._debounce.trigger()
 
     def _changed(self, upd: Update) -> None:
         if self._debounce is None:
@@ -64,6 +76,13 @@ class ForecastEngine:
         loop = asyncio.get_running_loop()
         if upd.touched("grid"):
             self._fuel = None  # new scenario
+            self._clock_trigger_s = -math.inf
+        if upd.touched("sim_clock") and not upd.touched("grid", "weather", "fire_cell"):
+            now = self.host.sim_now()
+            if now < self._clock_trigger_s or now - self._clock_trigger_s >= FORECAST_REFRESH_SIM_S:
+                self._clock_trigger_s = now
+                self._debounce.trigger()
+            return
         if (settings.fire_source == "recorded" or upd.touched("grid", "weather")
                 or loop.time() - self._last_fire_run >= FIRE_REFORECAST_S):
             self._last_fire_run = loop.time()
@@ -81,7 +100,7 @@ class ForecastEngine:
             return
         if self._fuel is None or self._grid != grid:
             self._grid, self._fuel = grid, FuelMap.uniform(grid, seed=FUEL_SEED)
-        versions = self.db.table("world_version").one()
+        versions = dict(self.db.table("world_version").one())
         now = self.host.sim_now()
         wind = Wind(w_row["wind_speed_mps"], w_row["wind_from_deg"])
 
@@ -103,11 +122,17 @@ class ForecastEngine:
             await self.db.call("publish_forecast", versions["weather"], versions["fire"], now, HORIZON_S, MEMBERS, cells,
                                timeout=PUBLISH_TIMEOUT_S)
         except (httpx.TimeoutException, httpx.TransportError, ReducerError) as e:
-            # The write is an idempotent upsert, so a timeout is safe to retry on the next trigger.
+            # A stale snapshot or lost acknowledgement must not stall planning until the next weather change.
             self.host.set_part("forecast", "degraded", f"publish failed: {type(e).__name__}")
-            self.log.warning("forecast publish failed (%s); will retry on the next fire/wind change", type(e).__name__)
+            self.log.warning("forecast publish failed (%s); recomputing in %.1fs", type(e).__name__, PUBLISH_RETRY_S)
+            if self._debounce and self._retry is None:
+                self._retry = asyncio.get_running_loop().call_later(PUBLISH_RETRY_S, self._retry_forecast)
             return
+        if self._retry:
+            self._retry.cancel()
+            self._retry = None
         self.host.set_part("forecast", "online", f"{len(cells)} cells at risk within {HORIZON_S / 3600:.0f} h")
+        self._clock_trigger_s = now
         if settings.fire_source != "recorded":
             await self._publish_risk_status("disabled" if settings.fire_forecast_backend == "simulation" else "fallback",
                                             "Known recorded observation history is not configured")

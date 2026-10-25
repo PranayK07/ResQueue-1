@@ -3,6 +3,7 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { addIncidentBasemap, IMAGERY_SOURCE, type BasemapMode } from '../../lib/incidentBasemap';
 import arrowDownRight from '../../assets/figma/command/arrow-down-right.svg';
 import ban from '../../assets/figma/command/ban.svg';
 import warehouse from '../../assets/figma/command/warehouse.svg';
@@ -19,7 +20,7 @@ const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
 type LngLat = [number, number];
 
-const LEVEL_COLOR = ['match', ['get', 'level'], 'unreachable', '#20282d', 'critical', '#b33b32', 'high', '#b86d12', 'moderate', '#79816f', '#a5b0b5'];
+const LEVEL_COLOR = ['match', ['get', 'level'], 'unreachable', '#20282d', 'critical', '#ff6857', 'high', '#f3b451', 'moderate', '#9bb98a', '#a5b0b5'];
 
 /** A unit's route: from where it is now, through each stop in order. */
 export interface Journey {
@@ -55,6 +56,11 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Record<string, maplibregl.Marker>>({});
+  const basemapRef = useRef<ReturnType<typeof addIncidentBasemap> | null>(null);
+  const [basemap, setBasemap] = useState<BasemapMode>('satellite');
+  const [imageryError, setImageryError] = useState(false);
+  const firstSelection = useRef(true);
+  const initialGrid = useRef(snapshot.grid);
   const onSelectRef = useRef(onSelect);
   useEffect(() => {
     onSelectRef.current = onSelect;
@@ -62,39 +68,42 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    const grid = initialGrid.current;
     const map = new maplibregl.Map({
       container: containerRef.current!,
       style: STYLE_URL,
-      center: [-121.59, 39.78],
+      center: [grid.originLon + grid.cols * grid.cellSizeM / (111_320 * Math.cos(grid.originLat * Math.PI / 180)) / 2,
+        grid.originLat + grid.rows * grid.cellSizeM / 111_320 / 2],
       zoom: 12,
       attributionControl: { compact: true },
     });
     map.addControl(new maplibregl.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left');
+    map.on('error', event => {
+      if ((event as typeof event & { sourceId?: string }).sourceId === IMAGERY_SOURCE) { setImageryError(true); setBasemap('streets'); }
+    });
     map.on('load', () => {
-      for (const [id, prop, value] of [
-        ['background', 'background-color', '#e9ebdd'],
-        ['landcover_wood', 'fill-color', '#dfe5d1'],
-        ['landuse_park', 'fill-color', '#dfe5d1'],
-      ] as [string, 'background-color' | 'fill-color', string][]) {
-        if (map.getLayer(id)) map.setPaintProperty(id, prop, value);
-      }
+      basemapRef.current = addIncidentBasemap(map);
+      basemapRef.current.setMode('satellite');
       map.getContainer().querySelector('.maplibregl-compact-show')?.classList.remove('maplibregl-compact-show');
-      for (const id of ['forecast', 'forecast-edge', 'fire', 'fire-edge', 'closures', 'route', 'journey', 'requests']) map.addSource(id, { type: 'geojson', data: EMPTY });
-      map.addLayer({ id: 'forecast-fill', type: 'fill', source: 'forecast', paint: { 'fill-color': '#f1d7a4', 'fill-opacity': 0.45, 'fill-antialias': false } });
-      map.addLayer({ id: 'forecast-line', type: 'line', source: 'forecast-edge', paint: { 'line-color': '#b86d12', 'line-width': 1.2, 'line-dasharray': [3, 2] } });
-      map.addLayer({ id: 'fire-fill', type: 'fill', source: 'fire', paint: { 'fill-color': '#d99a7c', 'fill-opacity': 0.75, 'fill-antialias': false } });
-      map.addLayer({ id: 'fire-line', type: 'line', source: 'fire-edge', paint: { 'line-color': '#9d4d32', 'line-width': 1.6 } });
+      for (const id of ['forecast', 'forecast-edge', 'fire', 'fire-edge', 'closures', 'route', 'journey', 'requests', 'incident-labels']) map.addSource(id, { type: 'geojson', data: EMPTY });
+      map.addLayer({ id: 'forecast-fill', type: 'fill', source: 'forecast', paint: { 'fill-color': '#f3b451', 'fill-opacity': 0.12, 'fill-antialias': false } });
+      map.addLayer({ id: 'forecast-casing', type: 'line', source: 'forecast-edge', paint: { 'line-color': '#302414', 'line-width': 4.5 } });
+      map.addLayer({ id: 'forecast-line', type: 'line', source: 'forecast-edge', paint: { 'line-color': '#f3b451', 'line-width': 2.5, 'line-dasharray': [3, 2] } });
+      map.addLayer({ id: 'fire-fill', type: 'fill', source: 'fire', paint: { 'fill-color': '#e5664f', 'fill-opacity': 0.26, 'fill-antialias': false } });
+      map.addLayer({ id: 'fire-casing', type: 'line', source: 'fire-edge', paint: { 'line-color': '#3b1d18', 'line-width': 5 } });
+      map.addLayer({ id: 'fire-line', type: 'line', source: 'fire-edge', paint: { 'line-color': '#ff765f', 'line-width': 2.8 } });
+      map.addLayer({ id: 'closure-casing', type: 'line', source: 'closures', paint: { 'line-color': '#fff5ec', 'line-width': 7 } });
       map.addLayer({ id: 'closure-line', type: 'line', source: 'closures', paint: { 'line-color': '#b33b32', 'line-width': 4, 'line-dasharray': [1, 0.8] } });
-      map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 7 } });
-      map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#2d5b73', 'line-width': 4 } });
-      map.addLayer({ id: 'journey-casing', type: 'line', source: 'journey', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 7 } });
+      map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#142c38', 'line-width': 8 } });
+      map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#69caff', 'line-width': 4 } });
+      map.addLayer({ id: 'journey-casing', type: 'line', source: 'journey', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#142c38', 'line-width': 8 } });
       map.addLayer({
         id: 'journey-current',
         type: 'line',
         source: 'journey',
         filter: ['==', ['get', 'current'], true],
         layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': '#2d5b73', 'line-width': 4 },
+        paint: { 'line-color': '#69caff', 'line-width': 4 },
       });
       map.addLayer({
         id: 'journey-planned',
@@ -102,8 +111,11 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
         source: 'journey',
         filter: ['==', ['get', 'current'], false],
         layout: { 'line-join': 'round' },
-        paint: { 'line-color': '#3b6c84', 'line-width': 3, 'line-dasharray': [2, 1.5] },
+        paint: { 'line-color': '#99d8ff', 'line-width': 3, 'line-dasharray': [2, 1.5] },
       });
+      map.addLayer({ id: 'request-halos', type: 'circle', source: 'requests', paint: {
+        'circle-radius': ['case', ['get', 'selected'], 10, 8], 'circle-color': '#14231c', 'circle-opacity': 0.85,
+      } });
       map.addLayer({
         id: 'request-dots',
         type: 'circle',
@@ -112,8 +124,30 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
           'circle-radius': ['case', ['get', 'selected'], 7, 5],
           'circle-color': LEVEL_COLOR as unknown as string,
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 1.5,
+          'circle-stroke-width': 2,
         },
+      });
+      // Keep each label on a fixed side of its coordinate. Variable anchors switch sides
+      // when zooming settles, which makes labels appear to jump between callers.
+      const labelLayout: maplibregl.SymbolLayerSpecification['layout'] = {
+        'text-field': ['get', 'label'], 'text-font': ['Noto Sans Regular'],
+        'text-size': ['case', ['get', 'selected'], 13, 11],
+        'symbol-sort-key': ['get', 'priority'],
+        'text-anchor': 'left', 'text-offset': [1.5, 0], 'text-max-width': 30,
+      };
+      const labelPaint: maplibregl.SymbolLayerSpecification['paint'] = {
+        'text-color': ['match', ['get', 'kind'], 'fire', '#ff958a', 'forecast', '#ffcf79', 'route', '#99d8ff', '#ffffff'],
+        'text-halo-color': '#17271e', 'text-halo-width': 2,
+      };
+      map.addLayer({
+        id: 'incident-labels', type: 'symbol', source: 'incident-labels',
+        filter: ['==', ['get', 'selected'], false], layout: labelLayout, paint: labelPaint,
+      });
+      // Topmost symbols are placed first, reserving room for the selected callout.
+      map.addLayer({
+        id: 'selected-label', type: 'symbol', source: 'incident-labels',
+        filter: ['==', ['get', 'selected'], true],
+        layout: { ...labelLayout, 'text-allow-overlap': true }, paint: labelPaint,
       });
       map.on('click', 'request-dots', e => {
         const id = e.features?.[0]?.properties?.id;
@@ -121,6 +155,12 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
       });
       map.on('mouseenter', 'request-dots', () => (map.getCanvas().style.cursor = 'pointer'));
       map.on('mouseleave', 'request-dots', () => (map.getCanvas().style.cursor = ''));
+      const selectLabel = (e: maplibregl.MapLayerMouseEvent) => {
+        const id = e.features?.[0]?.properties?.id;
+        if (id !== undefined) onSelectRef.current(BigInt(id));
+      };
+      map.on('click', 'incident-labels', selectLabel);
+      map.on('click', 'selected-label', selectLabel);
       setReady(true);
     });
     const ro = new ResizeObserver(() => map.resize());
@@ -132,8 +172,11 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
       Object.values(markers).forEach(m => m.remove());
       map.remove();
       mapRef.current = null;
+      basemapRef.current = null;
     };
   }, []);
+
+  useEffect(() => { if (ready) basemapRef.current?.setMode(basemap); }, [ready, basemap]);
 
   const { grid, fireCells, forecastCells, closures, clock } = snapshot;
   const fireIds = useMemo(() => new Set(fireCells.map(c => c.cellId)), [fireCells]);
@@ -155,7 +198,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
     set('requests', {
       type: 'FeatureCollection',
       features: rows.map(r => ({
-        type: 'Feature',
+        type: 'Feature', id: String(r.request.id),
         properties: { id: String(r.request.id), level: r.escalated ? 'unreachable' : r.request.level, selected: r === selected },
         geometry: { type: 'Point', coordinates: [r.request.lon, r.request.lat] },
       })),
@@ -176,10 +219,10 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
     const map = mapRef.current;
     if (!map || !ready) return;
     const groups: Record<LayerName, string[]> = {
-      'Fire perimeter': ['fire-fill', 'fire-line'],
-      'Forecast +30m': ['forecast-fill', 'forecast-line'],
-      'Closed roads': ['closure-line'],
-      Requests: ['request-dots'],
+      'Fire perimeter': ['fire-fill', 'fire-line', 'fire-casing'],
+      'Forecast +30m': ['forecast-fill', 'forecast-line', 'forecast-casing'],
+      'Closed roads': ['closure-line', 'closure-casing'],
+      Requests: ['request-dots', 'request-halos'],
       Stations: [],
       'Selected route': ['route-casing', 'route-line'],
     };
@@ -188,7 +231,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
     }
   }, [ready, visible]);
 
-  // ─── HTML labels ───
+  // ─── Labels ───
   const fireAt = useMemo(() => centroid(grid, fireIds), [grid, fireIds]);
   const selLon = selected?.request.lon;
   const selLat = selected?.request.lat;
@@ -196,6 +239,34 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
     () => (selLon === undefined || selLat === undefined ? null : nearestCellPoint(grid, forecastIds, [selLon, selLat])),
     [grid, forecastIds, selLon, selLat]
   );
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const labels: FeatureCollection = { type: 'FeatureCollection', features: [] };
+    const add = (id: string, at: LngLat, properties: Record<string, string | number | boolean>) => labels.features.push({
+      type: 'Feature', id, properties, geometry: { type: 'Point', coordinates: at },
+    });
+    if (visible.has('Requests') && !journey) {
+      for (const row of rows) {
+        const active = row === selected;
+        if (!active && !labeled.has(row.request.id)) continue;
+        const minutes = slackMin(row.request.slackS);
+        const detail = minutes === null ? (row.escalated ? 'No ground route' : 'Assessing') : `Slack ${minutes > 0 ? '+' : ''}${minutes} min`;
+        add(`request-${row.request.id}`, [row.request.lon, row.request.lat], {
+          id: String(row.request.id), kind: 'request', selected: active, priority: active ? 0 : 3,
+          label: `${requestCode(row.request.id)}${active ? ` · ${detail}` : ''}`,
+        });
+      }
+    }
+    if (fireAt && visible.has('Fire perimeter')) add('fire', fireAt, { kind: 'fire', selected: false, priority: 1, label: 'ACTIVE FIRE' });
+    if (forecastAt && visible.has('Forecast +30m')) add('forecast', forecastAt, { kind: 'forecast', selected: false, priority: 2, label: 'FORECAST · +30 MIN' });
+    if (!journey && route && route.coords.length > 1 && selected?.unit && visible.has('Selected route')) {
+      add('travel', route.coords[Math.floor(route.coords.length / 2)], { kind: 'route', selected: false, priority: 1,
+        label: `${selected.unit.callsign} · ${Math.round(selected.entry.travelS / 60)} min travel` });
+    }
+    (map.getSource('incident-labels') as maplibregl.GeoJSONSource).setData(labels);
+  }, [ready, rows, labeled, selected, journey, route, fireAt, forecastAt, visible]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
@@ -214,13 +285,6 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
         };
       }
     }
-    if (visible.has('Requests')) {
-      for (const r of rows) {
-        if (!labeled.has(r.request.id) || r === selected) continue;
-        const level = r.escalated ? 'unreachable' : r.request.level;
-        want[`req-${r.request.id}`] = { at: [r.request.lon, r.request.lat], html: requestCode(r.request.id), className: `cmap-tag cmap-tag--${level}`, anchor: 'left', offset: [8, 0] };
-      }
-    }
     if (journey) {
       const u = journey.unit;
       want.unit = { at: [u.lon, u.lat], html: u.callsign, className: 'cmap-unit', anchor: 'center' };
@@ -235,31 +299,18 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
         };
       });
     } else if (selected) {
-      const m = slackMin(selected.request.slackS);
-      want.selected = {
+      if (visible.has('Requests')) want.selected = {
         at: [selected.request.lon, selected.request.lat],
-        html: `<span class="cmap-halo"></span><span class="cmap-tag cmap-tag--selected">${requestCode(selected.request.id)}${m === null ? '' : ` · ${m}m`}</span>`,
+        html: '<span class="cmap-halo"></span>',
         className: 'cmap-selected',
         anchor: 'center',
       };
-      if (route && route.coords.length > 1 && selected.unit && visible.has('Selected route')) {
-        want.travel = {
-          at: route.coords[Math.floor(route.coords.length / 2)],
-          html: `${selected.unit.callsign} · ${Math.round(selected.entry.travelS / 60)} min travel`,
-          className: 'cmap-tag cmap-tag--route',
-          anchor: 'left',
-          offset: [10, 0],
-        };
-      }
     }
     if (visible.has('Closed roads')) {
       for (const c of closures.filter(x => x.active)) {
         want[`closure-${c.id}`] = { at: [(c.lon1 + c.lon2) / 2, (c.lat1 + c.lat2) / 2], html: `<img src="${ban}" width="12" height="12" alt="" />${c.name} closed`, className: 'cmap-tag cmap-tag--closure', anchor: 'right', offset: [-8, 0] };
       }
     }
-    if (fireAt && visible.has('Fire perimeter')) want.fire = { at: fireAt, html: 'ACTIVE FIRE', className: 'cmap-text cmap-text--fire', anchor: 'center' };
-    if (forecastAt && visible.has('Forecast +30m')) want.forecast = { at: forecastAt, html: 'FORECAST · +30 MIN', className: 'cmap-text cmap-text--forecast', anchor: 'left', offset: [8, 0] };
-
     for (const key of Object.keys(markers)) {
       if (!want[key]) {
         markers[key].remove();
@@ -270,15 +321,14 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
       let m = markers[key];
       if (!m) {
         const node = el(spec.className, spec.html);
-        if (key.startsWith('req-')) node.addEventListener('click', () => onSelectRef.current(BigInt(key.slice(4))));
-        m = markers[key] = new maplibregl.Marker({ element: node, anchor: spec.anchor, offset: spec.offset }).setLngLat(spec.at).addTo(map);
+        m = markers[key] = new maplibregl.Marker({ element: node, anchor: spec.anchor, offset: spec.offset, subpixelPositioning: true }).setLngLat(spec.at).addTo(map);
       }
       m.setLngLat(spec.at);
       const node = m.getElement();
       if (node.innerHTML !== spec.html) node.innerHTML = spec.html;
       if (node.className.split(' maplibregl')[0] !== spec.className) node.className = `${spec.className} ${node.className.split(' ').filter(c => c.startsWith('maplibregl')).join(' ')}`;
     }
-  }, [ready, snapshot.stations, snapshot.clock, rows, labeled, selected, route, closures, fireAt, forecastAt, visible, journey]);
+  }, [ready, snapshot.stations, snapshot.clock, selected, closures, visible, journey]);
 
   // ─── Framing ───
   function fitIncident() {
@@ -291,7 +341,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
     ];
     if (!pts.length) return;
     const b = pts.reduce((acc, p) => acc.extend(p), new maplibregl.LngLatBounds(pts[0], pts[0]));
-    map.fitBounds(b, { padding: { top: 110, bottom: 40, left: 220, right: 70 }, duration: 500 });
+    map.fitBounds(b, { padding: { top: 110, bottom: 64, left: 190, right: 80 }, duration: 500 });
   }
   const fitRef = useRef(fitIncident);
   useEffect(() => {
@@ -319,6 +369,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || selLon === undefined || selLat === undefined) return;
+    if (firstSelection.current) { firstSelection.current = false; return; }
     const b = map.getBounds();
     if (!b.contains([selLon, selLat])) map.easeTo({ center: [selLon, selLat], duration: 500 });
     // Only when the selection changes, not on every data refresh.
@@ -331,6 +382,10 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
   return (
     <div className="cmap">
       <div ref={containerRef} className="cmap__canvas" />
+      <div className="cmap__basemap" role="group" aria-label="Map background">
+        <button type="button" aria-pressed={basemap === 'satellite'} onClick={() => { setImageryError(false); setBasemap('satellite'); }}>Satellite</button>
+        <button type="button" aria-pressed={basemap === 'streets'} onClick={() => setBasemap('streets')}>Streets</button>
+      </div>
       <div className="cmap__wind">
         <p className="cmap__wind-speed">
           <img src={arrowDownRight} width={22} height={22} alt="" style={{ transform: `rotate(${toward - 135}deg)` }} />
@@ -352,7 +407,7 @@ export function CommandMap({ snapshot, rows, selected, labeled, route, visible, 
           N ↑
         </button>
       </div>
-      <p className="cmap__disclaimer">SIMULATED SCENARIO · NOT FOR NAVIGATION</p>
+      <p className="cmap__disclaimer">{imageryError ? 'Imagery unavailable · street map shown' : basemap === 'satellite' ? 'USGS aerial imagery · simulated fire overlays' : 'Street map · simulated fire overlays'}</p>
     </div>
   );
 }

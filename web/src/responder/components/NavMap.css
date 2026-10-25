@@ -61,7 +61,7 @@
 }
 
 .nav-unit {
-  position: relative;
+  position: absolute;
   width: 16px;
   height: 16px;
   pointer-events: none;
@@ -99,7 +99,7 @@
 }
 
 .nav-dest {
-  position: relative;
+  position: absolute;
   width: 30px;
   height: 30px;
   pointer-events: none;

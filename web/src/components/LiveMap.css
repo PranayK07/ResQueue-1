@@ -50,7 +50,7 @@
 /* ─── Pin marker (Figma: Entrance vicinity / Entrance pin / Pin center) ─── */
 
 .pin {
-  position: relative;
+  position: absolute;
   width: 58px;
   height: 58px;
 }

@@ -198,6 +198,7 @@ function closeRequest(ctx: Ctx, r: Request, status: string, actor: string, why: 
     lat: 0,
     lon: 0,
     locationPurged: true,
+    note: '',
     updatedAt: ctx.timestamp,
   });
   bump(ctx, 'requests');
@@ -850,6 +851,23 @@ export const update_my_location = spacetimedb.reducer(
   }
 );
 
+/** Atomic resident edits: keep the same request and make crews re-route to the latest pin. */
+export const update_my_request = spacetimedb.reducer(
+  { requestId: t.u64(), lat: t.f64(), lon: t.f64(), headcount: t.u32(), needs: t.string(), note: t.string() },
+  (ctx, { requestId, lat, lon, headcount, needs, note }) => {
+    const r = requireRequest(ctx, requestId);
+    if (!r.resident.isEqual(ctx.sender) || r.externalRef !== '') throw new SenderError('not your request');
+    if (!isActive(r)) throw new SenderError('request is closed');
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new SenderError('invalid location');
+    if (!insideGrid(ctx, lat, lon)) throw new SenderError('location is outside the active incident area');
+    if (headcount < 1 || headcount > 50) throw new SenderError('headcount must be 1..50');
+    if (note.length > 500) throw new SenderError('note too long (max 500 chars)');
+    ctx.db.helpRequest.id.update({ ...r, lat, lon, headcount, needs: cleanNeeds(needs), note, updatedAt: ctx.timestamp });
+    bump(ctx, 'requests');
+    log(ctx, 'resident', 'request_updated', `Request #${r.id}: resident updated their pin or assistance details`, r.id);
+  }
+);
+
 // ─── Field reports (resident -> intake agent -> commander) ──────────────────
 
 const REPORT_KINDS = ['text', 'voice', 'image', 'video'];
@@ -958,15 +976,16 @@ export const publish_danger = spacetimedb.reducer(
   (ctx, { assessments, travel }) => {
     const ag = requireAgent(ctx, 'commander', 'danger');
     const version = bump(ctx, 'danger');
+    const routed = new Set(travel.filter(t => t.reachable && Number.isFinite(t.travelS) && t.travelS < 1e8).map(t => t.requestId));
     for (const d of assessments) {
       if (!LEVELS.includes(d.level)) throw new SenderError(`bad level ${d.level}`);
       const r = ctx.db.helpRequest.id.find(d.requestId);
       if (!r || !isActive(r)) continue;
       if (d.level !== r.level && (d.level === 'critical' || d.level === 'unreachable')) {
-        log(ctx, `${ag.role}:${ag.name}`, 'level', `Request #${r.id} is now ${d.level.toUpperCase()} (slack ${(d.slackS / 60).toFixed(0)} min)`, r.id);
+        log(ctx, `${ag.role}:${ag.name}`, 'level', `Request #${r.id} is now ${d.level.toUpperCase()} (${routed.has(r.id) ? `slack ${(d.slackS / 60).toFixed(0)} min` : 'no safe ground route'})`, r.id);
       }
       ctx.db.helpRequest.id.update({
-        ...r, level: d.level, slackS: d.slackS, fireEtaS: d.fireEtaS, extractS: d.extractS,
+        ...r, level: d.level, slackS: routed.has(r.id) ? d.slackS : undefined, fireEtaS: d.fireEtaS, extractS: d.extractS,
         dangerVersion: version, updatedAt: ctx.timestamp,
       });
     }
@@ -1028,12 +1047,13 @@ export const publish_risk_assessments = spacetimedb.reducer({
   if (travelKeys.size !== ids.size * [...ctx.db.station.iter()].length)
     throw new SenderError('incomplete risk travel matrix');
   const version = bump(ctx, 'danger');
+  const routed = new Set(travel.filter(t => t.reachable && Number.isFinite(t.travelS) && t.travelS < 1e8).map(t => t.requestId));
   for (const risk of risks) {
     const request = requireRequest(ctx, risk.requestId);
     const row = { ...risk, ...s, dangerVersion: version, updatedAt: ctx.timestamp };
     if (ctx.db.requestRisk.requestId.find(risk.requestId)) ctx.db.requestRisk.requestId.update(row);
     else ctx.db.requestRisk.insert(row);
-    ctx.db.helpRequest.id.update({ ...request, level: risk.level, slackS: risk.slackS,
+    ctx.db.helpRequest.id.update({ ...request, level: risk.level, slackS: routed.has(request.id) ? risk.slackS : undefined,
       fireEtaS: risk.fireEtaS, extractS: risk.extractS, dangerVersion: version, updatedAt: ctx.timestamp });
     if (request.level !== risk.level && ['critical', 'unreachable'].includes(risk.level))
       log(ctx, 'commander', 'risk_level', `Risk ${risk.assessmentId}: ${risk.level}`, request.id);
@@ -1105,11 +1125,23 @@ export const publish_plan = spacetimedb.reducer(
       if (r && r.status === 'queued') ctx.db.helpRequest.id.update({ ...r, status: 'pending', updatedAt: ctx.timestamp });
     }
 
+    const escalated = new Set(unreachable.map(u => u.requestId));
+    for (const f of ctx.db.flag.iter()) {
+      if (f.resolved || f.kind !== 'unreachable' || f.raisedBy !== actor || escalated.has(f.requestId)) continue;
+      const r = ctx.db.helpRequest.id.find(f.requestId);
+      if (planned.has(f.requestId) || (r && isLocked(r))) {
+        ctx.db.flag.id.update({ ...f, resolved: true, resolution: 'Ground assignment is feasible in the current plan' });
+      }
+    }
     for (const u of unreachable) {
       const r = ctx.db.helpRequest.id.find(u.requestId);
       if (!r || !isActive(r)) continue;
-      const open = [...ctx.db.flag.requestId.filter(r.id)].some(f => f.kind === 'unreachable' && !f.resolved);
-      if (open) continue;
+      const open = [...ctx.db.flag.requestId.filter(r.id)].find(f => f.kind === 'unreachable' && !f.resolved && f.raisedBy === actor);
+      if (open) {
+        if (open.detail !== u.detail || open.recommendation !== u.recommendation)
+          ctx.db.flag.id.update({ ...open, detail: u.detail, recommendation: u.recommendation });
+        continue;
+      }
       ctx.db.flag.insert({
         id: 0n, requestId: r.id, kind: 'unreachable', detail: u.detail, recommendation: u.recommendation,
         raisedBy: actor, resolved: false, resolution: '', createdAt: ctx.timestamp,
@@ -1221,6 +1253,41 @@ export const crew_heartbeat = spacetimedb.reducer(
 
 // ─── Commander (dashboard or ASI:One commander agent) ───────────────────────
 
+/** Dispatch one available unit now. A committed mission is preserved by subsequent policy runs. */
+export const assign_to_unit = spacetimedb.reducer(
+  { requestId: t.u64(), unitId: t.u32() },
+  (ctx, { requestId, unitId }) => {
+    const actor = requireCommander(ctx);
+    const r = requireRequest(ctx, requestId);
+    const u = requireUnit(ctx, unitId);
+    if (!isActive(r) || r.locationPurged) throw new SenderError('request is closed');
+    if (u.currentRequest === r.id && isLocked(r)) return;
+    if (isLocked(r)) throw new SenderError('request already has a committed unit');
+    if (u.status !== 'available' || u.currentRequest !== 0n) throw new SenderError(`${u.callsign} is not available`);
+    if (r.headcount > u.capacity) throw new SenderError(`${u.callsign} does not have capacity for this party`);
+    const now = simNow(ctx);
+    const travel = ctx.db.travelEstimate.key.find(r.id * 1024n + BigInt(u.stationId));
+    const metres = Math.hypot((r.lat - u.lat) * 111_320,
+      (r.lon - u.lon) * 111_320 * Math.cos((u.lat * Math.PI) / 180));
+    const travelS = travel?.reachable && Number.isFinite(travel.travelS) && travel.travelS < 1e8
+      ? travel.travelS : metres * 1.35 / 12;
+    const etaS = now + Math.max(1, travelS);
+    const planVersion = bump(ctx, 'plan');
+    const previous = ctx.db.queueEntry.requestId.find(r.id);
+    const rank = Math.max(0, ...[...ctx.db.queueEntry.stationId.filter(u.stationId)].map(q => q.rank)) + 1;
+    const row = { requestId: r.id, stationId: u.stationId, rank, unitId, etaS,
+      reason: `Incident command dispatched ${u.callsign}`, residentReason: `${u.callsign} assigned by incident command`,
+      policy: 'manual', planVersion, updatedAt: ctx.timestamp };
+    if (previous) ctx.db.queueEntry.requestId.update(row);
+    else ctx.db.queueEntry.insert(row);
+    ctx.db.helpRequest.id.update({ ...r, status: 'assigned', pinnedStationId: u.stationId, updatedAt: ctx.timestamp });
+    ctx.db.unit.id.update({ ...u, status: 'assigned', currentRequest: r.id,
+      freeAtS: etaS + Math.max(180, r.extractS), updatedAt: ctx.timestamp });
+    bump(ctx, 'requests');
+    log(ctx, actor, 'dispatch', `${u.callsign} assigned to request #${r.id} by incident command`, r.id);
+  }
+);
+
 /** Pin a request to a station (stationId = 0 unpins). The policy must obey. */
 export const override_assignment = spacetimedb.reducer(
   { requestId: t.u64(), stationId: t.u32(), note: t.string() },
@@ -1318,9 +1385,15 @@ function visibleRequests(ctx: VCtx) {
       return [...ctx.db.helpRequest.resident.filter(ctx.sender)];
     case 'station': {
       const out = [];
+      const seen = new Set<bigint>();
       for (const q of ctx.db.queueEntry.stationId.filter(s.stationId)) {
         const r = ctx.db.helpRequest.id.find(q.requestId);
-        if (r) out.push(r);
+        if (r) { out.push(r); seen.add(r.id); }
+      }
+      for (const u of ctx.db.unit.stationId.filter(s.stationId)) {
+        if (u.currentRequest === 0n || seen.has(u.currentRequest)) continue;
+        const r = ctx.db.helpRequest.id.find(u.currentRequest);
+        if (r) { out.push(r); seen.add(r.id); }
       }
       return out;
     }
@@ -1446,6 +1519,10 @@ export const my_operator = spacetimedb.view(
  *  reason, never the scoring formula or anyone else's data. */
 const ResidentCard = t.row('ResidentCardRow', {
   requestId: t.u64().primaryKey(),
+  lat: t.f64(),
+  lon: t.f64(),
+  note: t.string(),
+  updatedAt: t.timestamp(),
   status: t.string(),
   level: t.string(),
   queuePosition: t.u32(),
@@ -1479,6 +1556,10 @@ export const my_requests = spacetimedb.view(
       }
       out.push({
         requestId: r.id,
+        lat: r.lat,
+        lon: r.lon,
+        note: r.note,
+        updatedAt: r.updatedAt,
         status: r.status,
         level: r.level,
         queuePosition: q && q.unitId === 0 ? position : 0,

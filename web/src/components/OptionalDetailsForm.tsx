@@ -31,13 +31,14 @@ async function toMediaItem(file: File): Promise<MediaItem> {
 }
 
 interface Props {
+  allowMedia?: boolean;
   idPrefix: string;
   value: Details;
   onChange: (next: Details) => void;
 }
 
 /** Headcount, needs, note and media. All of it stays on the device until sent. */
-export function OptionalDetailsForm({ idPrefix, value, onChange }: Props) {
+export function OptionalDetailsForm({ idPrefix, value, onChange, allowMedia = true }: Props) {
   const set = (patch: Partial<Details>) => onChange({ ...value, ...patch });
 
   return (
@@ -105,7 +106,7 @@ export function OptionalDetailsForm({ idPrefix, value, onChange }: Props) {
         />
       </div>
 
-      <div className="details__field">
+      {allowMedia && <div className="details__field">
         <span className="details__label">Photo or video</span>
         {value.media.length > 0 && (
           <ul className="details__media">
@@ -136,7 +137,7 @@ export function OptionalDetailsForm({ idPrefix, value, onChange }: Props) {
           />
         </label>
         <p className="details__hint">Media uploads separately and never blocks the help alert.</p>
-      </div>
+      </div>}
     </div>
   );
 }

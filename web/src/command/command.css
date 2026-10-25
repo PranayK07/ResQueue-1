@@ -1,5 +1,10 @@
 /* Incident command: light, dense desktop workspace (Figma 3:3691, 8:1397). */
 
+.cescalation.carrival {
+  background: #eaf1f5;
+  color: #2d5b73;
+}
+
 .cpage {
   --c-bg: #eef0f1;
   --c-panel: #fff;
@@ -656,13 +661,13 @@ input.cbtn {
 }
 
 .ckey--unreachable { background: var(--c-ink); }
-.ckey--critical { background: var(--c-red); }
-.ckey--high { background: var(--c-amber); }
-.ckey--moderate { background: #79816f; }
-.ckey--fire { width: 15px; height: 9px; background: #d99a7c; border: 1px solid #9d4d32; }
-.ckey--forecast { width: 15px; height: 9px; background: #f1d7a4; border: 1px dashed var(--c-amber); }
+.ckey--critical { background: #ff6857; }
+.ckey--high { background: #f3b451; }
+.ckey--moderate { background: #9bb98a; }
+.ckey--fire { width: 15px; height: 9px; background: #e5664f; border: 1px solid #ff765f; }
+.ckey--forecast { width: 15px; height: 9px; background: #f9e1b8; border: 1px dashed #b86d12; }
 .ckey--closed { width: 15px; height: 3px; background: var(--c-red); }
-.ckey--route { width: 15px; height: 3px; background: #2d5b73; }
+.ckey--route { width: 15px; height: 3px; background: #69caff; border: 1px solid #142c38; }
 
 .cwind {
   display: flex;

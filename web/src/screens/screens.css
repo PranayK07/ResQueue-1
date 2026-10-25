@@ -152,8 +152,10 @@
 
 .travel {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
+  gap: 8px 16px;
   color: var(--text);
   font-weight: 600;
   line-height: normal;
@@ -166,6 +168,12 @@
 
 .travel__time {
   font-size: 20px;
+}
+
+@media (max-width: 359px) {
+  .estimate__value {
+    font-size: 30px;
+  }
 }
 
 .details-card {

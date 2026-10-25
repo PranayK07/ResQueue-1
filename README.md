@@ -69,7 +69,7 @@ reproducible tests, migration and failure diagnosis. No training runs during rep
  │  timers:  sim_tick (1 s) · expire_consent (per request)                          │
  └─────────────────────────────────────────────────────────────────────────────────┘
                  ▲ same subscriptions
-        web dashboard / resident & responder phones (frontend, TODO)
+        web dashboard / resident & responder phones (live subscriptions)
 ```
 
 **Why SpacetimeDB is load-bearing:**
@@ -141,7 +141,7 @@ web/                          frontend (Vite + React + TS): cd web && npm instal
 | `danger` engine (inside commander) | risk + slack + level + travel time per request, via `rescue/core/danger.py` (written; end-to-end run on a throwaway database: 24 requests scored, 24 queued, 5 units dispatched) |
 | Commander planning loop | builds `PlanInput` from the database, runs the policy chosen by `POLICY` (`lookahead` placeholder by default, `rl` = the RL teammate's `rescue/rl_policy.py`), publishes the plan with current risk records and trace IDs; learned fire risk exercised through the real local agent mesh. The separate RL dispatcher remains a stub. See `docs/RL_INTEGRATION.md` |
 | Unit missions | **simulated crews**: `agents/scripts/sim_crews.py` (started by `run_all` unless `SIM_CREWS=0`) takes dispatched units en route, on scene and back; a responder phone open for a unit makes the rescued call itself |
-| Frontend (`web/`, Vite + React) | **wired to SpacetimeDB** (`VITE_DATA_SOURCE=live`, the default; `sim` keeps Sharon's in-browser simulation). Incident command (`#/command`: sign-in, replay clock, speed, mock pings, learned-forecast status) and the responder phone (`#/responder/<unitId>`) run on live data; the resident screen (`#/`) still uses simulated dispatch. Live layer: `web/src/live/` (connection, store, reducers, sign-in gate) and `web/src/ops/live/` (the two sources). Demo: [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md) |
+| Frontend (`web/`, Vite + React) | **wired to SpacetimeDB** (`VITE_DATA_SOURCE=live`, the default; `sim` keeps Sharon's in-browser simulation). Incident command (`#/command`: sign-in, replay clock, speed, mock pings, learned-forecast status) and the responder phone (`#/responder/<unitId>`) run on live data; the resident screen (`#/`) submits real help requests and follows private server status. Unplanned requests appear immediately in command; command can dispatch an available unit, whose responder screen receives the pin and road directions. Live layer: `web/src/live/` (connection, store, reducers, sign-in gate) and `web/src/ops/live/` (the two sources). Demo: [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md) |
 
 ## Quick start
 

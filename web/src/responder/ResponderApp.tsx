@@ -1,5 +1,6 @@
 import '@fontsource/ibm-plex-mono/600.css';
 import { useEffect, useRef, useState } from 'react';
+import { useMediaQuery } from '../lib/useMediaQuery';
 import { useNow } from '../lib/useNow';
 import { useWatchPosition } from '../lib/useWatchPosition';
 import { activeMission, clockHM, etaMinutes, formatSlack, queueItems, requestCode, simNow, simToMs, type QueueItem } from '../ops/derive';
@@ -20,7 +21,7 @@ const OFF_ROUTE_M = 80; // GPS further than this from the line → re-route
 const REROUTE_MIN_GAP_MS = 15_000;
 const FAR_FROM_INCIDENT_M = 50_000;
 
-/** Responder phone: full-screen map, queue drop-down, swipe-up directions. */
+/** Responsive responder workspace: mobile overlays become a desktop side pane. */
 export function ResponderApp({ unitId }: { unitId: number }) {
   const { snapshot: s, source } = useResponderData(unitId);
   const nowMs = useNow(1000);
@@ -40,10 +41,13 @@ export function ResponderApp({ unitId }: { unitId: number }) {
   const [sheetH, setSheetH] = useState(SHEET_PEEK);
   const [previewId, setPreviewId] = useState<bigint | null>(null);
   const [useGps, setUseGps] = useState(false);
-  const [follow, setFollow] = useState(true);
+  const [follow, setFollow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [appH, setAppH] = useState(() => window.innerHeight);
+  // Keep this breakpoint in sync with responder.css.
+  const desktop = useMediaQuery('(min-width: 1000px)');
+  const mapBottom = desktop ? 0 : sheetH;
   useEffect(() => {
     const onResize = () => setAppH(window.innerHeight);
     window.addEventListener('resize', onResize);
@@ -80,7 +84,7 @@ export function ResponderApp({ unitId }: { unitId: number }) {
     positionRef.current = position;
   });
   const hasOrigin = !!(chainOrigin ?? position);
-  const routeKey = target && hasOrigin ? `${target.request.id}:${chainOrigin ? chainOrigin.join(',') : useGps ? 'gps' : 'unit'}:${reroute}` : '';
+  const routeKey = target && hasOrigin ? `${target.request.id}:${target.request.lon},${target.request.lat}:${chainOrigin ? chainOrigin.join(',') : useGps ? 'gps' : 'unit'}:${reroute}` : '';
   const destLon = target?.request.lon;
   const destLat = target?.request.lat;
   useEffect(() => {
@@ -152,7 +156,8 @@ export function ResponderApp({ unitId }: { unitId: number }) {
       <header className="rbar">
         <p className="rbar__updated" title="Last update from the queue">
           <img src={brandMark} width={11} height={14} alt="" />
-          <b>ResQueue</b> {clockHM(s.updatedAtMs)} · {ago}s ago
+          <b>ResQueue</b>
+          <span className="rbar__time">{clockHM(s.updatedAtMs)} · {ago}s ago</span>
         </p>
         <div className="rbar__right">
           <span className="rbar__sim">SIM</span>
@@ -170,7 +175,7 @@ export function ResponderApp({ unitId }: { unitId: number }) {
           {target ? (
             <>
               <span className="mbar__label">
-                {preview ? 'PREVIEW' : target === active ? (onScene ? 'ON SCENE' : 'EN ROUTE') : 'NEXT'} · {callsign}
+                {preview ? 'PREVIEW' : target === active ? (onScene ? 'ON SCENE' : me?.status === 'assigned' ? 'ASSIGNED' : 'EN ROUTE') : 'NEXT'} · {callsign}
               </span>
               <span className="mbar__line">
                 <span className="mono mbar__code">{requestCode(target.request.id)}</span>
@@ -195,7 +200,7 @@ export function ResponderApp({ unitId }: { unitId: number }) {
         </span>
       </button>
 
-      <div className="rapp__stage" style={{ ['--nav-top' as string]: '10px', ['--nav-bottom' as string]: `${sheetH + 8}px` }}>
+      <div className={`rapp__stage${queueOpen ? ' rapp__stage--queue-open' : ''}`} style={{ ['--nav-top' as string]: '10px', ['--nav-bottom' as string]: `${mapBottom + 8}px` }}>
         <NavMap
           snapshot={s}
           target={target}
@@ -206,11 +211,11 @@ export function ResponderApp({ unitId }: { unitId: number }) {
           laterStops={laterStops}
           follow={follow && live}
           onUserMove={() => setFollow(false)}
-          padding={{ top: 0, bottom: sheetH }}
+          padding={{ top: 0, bottom: mapBottom }}
         />
 
         {(!follow || !live) && (position || chainOrigin) && (
-          <button type="button" className="recenter" style={{ bottom: sheetH + 14 }} onClick={backToCurrent}>
+          <button type="button" className="recenter" style={{ bottom: mapBottom + 14 }} onClick={backToCurrent}>
             ◎ {preview ? 'Back to my route' : 'Recenter'}
           </button>
         )}
@@ -241,6 +246,7 @@ export function ResponderApp({ unitId }: { unitId: number }) {
         )}
 
         <DirectionsSheet
+          docked={desktop}
           appHeight={appH}
           expanded={sheetExpanded}
           onExpandedChange={setSheetExpanded}
@@ -281,6 +287,7 @@ export function ResponderApp({ unitId }: { unitId: number }) {
                   Open in Google Maps ↗
                 </a>
               )}
+              {target && <button type="button" className="rchip" onClick={() => setFollow(false)}>Show entire route</button>}
               <span className="rseg" role="group" aria-label="Route from">
                 <button type="button" className={!useGps ? 'is-on' : ''} aria-pressed={!useGps} onClick={() => setUseGps(false)}>
                   Unit position

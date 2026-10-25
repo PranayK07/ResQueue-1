@@ -113,7 +113,10 @@ def compose_risks(
         )
         free[unit["station_id"]] = min(free.get(unit["station_id"], math.inf), at)
     routes = {}
+    ground_routes = set()
     for leg in travel:
+        if leg["reachable"] and math.isfinite(leg["travel_s"]):
+            ground_routes.add(leg["request_id"])
         if leg["reachable"] and leg["station_id"] in free and math.isfinite(leg["travel_s"]):
             routes.setdefault(leg["request_id"], []).append(leg)
     out = []
@@ -144,8 +147,10 @@ def compose_risks(
                         duration = now + drive + wait + danger["extract_s"] + MARGIN_S
                         lower_slack = window["lower_s"] - duration if window["lower_s"] is not None else None
                         upper_slack = window["upper_s"] - duration if window["upper_s"] is not None else None
+        ground_route = rid in ground_routes
         reason = (
-            f"Physical risk {danger['level']}; immediate slack {danger['slack_s'] / 60:.1f} min. "
+            (f"Physical risk {danger['level']}; immediate slack {danger['slack_s'] / 60:.1f} min. "
+             if ground_route else "No safe ground route; rescue slack cannot be calculated. ")
             + (
                 f"Station {leg['station_id']}: travel {drive / 60:.1f} min, wait {wait / 60:.1f} min, "
                 f"extraction {danger['extract_s'] / 60:.1f} min; scheduled slack {scheduled / 60:.1f} min. "

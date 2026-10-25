@@ -3,7 +3,7 @@ import brandMark from '../assets/figma/brand-mark.svg';
 import type { CallerLocation } from '../lib/request';
 import './ui.css';
 
-/** Mobile frame shared by every caller screen: product identity bar + content. */
+/** Full-width shell shared by every caller screen: product identity bar + content. */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="screen">
@@ -17,6 +17,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="screen__content">{children}</main>
     </div>
   );
+}
+
+/** Related content stays together when the caller flow becomes two columns. */
+export function ScreenSection({ children, secondary = false }: { children: ReactNode; secondary?: boolean }) {
+  return <div className={`screen__section${secondary ? ' screen__section--secondary' : ''}`}>{children}</div>;
 }
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' };

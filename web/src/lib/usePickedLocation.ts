@@ -16,13 +16,13 @@ export function usePickedLocation(initial: CallerLocation | null) {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
-    setLocation({ ...coordsPlace(lat, lon), street: 'Finding address…', area: '', entrance });
+    setLocation(current => ({ ...coordsPlace(lat, lon), street: 'Finding address…', area: '', entrance: current?.entrance ?? entrance }));
     setLookingUp(true);
     return reverseGeocode(lat, lon, ctrl.signal)
       .catch(() => coordsPlace(lat, lon))
       .then(place => {
         if (!ctrl.signal.aborted) {
-          setLocation({ ...place, entrance });
+          setLocation(current => ({ ...place, entrance: current?.entrance ?? entrance }));
           setLookingUp(false);
         }
         return place;

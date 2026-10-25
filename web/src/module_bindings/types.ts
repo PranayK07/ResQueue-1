@@ -494,6 +494,10 @@ export type RequestRiskInput = __Infer<typeof RequestRiskInput>;
 
 export const ResidentCardRow = __t.object("ResidentCardRow", {
   requestId: __t.u64(),
+  lat: __t.f64(),
+  lon: __t.f64(),
+  note: __t.string(),
+  updatedAt: __t.timestamp(),
   status: __t.string(),
   level: __t.string(),
   queuePosition: __t.u32(),

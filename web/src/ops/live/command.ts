@@ -1,6 +1,5 @@
-// Incident command on SpacetimeDB. The backend plans the queue itself (the commander agent's dispatch policy), so
-// the simulation's unit-level tools (assign to a unit, stop order, what-if preview) are off; the commander pins a
-// request to a station instead. Rejections carry UI copy (the screens print e.message).
+// Incident command on SpacetimeDB: humans can dispatch an available unit directly;
+// the agent continues planning all uncommitted requests.
 
 import { callWithCopy as run } from '../../live/reducers';
 import { store } from '../../live/store';
@@ -9,7 +8,7 @@ import type { CommandCapabilities, CommandSource } from '../sources';
 import { createCommandBuilder, liveStore } from './snapshot';
 
 const CAPABILITIES: CommandCapabilities = Object.freeze({
-  unitAssignment: false,
+  unitAssignment: true,
   planPreview: false,
   speed: true,
   releaseWind: true,
@@ -42,13 +41,7 @@ export function createLiveCommandSource(): CommandSource {
     setWeather: (windSpeedMps, windFromDeg, gustMps) => run('set_weather', { windSpeedMps, windFromDeg, gustMps, source: 'manual' }),
     releaseWeatherLock: () => run('release_weather_lock', {}),
     overrideAssignment: (requestId, stationId, note) => run('override_assignment', { requestId, stationId, note }),
-    assignToUnit: (requestId, unitId) => {
-      // The backend can pin a station, not a unit: pin the unit's station (0 unpins).
-      if (unitId === 0) return run('override_assignment', { requestId, stationId: 0, note: '' });
-      const unit = store.rows('unit').find(u => u.id === unitId);
-      if (!unit) return Promise.reject(new Error('That unit is no longer in the incident.'));
-      return run('override_assignment', { requestId, stationId: unit.stationId, note: `assign to ${unit.callsign}` });
-    },
+    assignToUnit: (requestId, unitId) => run('assign_to_unit', { requestId, unitId }),
     setUnitOrder: () => notLive('Reordering a unit'),
     releaseUnit: () => notLive('Releasing a unit'),
     flagRequest: (requestId, kind, detail) => run('flag_request', { requestId, kind, detail }),

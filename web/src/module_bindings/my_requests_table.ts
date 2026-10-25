@@ -12,6 +12,10 @@ import {
 
 export default __t.row({
   requestId: __t.u64().primaryKey().name("request_id"),
+  lat: __t.f64(),
+  lon: __t.f64(),
+  note: __t.string(),
+  updatedAt: __t.timestamp().name("updated_at"),
   status: __t.string(),
   level: __t.string(),
   queuePosition: __t.u32().name("queue_position"),

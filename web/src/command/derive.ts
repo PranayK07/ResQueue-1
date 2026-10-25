@@ -12,17 +12,27 @@ export interface CommandRow {
   escalated: boolean;
   /** A unit is committed (en route / on scene). */
   committed: boolean;
+  /** Received but not yet placed in a station's plan. */
+  pending?: boolean;
 }
 
 /** All requests, escalations first, then ground-queue order (planner position). */
 export function commandRows(s: CommandSnapshot): CommandRow[] {
-  const rows = s.queue.flatMap(entry => {
+  const rows: CommandRow[] = s.queue.flatMap(entry => {
     const request = s.requests.find(r => r.id === entry.requestId);
     const station = s.stations.find(st => st.id === entry.stationId);
     if (!request || !station) return [];
     const unit = s.units.find(u => u.id === entry.unitId) ?? null;
     return [{ request, entry, station, unit, escalated: entry.position === 0, committed: unit?.currentRequest === request.id }];
   });
+  const planned = new Set(rows.map(row => row.request.id));
+  for (const request of s.requests) {
+    if (planned.has(request.id)) continue;
+    rows.push({ request, pending: true, unit: null, committed: false, escalated: false,
+      station: { id: 0, name: 'Unassigned', lat: request.lat, lon: request.lon },
+      entry: { requestId: request.id, stationId: 0, unitId: 0, rank: 0, position: 0,
+        etaS: 0, waitS: 0, travelS: 0, reason: 'Received · awaiting assessment and dispatch' } });
+  }
   return rows.sort((a, b) =>
     a.escalated !== b.escalated
       ? Number(b.escalated) - Number(a.escalated)
@@ -35,7 +45,9 @@ export function commandRows(s: CommandSnapshot): CommandRow[] {
 /** Overview order: escalations first, then least slack first ("SLACK ↑"). */
 export function bySlack(rows: CommandRow[]) {
   return rows.slice().sort((a, b) =>
-    a.escalated !== b.escalated ? Number(b.escalated) - Number(a.escalated) : (a.request.slackS ?? Infinity) - (b.request.slackS ?? Infinity)
+    !!a.pending !== !!b.pending ? Number(!!b.pending) - Number(!!a.pending)
+      : a.pending ? b.request.createdAtMs - a.request.createdAtMs
+      : a.escalated !== b.escalated ? Number(b.escalated) - Number(a.escalated) : (a.request.slackS ?? Infinity) - (b.request.slackS ?? Infinity)
   );
 }
 
@@ -44,8 +56,10 @@ export type AlertTone = 'red' | 'amber' | 'blue' | 'muted';
 /** Where an alert stands right now, for the queue's STATUS column. */
 export function alertStatus(row: CommandRow, s: CommandSnapshot): { label: string; tone: AlertTone; flagged: boolean } {
   const flagged = s.flags.some(f => f.requestId === row.request.id && !f.resolved && f.kind !== 'unreachable');
+  if (row.pending) return { label: 'Received / assessing', tone: 'blue', flagged };
   if (row.escalated) return { label: 'Escalated', tone: 'red', flagged };
-  if (row.committed) return row.unit?.status === 'on_scene' ? { label: 'On scene', tone: 'amber', flagged } : { label: 'Unit en route', tone: 'blue', flagged };
+  if (row.committed) return row.unit?.status === 'on_scene' ? { label: 'On scene', tone: 'amber', flagged }
+    : { label: row.unit?.status === 'assigned' ? 'Unit assigned' : 'Unit en route', tone: 'blue', flagged };
   return { label: 'Waiting', tone: 'muted', flagged }; // the planned unit is in STATION / UNIT
 }
 
@@ -122,7 +136,7 @@ export function peopleNeedsLong(r: HelpRequest) {
   return `${r.headcount} ${r.headcount === 1 ? 'person' : 'people'}${needs.length ? ` · ${needs.join(', ')}` : ''}`;
 }
 
-export const slackMin = (slackS: number | null) => (slackS === null ? null : Math.round(slackS / 60));
+export const slackMin = (slackS: number | null) => (slackS === null || !Number.isFinite(slackS) || Math.abs(slackS) >= 1e8 ? null : Math.round(slackS / 60));
 
 export function slackText(slackS: number | null) {
   const m = slackMin(slackS);
@@ -143,7 +157,7 @@ export function stationUnit(row: CommandRow) {
  */
 export function slackBreakdown(row: CommandRow, s: CommandSnapshot, marginS: number) {
   const { request: r, entry } = row;
-  if (r.fireEtaS === null) return null;
+  if (r.fireEtaS === null || row.pending) return null;
   const now = s.clock.simS;
   const toFire = Math.round((r.fireEtaS - now) / 60);
   const wait = Math.round(entry.waitS / 60);

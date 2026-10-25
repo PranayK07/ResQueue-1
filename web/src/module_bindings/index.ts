@@ -36,6 +36,7 @@ import {
 // Import all reducer arg schemas
 import AddRoadClosureReducer from "./add_road_closure_reducer";
 import AgentHeartbeatReducer from "./agent_heartbeat_reducer";
+import AssignToUnitReducer from "./assign_to_unit_reducer";
 import ClaimOperatorReducer from "./claim_operator_reducer";
 import ClearIncidentReducer from "./clear_incident_reducer";
 import ClearNewsFocusReducer from "./clear_news_focus_reducer";
@@ -77,6 +78,7 @@ import UnitEnRouteReducer from "./unit_en_route_reducer";
 import UnitOnSceneReducer from "./unit_on_scene_reducer";
 import UnitPositionReducer from "./unit_position_reducer";
 import UpdateMyLocationReducer from "./update_my_location_reducer";
+import UpdateMyRequestReducer from "./update_my_request_reducer";
 import UpsertFireCellsReducer from "./upsert_fire_cells_reducer";
 
 // Import all procedure arg schemas
@@ -428,6 +430,7 @@ const tablesSchema = __schema({
 const reducersSchema = __reducers(
   __reducerSchema("add_road_closure", AddRoadClosureReducer),
   __reducerSchema("agent_heartbeat", AgentHeartbeatReducer),
+  __reducerSchema("assign_to_unit", AssignToUnitReducer),
   __reducerSchema("claim_operator", ClaimOperatorReducer),
   __reducerSchema("clear_incident", ClearIncidentReducer),
   __reducerSchema("clear_news_focus", ClearNewsFocusReducer),
@@ -469,6 +472,7 @@ const reducersSchema = __reducers(
   __reducerSchema("unit_on_scene", UnitOnSceneReducer),
   __reducerSchema("unit_position", UnitPositionReducer),
   __reducerSchema("update_my_location", UpdateMyLocationReducer),
+  __reducerSchema("update_my_request", UpdateMyRequestReducer),
   __reducerSchema("upsert_fire_cells", UpsertFireCellsReducer),
 );
 

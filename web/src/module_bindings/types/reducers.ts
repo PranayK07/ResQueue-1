@@ -8,6 +8,7 @@ import { type Infer as __Infer } from "spacetimedb";
 // Import all reducer arg schemas
 import AddRoadClosureReducer from "../add_road_closure_reducer";
 import AgentHeartbeatReducer from "../agent_heartbeat_reducer";
+import AssignToUnitReducer from "../assign_to_unit_reducer";
 import ClaimOperatorReducer from "../claim_operator_reducer";
 import ClearIncidentReducer from "../clear_incident_reducer";
 import ClearNewsFocusReducer from "../clear_news_focus_reducer";
@@ -49,10 +50,12 @@ import UnitEnRouteReducer from "../unit_en_route_reducer";
 import UnitOnSceneReducer from "../unit_on_scene_reducer";
 import UnitPositionReducer from "../unit_position_reducer";
 import UpdateMyLocationReducer from "../update_my_location_reducer";
+import UpdateMyRequestReducer from "../update_my_request_reducer";
 import UpsertFireCellsReducer from "../upsert_fire_cells_reducer";
 
 export type AddRoadClosureParams = __Infer<typeof AddRoadClosureReducer>;
 export type AgentHeartbeatParams = __Infer<typeof AgentHeartbeatReducer>;
+export type AssignToUnitParams = __Infer<typeof AssignToUnitReducer>;
 export type ClaimOperatorParams = __Infer<typeof ClaimOperatorReducer>;
 export type ClearIncidentParams = __Infer<typeof ClearIncidentReducer>;
 export type ClearNewsFocusParams = __Infer<typeof ClearNewsFocusReducer>;
@@ -94,5 +97,6 @@ export type UnitEnRouteParams = __Infer<typeof UnitEnRouteReducer>;
 export type UnitOnSceneParams = __Infer<typeof UnitOnSceneReducer>;
 export type UnitPositionParams = __Infer<typeof UnitPositionReducer>;
 export type UpdateMyLocationParams = __Infer<typeof UpdateMyLocationReducer>;
+export type UpdateMyRequestParams = __Infer<typeof UpdateMyRequestReducer>;
 export type UpsertFireCellsParams = __Infer<typeof UpsertFireCellsReducer>;
 

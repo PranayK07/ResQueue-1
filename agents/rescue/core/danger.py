@@ -68,17 +68,19 @@ def assess_requests(
             continue
         cid = grid.cell_id(*rc)
         fire_eta = now_s if cid in burning else forecast.get(cid, now_s + FORECAST_HORIZON_S)
-        best = UNREACHABLE_S
+        best = math.inf
         for sid, field in fields.items():
             t = float(field[rc])
             ok = math.isfinite(t)
-            best = min(best, t if ok else UNREACHABLE_S)
+            best = min(best, t)
             travel.append({"request_id": rid, "station_id": sid, "travel_s": round(t, 1) if ok else UNREACHABLE_S, "reachable": ok})
         hint, extra = (adjust or {}).get(rid, (None, 0.0))
         if hint is not None:
             fire_eta = min(fire_eta, hint)
         extract = extract_time_s(headcount, needs) + extra
-        slack = slack_s(fire_eta, now_s, 0.0, best, extract)
-        assessments.append({"request_id": rid, "level": level_for(slack), "slack_s": round(slack, 1),
+        # The legacy wire contract requires a finite number. Zero is unused when every route is
+        # unreachable; the database exposes null slack for that case. Never subtract a transport sentinel.
+        slack = slack_s(fire_eta, now_s, 0.0, best, extract) if math.isfinite(best) else 0.0
+        assessments.append({"request_id": rid, "level": level_for(slack) if math.isfinite(best) else "unreachable", "slack_s": round(slack, 1),
                             "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1)})
     return assessments, travel

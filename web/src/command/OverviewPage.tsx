@@ -52,6 +52,7 @@ export function OverviewPage() {
   const nowMs = useNow(1000);
   const rows = useMemo(() => bySlack(commandRows(s)), [s]);
   const c = counts(s, rows);
+  const latestCaller = s.requests.filter(r => r.channel === 'app').sort((a, b) => b.createdAtMs - a.createdAtMs)[0];
 
   // ─── Queue table state ───
   const [stationFilter, setStationFilter] = useState(0);
@@ -103,7 +104,7 @@ export function OverviewPage() {
   }, [legKey]);
   const journeyLegs = legs?.key === legKey ? legs.legs : null;
   const journey = useMemo<Journey | null>(() => (unit ? { unit, stops, legs: journeyLegs } : null), [unit, stops, journeyLegs]);
-  const escalations = s.flags.filter(f => !f.resolved && f.kind === 'unreachable' && rows.some(r => r.request.id === f.requestId));
+  const escalations = s.flags.filter(f => !f.resolved && f.kind === 'unreachable' && rows.some(r => r.escalated && r.request.id === f.requestId));
 
   // ─── Route for the selected request ───
   const [route, setRoute] = useState<{ key: string; route: Route } | null>(null);
@@ -227,13 +228,18 @@ export function OverviewPage() {
         <Metric value={clockHMS(s.lastPlan.atMs)} small title="Queue recomputed" sub={`${s.lastPlan.reason} · ${ago(s.lastPlan.atMs)} ago`} />
       </section>
 
+      {latestCaller && <div className="cescalation carrival" role="status">
+        <strong>Latest caller alert · {requestCode(latestCaller.id)}</strong>
+        <span>{latestCaller.headcount} {latestCaller.headcount === 1 ? 'person' : 'people'} · {latestCaller.status.replaceAll('_', ' ')}</span>
+        <button type="button" className="cbtn" onClick={() => { select(latestCaller.id); setStationFilter(0); setSearch(requestCode(latestCaller.id)); setPage(0); }}>Review caller alert →</button>
+      </div>}
       <main className="cworkspace">
         <section className="cpanel cqueue">
           <div className="cqueue__heading">
             <div>
               <h2>Full rescue queue</h2>
               <p className="csub">
-                {c.requests} requests · {c.people} people · {c.stations} stations · manual reordering enabled
+                {c.requests} requests · {c.people} people · {c.stations} stations · {s.live ? 'live incident queue' : 'manual reordering enabled'}
               </p>
             </div>
             <div className="cqueue__tools">
@@ -335,9 +341,9 @@ export function OverviewPage() {
                       <StatusPill row={r} snapshot={s} />
                     </td>
                     <td className="mono">
-                      {stationShort(r.station.name)} /{' '}
+                      {r.pending ? 'Unassigned' : stationShort(r.station.name)} /{' '}
                       {r.escalated || !r.unit ? (
-                        'Review'
+                        r.pending ? 'Awaiting dispatch' : 'Review'
                       ) : (
                         <button
                           type="button"
@@ -352,7 +358,7 @@ export function OverviewPage() {
                         </button>
                       )}
                     </td>
-                    <td className="mono">{r.escalated ? '—' : `${Math.max(0, Math.round((r.entry.etaS - s.clock.simS) / 60))} min`}</td>
+                    <td className="mono">{r.escalated || r.pending ? '—' : `${Math.max(0, Math.round((r.entry.etaS - s.clock.simS) / 60))} min`}</td>
                     <td className={`mono cslack-text cslack-text--${level}`}>{slackText(r.request.slackS)}</td>
                     <td className="muted ctable__why">{r.entry.reason}</td>
                   </tr>
