@@ -87,6 +87,10 @@ class Settings:
     # The commander holds a new request out of the queue until its reports are read, for at most this long.
     intake_grace_s: float = float(_env("INTAKE_GRACE_S", "20"))
 
+    # Simulated crews (scripts/sim_crews.py): run_all also starts the driver that takes dispatched units
+    # en route, on scene and back to their station, as station crews would. "0" = dispatched units stay assigned.
+    sim_crews: bool = _env("SIM_CREWS", "1") in ("1", "true", "yes")
+
     # News agent: trusted wildfire accounts on X, read through Bright Data's X Posts scraper. "file" replays
     # NEWS_FIXTURE (free), "brightdata" runs the scraper (billed per post returned), "off" disables it.
     news_source: str = _env("NEWS_SOURCE", "file")

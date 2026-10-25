@@ -1,8 +1,9 @@
 """Launch the whole agent mesh, one process per agent (a crash in one agent
 never takes down the others). Ctrl-C stops everything.
 
-    python -m rescue.run_all                 # all agents
+    python -m rescue.run_all                 # all agents, plus the simulated crews unless SIM_CREWS=0
     python -m rescue.run_all hazard intake   # just these
+    python -m rescue.run_all crews           # just the simulated crews (scripts/sim_crews.py)
 """
 from __future__ import annotations
 
@@ -11,7 +12,7 @@ import subprocess
 import sys
 import time
 
-from .config import AGENTS_ROOT
+from .config import AGENTS_ROOT, settings
 from .mesh import ROSTER
 
 MODULES = {
@@ -19,11 +20,15 @@ MODULES = {
     "news": ["rescue.agents.news"],
     "intake": ["rescue.agents.intake"],
     "commander": ["rescue.agents.commander"],
+    # Not a uAgent: stands in for the station crews, so dispatched units go en route, on scene and back.
+    "crews": ["scripts.sim_crews"],
 }
 
 
 def main() -> None:
-    names = sys.argv[1:] or [a.name for a in ROSTER]
+    names = sys.argv[1:] or [a.name for a in ROSTER] + (["crews"] if settings.sim_crews else [])
+    if unknown := [n for n in names if n not in MODULES]:
+        sys.exit(f"unknown agent(s) {', '.join(unknown)}; choose from {', '.join(MODULES)}")
     procs: dict[str, subprocess.Popen] = {}
     for name in names:
         mod, *args = MODULES[name]

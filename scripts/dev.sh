@@ -4,6 +4,9 @@
 #   scripts/dev.sh db         # publish only (running agents reconnect on their own)
 #   scripts/dev.sh reset      # wipe data, republish, reseed
 # Target is STDB_SERVER in .env: "local" (default) or "maincloud".
+# FIRE_SOURCE=recorded replays RECORDED_INCIDENT_PATH at SIM_SPEED x (sim seconds per real second, default 30).
+# run_all also starts the simulated crews (agents/scripts/sim_crews.py) unless SIM_CREWS=0.
+# .env is read after the command line, so a variable set there beats e.g. `SIM_SPEED=60 scripts/dev.sh`.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.local/bin:$PATH"
@@ -31,7 +34,7 @@ spacetime publish --server "$SERVER" -y ${CLEAR[@]+"${CLEAR[@]}"} "$DB"
 
 if [ "${FIRE_SOURCE:-sim}" = "recorded" ]; then
   : "${RECORDED_INCIDENT_PATH:?set RECORDED_INCIDENT_PATH to a prepared bundle}"
-  (cd agents && "../$PY" scripts/seed_recorded_incident.py "$RECORDED_INCIDENT_PATH" --run)
+  (cd agents && "../$PY" scripts/seed_recorded_incident.py "$RECORDED_INCIDENT_PATH" --run --speed "${SIM_SPEED:-30}")
 else
   (cd agents && "../$PY" scripts/seed_scenario.py scenarios/paradise_demo.json --run)
 fi
