@@ -21,6 +21,14 @@ def test_return_position_extraction_and_atomic_continuation():
                                          for n in ('command','hazard','caller','other')]
         async def rows(table):
             return await command.sql('SELECT * FROM '+table)
+        async def route(rid, arrival):
+            unit = (await rows('unit'))[0]
+            request = next(r for r in await rows('ops_request') if r['id'] == rid)
+            clock = (await rows('sim_clock'))[0]
+            versions = (await rows('world_version'))[0]
+            await command.call('publish_unit_route', 1, rid, request['lat'], request['lon'],
+                [dict(lat=unit['lat'],lon=unit['lon'],name='Fixture road'), dict(lat=request['lat'],lon=request['lon'],name='Fixture road')],
+                arrival-clock['sim_s'], 'ready', 'Isolated route fixture', str((rid,arrival)), versions['fire'], versions['roads'])
         async def publish():
             versions = (await rows('world_version'))[0]
             clock = (await rows('sim_clock'))[0]
@@ -44,6 +52,7 @@ def test_return_position_extraction_and_atomic_continuation():
             await caller.call('submit_app_request',35.602,-112.798,1,'','','',60)
             first=(await caller.sql('SELECT * FROM my_requests'))[0]['request_id']
             await command.call('assign_request_to_unit',first,1)
+            await route(first,600.0)
             await command.call('unit_en_route',1,600.0,1800.0)
             await command.call('set_replay_schedule',[0.0,300.0,600.0,1200.0])
             await command.call('advance_replay')
@@ -58,6 +67,7 @@ def test_return_position_extraction_and_atomic_continuation():
             await other.call('submit_app_request',35.603,-112.797,1,'','','',60)
             second=(await other.sql('SELECT * FROM my_requests'))[0]['request_id']
             await command.call('assign_request_to_unit',first,1)
+            await route(first,600.0)
             await command.call('unit_en_route',1,600.0,1800.0)
             await command.call('advance_replay')
             await command.call('unit_on_scene',1)

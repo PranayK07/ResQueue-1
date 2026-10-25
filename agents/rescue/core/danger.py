@@ -24,7 +24,8 @@ FORECAST_HORIZON_S = 3 * 3600.0
 UNREACHABLE_S = 1e9  # JSON-safe stand-in for "no safe ground route"
 
 
-def routing_forecast_current(meta, now_s):
+def routing_forecast_current(meta: dict | None, now_s: float) -> bool:
+    """A short-term routing forecast cannot certify access beyond its modeled window."""
     return bool(meta and meta["computed_at_s"] <= now_s < meta["computed_at_s"] + meta["horizon_s"])
 
 
@@ -63,6 +64,7 @@ def assess_requests(
     blocked = blocked_mask(grid, burning, closures)
     router = GridRouter(grid, params)
     fields = {sid: router.travel_times((lat, lon), now_s, fire_early, blocked) for sid, lat, lon in stations}
+    topology_fields = None
 
     assessments: list[dict] = []
     travel: list[dict] = []
@@ -72,17 +74,33 @@ def assess_requests(
             continue
         cid = grid.cell_id(*rc)
         fire_eta = now_s if cid in burning else forecast.get(cid, now_s + FORECAST_HORIZON_S)
-        best = UNREACHABLE_S
+        best = math.inf
         for sid, field in fields.items():
             t = float(field[rc])
             ok = math.isfinite(t)
-            best = min(best, t if ok else UNREACHABLE_S)
+            best = min(best, t)
             travel.append({"request_id": rid, "station_id": sid, "travel_s": round(t, 1) if ok else UNREACHABLE_S, "reachable": ok})
         hint, extra = (adjust or {}).get(rid, (None, 0.0))
         if hint is not None:
             fire_eta = min(fire_eta, hint)
         extract = extract_time_s(headcount, needs) + extra
-        slack = slack_s(fire_eta, now_s, 0.0, best, extract)
-        assessments.append({"request_id": rid, "level": "unreachable" if cid in burning or best == UNREACHABLE_S else level_for(slack), "slack_s": round(slack, 1),
-                            "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1), "observed_fire": cid in burning})
+        slack = slack_s(fire_eta, now_s, 0.0, best, extract) if math.isfinite(best) else 0.0
+        route_reason = ""
+        if not math.isfinite(best):
+            if cid in burning:
+                route_reason = "The request is inside the observed fire."
+            else:
+                if topology_fields is None:
+                    topology_fields = [router.travel_times((lat, lon), now_s, np.full_like(fire_early, np.inf), blocked)
+                                       for _, lat, lon in stations]
+                if any(math.isfinite(field[rc]) for field in topology_fields):
+                    route_reason = ("Forecast safety deadline blocks the approach, although the request is outside "
+                                    f"the observed fire. The grid router requires {params.fire_buffer_s / 60:g} minutes "
+                                    "of clearance before predicted fire arrival.")
+                else:
+                    route_reason = ("No grid path through the observed fire and active road closures."
+                                    if closures else "No grid path through the observed fire.")
+        assessments.append({"request_id": rid, "level": "unreachable" if cid in burning or not math.isfinite(best) else level_for(slack), "slack_s": round(slack, 1),
+                            "fire_eta_s": round(fire_eta, 1), "extract_s": round(extract, 1), "observed_fire": cid in burning,
+                            "route_reason": route_reason})
     return assessments, travel

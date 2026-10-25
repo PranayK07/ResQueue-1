@@ -153,9 +153,9 @@ def ensemble_arrival(
     """(p10, p50) arrival-time grids from a perturbed-wind ensemble.
 
     p10 = the time by which 10% of plausible futures have the fire here —
-    the conservative number the danger agent plans against. Arrivals earlier
-    than `now_s` are clamped to now (the model thinks it should already be
-    burning, so treat it as imminent)."""
+    the conservative number the danger agent plans against. The observed
+    perimeter starts at `now_s`: old ignition times must not replay the
+    fire's history under today's wind and create artificial past deadlines."""
     m = ens.members
     rng = ens.rng
     speeds = wind.speed_mps * np.exp(rng.normal(0, ens.speed_sigma, m))
@@ -164,12 +164,15 @@ def ensemble_arrival(
     speeds[0], to_rads[0], ros[0] = wind.speed_mps, wind.to_rad, params.base_ros_mps  # keep the nominal member
 
     arr = np.full((m, grid.rows, grid.cols), INF)
-    for cid, t0 in sources.items():
+    for cid, t0 in frontier(grid, sources).items():
         r, c = grid.rc(cid)
-        arr[:, r, c] = np.minimum(arr[:, r, c], t0)
+        arr[:, r, c] = max(now_s, t0)
     costs = _edge_costs(grid, fuel, speeds, to_rads, ros, params)
     arr = _relax(arr, costs, now_s + horizon_s)
     arr = np.where(np.isfinite(arr), np.maximum(arr, now_s), INF)
+    for cid in sources:
+        r, c = grid.rc(cid)
+        arr[:, r, c] = now_s
     arr.sort(axis=0)
     p10 = arr[max(0, int(math.floor(0.10 * (m - 1))))]
     p50 = arr[int(round(0.50 * (m - 1)))]

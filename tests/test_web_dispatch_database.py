@@ -60,6 +60,10 @@ def test_caller_receipt_dispatch_location_updates_and_privacy():
             with pytest.raises(ReducerError, match="unit is not available"):
                 await command.call("assign_request_to_unit", other_id, 1)
             assert (await other.sql("SELECT * FROM my_requests"))[0]["unit_id"] == 0
+            versions = (await command.sql("SELECT * FROM world_version"))[0]
+            await command.call("publish_unit_route", 1, rid, 35.64, -112.76,
+                [dict(lat=35.61,lon=-112.79,name='Fixture road'), dict(lat=35.64,lon=-112.76,name='Fixture road')],
+                600.0, "ready", "Isolated route fixture", "web-flow-route", versions["fire"], versions["roads"])
             await crew.call("unit_en_route", 1, 600.0, 1500.0)
             assert (await caller.sql("SELECT * FROM my_requests"))[0]["status"] == "en_route"
             await crew.call("unit_on_scene", 1)

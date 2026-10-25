@@ -697,6 +697,8 @@ export const RiskSnapshotInput = t.object('RiskSnapshotInput', {
 });
 
 const riskValues = {
+  // The finite legacy slack slot is unused when no route exists. The request view exposes null slack;
+  // risk consumers must check reachable/travelS before displaying an assistance estimate.
   assessmentId: t.string(), schemaVersion: t.string(),
   level: t.string(), slackS: t.f64(), fireEtaS: t.f64(), extractS: t.f64(),
   stationId: t.u32(), travelS: t.option(t.f64()), waitS: t.option(t.f64()),

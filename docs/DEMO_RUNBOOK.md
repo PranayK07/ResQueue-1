@@ -89,3 +89,9 @@ The operator name is a display label attached to actions in the audit log. Use s
 The satellite basemap and OSRM require network access. The fire/model pipeline runs locally from the recorded bundle.
 
 If SpacetimeDB repeatedly logs `not a registered agent` or `requires agent role`, verify the database target first: the sprite preview on 5173 uses the local `wildfire-arizona-a66a` database, while the separate Maincloud stack uses its own database. The Python client now restores a previously successful registration after reconnecting or after a reducer detects a lost role. It retries once with the same role and join key; invalid credentials and real permission failures still surface. Restart agents after updating their Python code, without running the seeder or deleting incident data. Older log entries remain visible after recovery.
+
+## Recorded demo with road routes and sprites
+
+Run `scripts/demo.sh` to prepare the three synthetic callers on connected roads, with their risk calculated from the acquired fire observation, forecast, travel, and assistance needs. The replay starts paused so the queue remains ready for a fourth caller. `scripts/demo.sh run` resumes the agents without reseeding the incident. In another terminal, run `npm --prefix web run dev -- --host 127.0.0.1 --port 5173 --strictPort`; caller, command, and responder views share that URL. The demo script writes the matching local database target into `web/.env.local`.
+
+Risk bands are critical below 10 minutes of slack, high below 30, moderate below 60, and low above that. A negative rescue margin is critical; observed fire and unavailable ground routes are reported separately. No fixture inserts a fixed risk label. For road graph and sprite details, see `docs/DEMO_QA.md` and `web/src/assets/firetruck-pixel.README.md`.

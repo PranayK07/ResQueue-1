@@ -140,7 +140,7 @@ def test_restarting_routing_forecast_does_not_redate_a_recorded_acquisition(reco
     engine.host = SimpleNamespace(recorded=source, fire=SimpleNamespace(_recorded_observation=observation),
                                   sim_now=lambda: now, set_part=lambda *args: None)
     engine.log = SimpleNamespace(info=lambda *args: None)
-    engine._fuel, engine._grid = None, None
+    engine._fuel, engine._grid, engine._retry = None, None, None
     asyncio.run(engine.tick())
     assert seen == [0.0]
     assert engine.db.calls[0][0] == "publish_forecast"

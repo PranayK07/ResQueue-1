@@ -512,6 +512,7 @@ export const ResidentCardRow = __t.object("ResidentCardRow", {
   queuePosition: __t.u32(),
   stationName: __t.string(),
   unitCallsign: __t.string(),
+  unitId: __t.u32(),
   etaS: __t.option(__t.f64()),
   reason: __t.string(),
   headcount: __t.u32(),
@@ -780,4 +781,3 @@ export const WorldVersion = __t.object("WorldVersion", {
   plan: __t.u64(),
 });
 export type WorldVersion = __Infer<typeof WorldVersion>;
-

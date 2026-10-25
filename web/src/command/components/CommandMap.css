@@ -1,6 +1,6 @@
 .cmap {
   position: relative;
-  height: 430px;
+  height: clamp(430px, 52vh, 620px);
   overflow: hidden;
   background: #e9ebdd;
 }
@@ -10,6 +10,36 @@
 .cmap__canvas {
   position: absolute;
   inset: 0;
+}
+
+.cmap__basemap {
+  position: absolute;
+  z-index: 2;
+  top: 16px;
+  right: 60px;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--c-line);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+}
+
+.cmap__basemap button {
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--c-ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.cmap__basemap button[aria-pressed='true'] {
+  background: var(--c-chrome);
+  color: #fff;
 }
 
 .cmap__wind {
@@ -82,17 +112,21 @@
   z-index: 2;
   right: 80px;
   bottom: 14px;
-  color: var(--c-muted);
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: rgb(20 32 27 / 0.9);
+  color: #f5f7f1;
   font-size: 11px;
   letter-spacing: 0.02em;
   pointer-events: none;
 }
 
 .cmap .maplibregl-ctrl-scale {
-  background: transparent;
+  padding: 3px 6px;
+  background: rgb(20 32 27 / 0.85);
   border: none;
-  border-bottom: 4px solid var(--c-ink);
-  color: var(--c-ink);
+  border-bottom: 3px solid #fff;
+  color: #fff;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 11px;
 }
@@ -148,7 +182,8 @@
 }
 
 .cmap-selected {
-  position: relative;
+  /* Marker roots must stay outside document flow; MapLibre owns their transform. */
+  position: absolute;
   width: 34px;
   height: 34px;
   pointer-events: none;
@@ -157,8 +192,9 @@
 .cmap-halo {
   position: absolute;
   inset: 0;
-  border: 2px solid var(--c-red);
+  border: 2px solid #fff;
   border-radius: 50%;
+  box-shadow: 0 0 0 2px #20282d;
 }
 
 .cmap-selected .cmap-tag--selected {
@@ -171,11 +207,14 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  color: var(--c-ink);
+  padding: 2px 6px 2px 2px;
+  border-radius: 4px;
+  background: rgb(20 32 27 / 0.9);
+  color: #fff;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 13px;
   font-weight: 600;
-  text-shadow: 0 0 2px #fff, 0 0 4px #fff;
+  text-shadow: none;
   pointer-events: none;
 }
 
@@ -191,15 +230,18 @@
 }
 
 .cmap-text {
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: rgb(20 32 27 / 0.92);
   font-size: 12px;
   letter-spacing: 0.04em;
-  text-shadow: 0 0 2px #fff, 0 0 4px #fff;
+  text-shadow: none;
   white-space: nowrap;
   pointer-events: none;
 }
 
-.cmap-text--fire { color: #9d4d32; }
-.cmap-text--forecast { color: var(--c-amber); font-size: 11px; }
+.cmap-text--fire { color: #ff958a; border-left: 3px solid #ff765f; }
+.cmap-text--forecast { color: #ffcf79; border-left: 3px solid #f3b451; font-size: 11px; }
 
 /* ─── Unit journey ─── */
 

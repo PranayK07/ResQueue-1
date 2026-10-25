@@ -22,9 +22,11 @@ const FALLBACK_ZOOM = 11;
 export interface LiveMapApi {
   /** Current centre of the visible map. */
   center(): { lat: number; lon: number };
+  show(point: { lat: number; lon: number }): void;
 }
 
 interface Props {
+  fallbackCenter?: { lat: number; lon: number };
   point: { lat: number; lon: number } | null;
   /** 160 on the request screen, 150 elsewhere (Figma "Simulated map"). */
   height: number;
@@ -46,19 +48,21 @@ function createPinElement() {
   return el;
 }
 
-export function LiveMap({ point, height, editable = false, onPick, apiRef, children }: Props) {
+export function LiveMap({ point, height, editable = false, onPick, apiRef, children, fallbackCenter }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
   const initialPoint = useRef(point);
+  const fallback = useRef< [number, number] >(fallbackCenter ? [fallbackCenter.lon, fallbackCenter.lat] : FALLBACK_CENTER);
   const onPickRef = useRef(onPick);
   useEffect(() => {
     onPickRef.current = onPick;
   });
   useImperativeHandle(apiRef, () => ({
+    show: point => { mapRef.current?.jumpTo({ center: [point.lon, point.lat], zoom: FALLBACK_ZOOM }); },
     center: () => {
       const c = mapRef.current?.getCenter();
-      return c ? { lat: c.lat, lon: c.lng } : { lat: FALLBACK_CENTER[1], lon: FALLBACK_CENTER[0] };
+      return c ? { lat: c.lat, lon: c.lng } : { lat: fallback.current[1], lon: fallback.current[0] };
     },
   }));
 
@@ -69,7 +73,7 @@ export function LiveMap({ point, height, editable = false, onPick, apiRef, child
     const map = new maplibregl.Map({
       container: containerRef.current!,
       style: STYLE_URL,
-      center: point ? [point.lon, point.lat] : FALLBACK_CENTER,
+      center: point ? [point.lon, point.lat] : fallback.current,
       zoom: point ? STREET_ZOOM : FALLBACK_ZOOM,
       interactive: editable,
       attributionControl: { compact: true },
@@ -90,6 +94,7 @@ export function LiveMap({ point, height, editable = false, onPick, apiRef, child
       anchor: 'top-left',
       offset: [-29, -42],
       draggable: editable,
+      subpixelPositioning: true,
     });
     marker.on('dragend', () => {
       const { lat, lng } = marker.getLngLat();
