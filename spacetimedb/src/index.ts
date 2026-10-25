@@ -28,6 +28,7 @@ import spacetimedb, {
   SituationInput,
   ForecastCellInput,
   FireRiskCellInput,
+  MockRequestInput,
   PlanEntryInput,
   StationInput,
   TravelInput,
@@ -61,6 +62,8 @@ const EVENT_LOG_KEEP = 400n;
 const MIN_CONSENT_MIN = 15;
 const MAX_CONSENT_MIN = 24 * 60; // a request (and the location it shares) lives at most 24 h unless extended; "I'm safe" deletes it at once
 const LOCKED_EXTENSION_MICROS = 15n * 60n * 1_000_000n;
+const MAX_MOCK_PINGS = 25;
+const MOCK_CONSENT_MIN = 120;
 
 const AGENT_ROLES = [
   'hazard', 'news', 'fire', 'weather', 'closures', 'forecast', 'danger', 'delegation',
@@ -377,6 +380,7 @@ export const load_scenario = spacetimedb.reducer(
     for (const r of [...ctx.db.roadClosure.iter()]) ctx.db.roadClosure.id.delete(r.id);
     for (const r of [...ctx.db.incident.iter()]) ctx.db.incident.id.delete(r.id);
     for (const r of [...ctx.db.newsFocus.iter()]) ctx.db.newsFocus.id.delete(r.id);
+    for (const r of [...ctx.db.crewPresence.iter()]) ctx.db.crewPresence.unitId.delete(r.unitId);
     for (const r of [...ctx.db.unit.iter()]) ctx.db.unit.id.delete(r.id);
     for (const r of [...ctx.db.station.iter()]) ctx.db.station.id.delete(r.id);
     for (const r of [...ctx.db.operator.iter()]) {
@@ -829,6 +833,22 @@ export const extend_consent = spacetimedb.reducer(
   }
 );
 
+/** The resident moved, or corrected the pin: same request (and queue place), new location inside the incident
+ *  area. Danger and travel are recomputed from it; a crew already on the way sees the new point on its map. */
+export const update_my_location = spacetimedb.reducer(
+  { requestId: t.u64(), externalRef: t.string(), lat: t.f64(), lon: t.f64() },
+  (ctx, { requestId, externalRef, lat, lon }) => {
+    const r = requireRequest(ctx, requestId);
+    if (!r.resident.isEqual(ctx.sender) || r.externalRef !== externalRef) throw new SenderError('not your request');
+    if (!isActive(r)) throw new SenderError('request is closed');
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new SenderError('invalid location');
+    if (!insideGrid(ctx, lat, lon)) throw new SenderError('location is outside the active incident area');
+    ctx.db.helpRequest.id.update({ ...r, lat, lon, updatedAt: ctx.timestamp });
+    bump(ctx, 'requests');
+    log(ctx, 'resident', 'location_updated', `Request #${r.id}: resident updated their location`, r.id);
+  }
+);
+
 // ─── Field reports (resident -> intake agent -> commander) ──────────────────
 
 const REPORT_KINDS = ['text', 'voice', 'image', 'video'];
@@ -1181,6 +1201,23 @@ export const unit_available = spacetimedb.reducer(
   }
 );
 
+/** A responder phone is open for this unit: sent every ~20 s while it is open, and active=false when it closes.
+ *  Same station scope as the lifecycle calls; it never writes the unit row. */
+export const crew_heartbeat = spacetimedb.reducer(
+  { unitId: t.u32(), active: t.bool() },
+  (ctx, { unitId, active }) => {
+    const u = requireUnit(ctx, unitId);
+    requireStationActor(ctx, u.stationId);
+    if (!active) {
+      ctx.db.crewPresence.unitId.delete(unitId);
+      return;
+    }
+    const row = { unitId, seenAt: ctx.timestamp };
+    if (ctx.db.crewPresence.unitId.find(unitId)) ctx.db.crewPresence.unitId.update(row);
+    else ctx.db.crewPresence.insert(row);
+  }
+);
+
 // ─── Commander (dashboard or ASI:One commander agent) ───────────────────────
 
 /** Pin a request to a station (stationId = 0 unpins). The policy must obey. */
@@ -1225,6 +1262,28 @@ export const resolve_flag = spacetimedb.reducer(
     if (!f) throw new SenderError(`flag ${flagId} not found`);
     ctx.db.flag.id.update({ ...f, resolved: true, resolution });
     log(ctx, actor, 'flag_resolved', `Flag on request #${f.requestId} resolved: ${resolution}`, f.requestId);
+  }
+);
+
+/** Simulated residents pinging for help (demos and drills), as one transaction. Each is an ordinary request on the
+ *  'synthetic' channel with its own externalRef, owned by the caller, plus an optional first text report for the
+ *  intake agent to read. Same validation as a real ping. */
+export const submit_mock_requests = spacetimedb.reducer(
+  { pings: t.array(MockRequestInput) },
+  (ctx, { pings }) => {
+    const actor = requireCommander(ctx);
+    if (pings.length < 1 || pings.length > MAX_MOCK_PINGS) throw new SenderError(`send 1..${MAX_MOCK_PINGS} mock pings at a time`);
+    const batch = ctx.timestamp.microsSinceUnixEpoch;
+    pings.forEach(({ report, ...p }, i) => {
+      if (report.length > 4000) throw new SenderError('text too long (max 4000 chars)');
+      const r = createRequest(ctx, { ...p, channel: 'synthetic', externalRef: `mock:${batch}:${i}`, consentMinutes: MOCK_CONSENT_MIN }, actor);
+      if (report.trim()) {
+        ctx.db.fieldReport.insert({
+          id: 0n, requestId: r.id, kind: 'text', text: report.trim(), mediaUrl: '', frameUrls: '', createdAt: ctx.timestamp,
+        });
+      }
+    });
+    log(ctx, actor, 'mock_pings', `${pings.length} simulated help ping(s) added`);
   }
 );
 

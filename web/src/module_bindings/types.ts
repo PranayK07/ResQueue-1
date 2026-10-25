@@ -50,6 +50,12 @@ export const ConsentTimer = __t.object("ConsentTimer", {
 });
 export type ConsentTimer = __Infer<typeof ConsentTimer>;
 
+export const CrewPresence = __t.object("CrewPresence", {
+  unitId: __t.u32(),
+  seenAt: __t.timestamp(),
+});
+export type CrewPresence = __Infer<typeof CrewPresence>;
+
 export const DangerInput = __t.object("DangerInput", {
   requestId: __t.u64(),
   level: __t.string(),
@@ -227,6 +233,16 @@ export const Incident = __t.object("Incident", {
   updatedAt: __t.timestamp(),
 });
 export type Incident = __Infer<typeof Incident>;
+
+export const MockRequestInput = __t.object("MockRequestInput", {
+  lat: __t.f64(),
+  lon: __t.f64(),
+  headcount: __t.u32(),
+  needs: __t.string(),
+  note: __t.string(),
+  report: __t.string(),
+});
+export type MockRequestInput = __Infer<typeof MockRequestInput>;
 
 export const MyRequests = __t.object("MyRequests", {});
 export type MyRequests = __Infer<typeof MyRequests>;

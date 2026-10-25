@@ -41,6 +41,7 @@ import ClearIncidentReducer from "./clear_incident_reducer";
 import ClearNewsFocusReducer from "./clear_news_focus_reducer";
 import CloseMyRequestReducer from "./close_my_request_reducer";
 import CompleteMissionReducer from "./complete_mission_reducer";
+import CrewHeartbeatReducer from "./crew_heartbeat_reducer";
 import DeclineMissionReducer from "./decline_mission_reducer";
 import ExtendConsentReducer from "./extend_consent_reducer";
 import FlagRequestReducer from "./flag_request_reducer";
@@ -69,17 +70,20 @@ import SetSimReducer from "./set_sim_reducer";
 import SetWeatherReducer from "./set_weather_reducer";
 import SubmitHelpRequestReducer from "./submit_help_request_reducer";
 import SubmitHelpRequestForReducer from "./submit_help_request_for_reducer";
+import SubmitMockRequestsReducer from "./submit_mock_requests_reducer";
 import SubmitReportReducer from "./submit_report_reducer";
 import UnitAvailableReducer from "./unit_available_reducer";
 import UnitEnRouteReducer from "./unit_en_route_reducer";
 import UnitOnSceneReducer from "./unit_on_scene_reducer";
 import UnitPositionReducer from "./unit_position_reducer";
+import UpdateMyLocationReducer from "./update_my_location_reducer";
 import UpsertFireCellsReducer from "./upsert_fire_cells_reducer";
 
 // Import all procedure arg schemas
 
 // Import all table schema definitions
 import AgentRow from "./agent_table";
+import CrewPresenceRow from "./crew_presence_table";
 import EventLogRow from "./event_log_table";
 import FireCellRow from "./fire_cell_table";
 import FireRiskCellRow from "./fire_risk_cell_table";
@@ -124,6 +128,17 @@ const tablesSchema = __schema({
       { name: 'agent_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, AgentRow),
+  crewPresence: __table({
+    name: 'crew_presence',
+    indexes: [
+      { accessor: 'unitId', name: 'crew_presence_unit_id_idx_btree', algorithm: 'btree', columns: [
+        'unitId',
+      ] },
+    ],
+    constraints: [
+      { name: 'crew_presence_unit_id_key', constraint: 'unique', columns: ['unitId'] },
+    ],
+  }, CrewPresenceRow),
   eventLog: __table({
     name: 'event_log',
     indexes: [
@@ -410,6 +425,7 @@ const reducersSchema = __reducers(
   __reducerSchema("clear_news_focus", ClearNewsFocusReducer),
   __reducerSchema("close_my_request", CloseMyRequestReducer),
   __reducerSchema("complete_mission", CompleteMissionReducer),
+  __reducerSchema("crew_heartbeat", CrewHeartbeatReducer),
   __reducerSchema("decline_mission", DeclineMissionReducer),
   __reducerSchema("extend_consent", ExtendConsentReducer),
   __reducerSchema("flag_request", FlagRequestReducer),
@@ -438,11 +454,13 @@ const reducersSchema = __reducers(
   __reducerSchema("set_weather", SetWeatherReducer),
   __reducerSchema("submit_help_request", SubmitHelpRequestReducer),
   __reducerSchema("submit_help_request_for", SubmitHelpRequestForReducer),
+  __reducerSchema("submit_mock_requests", SubmitMockRequestsReducer),
   __reducerSchema("submit_report", SubmitReportReducer),
   __reducerSchema("unit_available", UnitAvailableReducer),
   __reducerSchema("unit_en_route", UnitEnRouteReducer),
   __reducerSchema("unit_on_scene", UnitOnSceneReducer),
   __reducerSchema("unit_position", UnitPositionReducer),
+  __reducerSchema("update_my_location", UpdateMyLocationReducer),
   __reducerSchema("upsert_fire_cells", UpsertFireCellsReducer),
 );
 

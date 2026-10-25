@@ -103,6 +103,17 @@ export const unit = table(
   }
 );
 
+/** Units that have a responder phone open right now (the phone heartbeats while it is open). The
+ *  simulated-crews driver leaves the "rescued" decision to a crewed unit's phone. Separate from `unit` on
+ *  purpose: heartbeats must not touch unit rows, which every risk snapshot is stamped with. */
+export const crewPresence = table(
+  { name: 'crew_presence', public: true },
+  {
+    unitId: t.u32().primaryKey(),
+    seenAt: t.timestamp(),
+  }
+);
+
 // ─── Fire, weather, forecast, roads ─────────────────────────────────────────
 
 /** Singleton (id = 0). `locked` = commander/judge has taken manual control of
@@ -651,6 +662,16 @@ export const UnreachableInput = t.object('UnreachableInput', {
   recommendation: t.string(),
 });
 
+/** One simulated resident's ping (submit_mock_requests). `report` = an optional first text report. */
+export const MockRequestInput = t.object('MockRequestInput', {
+  lat: t.f64(),
+  lon: t.f64(),
+  headcount: t.u32(),
+  needs: t.string(),
+  note: t.string(),
+  report: t.string(),
+});
+
 /** Public pipeline health carries no resident data. */
 export const riskPipeline = table({ name: 'risk_pipeline', public: true }, {
   id: t.u8().primaryKey(), scenario: t.string(), sourceId: t.string(),
@@ -700,6 +721,7 @@ const spacetimedb = schema(
     grid,
     station,
     unit,
+    crewPresence,
     weather,
     fireCell,
     forecastCell,
